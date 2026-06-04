@@ -1121,7 +1121,12 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
     const rankedIds = runAlgorithm(studentData);
     const top8 = buildYear10Selection(rankedIds);
     const top8Ids = new Set(top8.map(e => e.id));
-    const pool = ALL_ELECTIVES.filter(e => !top8Ids.has(e.id));
+    // Pool is the remainder of the algorithm's ranked list in order,
+    // so swapping gives the 9th closest match, then 10th, then 11th…
+    const pool = rankedIds
+      .filter(id => !top8Ids.has(id))
+      .map(id => ALL_ELECTIVES.find(e => e.id === id))
+      .filter(Boolean);
     const data = { studentData, suggestions: top8, pool, isLocked: false };
     setSuggestions(top8); setSuggestionPool(pool); setIsLocked(false); setSubmitted(true);
     onSubmit(data);
