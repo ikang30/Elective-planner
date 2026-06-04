@@ -332,6 +332,17 @@
     .badge-tech       { background: #f0fdf4; color: #166534; }
     .badge-health     { background: #fdf2f8; color: #9d174d; }
 
+    /* ═══ ENHANCEMENT BANNER ═══ */
+    .enhancement-banner {
+      background: linear-gradient(135deg, #eef2ff, #f5f3ff);
+      border: 1.5px solid #c7d2fe; border-radius: 12px;
+      padding: 1rem 1.25rem; margin-top: 1.25rem;
+      display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .enhancement-banner-icon { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
+    .enhancement-banner-title { font-weight: 700; font-size: .95rem; color: #4338ca; margin-bottom: .25rem; }
+    .enhancement-banner-text { font-size: .85rem; color: #4338ca; line-height: 1.55; opacity: .85; }
+
     /* ═══ LANGUAGE NOTE ═══ */
     .language-note {
       background: linear-gradient(135deg, #fefce8, #fff7ed); border: 1.5px solid #fde68a;
@@ -937,10 +948,31 @@ function runAlgorithm(studentData) {
 
   const biased = Object.fromEntries(DIMS.map(d => [d, board[d] * (BIAS[d] || 1)]));
 
+  // ── Hard-to-suggest penalty ──────────────────────────────────
+  // These electives are penalised heavily — a ×0.18 multiplier
+  // means their match score needs to be ~5.5× stronger than any
+  // normal elective's to break into the top 8. They can still
+  // appear (e.g. if a student's entire profile screams "Art"),
+  // but casual or mixed profiles will never see them in the
+  // initial suggestions. They remain fully swappable from the pool.
+  const HARD_PENALTY = {
+    creative_writing:     0.18,
+    english_writing:      0.18,
+    make_my_day_science:  0.18,
+    environmental_science:0.18,
+    sustainable_design:   0.18,
+    art:                  0.18,
+    ceramics:             0.18,
+    animation:            0.18,
+    food_tech:            0.18,
+    health:               0.18,
+  };
+
   const scored = ALL_ELECTIVES.map(e => {
     const ep = ELECTIVE_POINTS[e.id];
     if (!ep) return { id: e.id, score: 0 };
-    const score = DIMS.reduce((sum, d) => sum + biased[d] * (ep[d] || 0), 0);
+    const raw = DIMS.reduce((sum, d) => sum + biased[d] * (ep[d] || 0), 0);
+    const score = raw * (HARD_PENALTY[e.id] ?? 1);
     return { id: e.id, score };
   });
 
@@ -953,6 +985,28 @@ function buildYear10Selection(rankedIds) {
   const CAT_CAPS = { science: 2, pe: 1, humanities: 2 };
   const catCount = {};
 
+  // ── Similarity groups — max 1 per group in the final 8 ────────
+  // Electives within the same group are considered too similar to
+  // appear together. The lower-ranked one is skipped and pushed
+  // further down the swap pool instead.
+  const SIM_GROUPS = [
+    // Near-identical point profiles — one is enough
+    new Set(['information_systems', 'information_technology']),
+    // Visual arts (pick the best-fit one)
+    new Set(['art', 'ceramics', 'sculpture', 'vic_comm']),
+    // Music
+    new Set(['music_performance', 'music_technology']),
+    // English / writing (all very english-heavy)
+    new Set(['literature', 'creative_writing', 'english_writing']),
+    // Soft sciences (very similar to each other)
+    new Set(['make_my_day_science', 'environmental_science']),
+    // Commerce (both business-oriented)
+    new Set(['commerce_business_legal', 'commerce_economics_finance']),
+  ];
+
+  const tooSimilar = (id) =>
+    SIM_GROUPS.some(g => g.has(id) && selected.some(e => g.has(e.id)));
+
   const addById = (id) => {
     if (seen.has(id)) return false;
     const e = ALL_ELECTIVES.find(x => x.id === id);
@@ -962,7 +1016,7 @@ function buildYear10Selection(rankedIds) {
     return true;
   };
 
-  // Guaranteed minimums
+  // Guaranteed minimums — structure overrides similarity
   addById(rankedIds.find(id => HUMANITIES_IDS.includes(id)) || 'history');
   addById(rankedIds.find(id => SCIENCE_IDS.includes(id)) || 'biology');
   addById(rankedIds.find(id => PE_IDS.includes(id)) || 'pe_for_life');
@@ -974,14 +1028,17 @@ function buildYear10Selection(rankedIds) {
     return cap === undefined || (catCount[e.category] || 0) < cap;
   };
 
+  // Pass 1 — ranked list, obey both caps AND similarity
+  for (const id of rankedIds) {
+    if (selected.length >= total) break;
+    if (canAdd(id) && !tooSimilar(id)) addById(id);
+  }
+  // Pass 2 — still short? relax similarity (keep caps)
   for (const id of rankedIds) {
     if (selected.length >= total) break;
     if (canAdd(id)) addById(id);
   }
-  for (const e of ALL_ELECTIVES) {
-    if (selected.length >= total) break;
-    if (canAdd(e.id)) addById(e.id);
-  }
+  // Pass 3 — last resort: ignore everything
   for (const e of ALL_ELECTIVES) {
     if (selected.length >= total) break;
     if (!seen.has(e.id)) addById(e.id);
@@ -1337,13 +1394,50 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
               <div>
                 <div className="language-note-title">{submittedData.studentData.language} Continuation Available</div>
                 <div className="language-note-text">
-                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9, you may replace
-                  <strong> 2 of the elective suggestions above</strong> with <strong>{submittedData.studentData.language} (continuation)</strong>.
+                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9,
+                  you might want to remove{' '}
+                  <strong>{suggestions[6]?.name || 'your 7th elective'}</strong> and{' '}
+                  <strong>{suggestions[7]?.name || 'your 8th elective'}</strong>{' '}
+                  and replace them with <strong>{submittedData.studentData.language} (continuation)</strong>.
                   Speak to your subject coordinator to confirm availability.
                 </div>
               </div>
             </div>
           )}
+
+          {/* ── ENHANCEMENT BANNER ──
+              Shown only when English > 70 AND maths or science > 85.
+              Names the specific science elective if one is in the top 8. */}
+          {(() => {
+            const g = submittedData?.studentData?.grades || {};
+            const eng  = Number(g['English']     || 0);
+            const math = Number(g['Mathematics']  || 0);
+            const sci  = Number(g['Science']      || 0);
+            const showMaths = eng > 70 && math > 85;
+            const showSci   = eng > 70 && sci  > 85;
+            if (!showMaths && !showSci) return null;
+            const sciElective = suggestions.find(e => SCIENCE_IDS.includes(e.id));
+            const sciLabel = sciElective ? sciElective.name : 'Science';
+            return (
+              <div className="enhancement-banner">
+                <div className="enhancement-banner-icon">⭐</div>
+                <div>
+                  <div className="enhancement-banner-title">Enhancement Opportunity</div>
+                  <div className="enhancement-banner-text">
+                    Based on your strong grades, you might want to consider taking{' '}
+                    {showMaths && showSci ? (
+                      <><strong>enhancement Year 11 Mathematics</strong> and <strong>enhancement Year 11 {sciLabel}</strong></>
+                    ) : showMaths ? (
+                      <strong>enhancement Year 11 Mathematics</strong>
+                    ) : (
+                      <strong>enhancement Year 11 {sciLabel}</strong>
+                    )}{' '}
+                    classes in Year 10. Speak to your subject coordinator about acceleration and enrichment options.
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="lock-action-row">
             {!isLocked && <button className="btn btn-lock" onClick={handleLockIn}><Icon name="lock" size={15} /> Lock In?</button>}
