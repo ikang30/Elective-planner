@@ -323,15 +323,16 @@
     }
     .dismiss-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
 
-    /* BADGE COLOURS */
-    .badge-humanities { background: #fef3c7; color: #92400e; }
-    .badge-science    { background: #d1fae5; color: #065f46; }
-    .badge-pe         { background: #fee2e2; color: #991b1b; }
-    .badge-arts       { background: #ede9fe; color: #5b21b6; }
-    .badge-commerce   { background: #e0f2fe; color: #0369a1; }
-    .badge-tech       { background: #f0fdf4; color: #166534; }
-    .badge-health     { background: #fdf2f8; color: #9d174d; }
-    .badge-language   { background: #fff7ed; color: #9a3412; }
+    /* BADGE COLOURS — one per faculty column */
+    .badge-english        { background: #dbeafe; color: #1e40af; }
+    .badge-humanities     { background: #fef3c7; color: #92400e; }
+    .badge-science        { background: #d1fae5; color: #065f46; }
+    .badge-pe             { background: #fee2e2; color: #991b1b; }
+    .badge-visual-arts    { background: #ede9fe; color: #5b21b6; }
+    .badge-performing-arts{ background: #fce7f3; color: #9d174d; }
+    .badge-health         { background: #fdf2f8; color: #831843; }
+    .badge-ict            { background: #f0fdf4; color: #166534; }
+    .badge-language       { background: #fff7ed; color: #9a3412; }
 
     /* LANGUAGE SWAP ACTIONS */
     .lang-swap-row { display: flex; gap: .6rem; margin-top: .85rem; flex-wrap: wrap; align-items: center; }
@@ -620,141 +621,149 @@ const SCIENCE_IDS    = ['make_my_day_science', 'environmental_science', 'physics
 const PE_IDS         = ['pe_for_life', 'human_movement'];
 
 const ALL_ELECTIVES = [
-  // HUMANITIES
-  { id: 'history',    name: 'History',    category: 'humanities', badge: 'badge-humanities',
-    description: '/* PLACEHOLDER: Curriculum description for History */',
-    careers: ['Historian','Lawyer','Archaeologist','Teacher','Journalist'],
-    universities: ['University of Melbourne','ANU','University of Sydney','University of Oxford'] },
-  { id: 'geography',  name: 'Geography',  category: 'humanities', badge: 'badge-humanities',
-    description: '/* PLACEHOLDER: Curriculum description for Geography */',
-    careers: ['Urban Planner','Environmental Consultant','GIS Analyst','Policy Advisor'],
-    universities: ['ANU','University of Queensland (UQ)','University of Melbourne','University of Edinburgh'] },
-  // SCIENCES
+  /* ── ENGLISH FACULTY ────────────────────────────────── */
+  { id: 'literature', name: 'Literature', category: 'english_faculty', badge: 'badge-english',
+    description: 'Read between the lines of complex texts and write analytically — sharp critical thinking and strong English skills required. → Literary critic, editor, lawyer.',
+    careers: ['Literary Critic','Editor','Lawyer','Author','Academic'],
+    universities: ['University of Melbourne','University of Sydney','University of Oxford (UK)'] },
+  { id: 'creative_writing', name: 'Creative Writing', category: 'english_faculty', badge: 'badge-english',
+    description: 'Put your imagination on paper through stories, poetry and scripts — needs creativity and a love for English. → Author, screenwriter, journalist.',
+    careers: ['Author','Screenwriter','Journalist','Content Creator'],
+    universities: ['RMIT University','Deakin University','University of Melbourne'] },
+  { id: 'english_writing', name: 'The English Language', category: 'english_faculty', badge: 'badge-english',
+    description: 'Master persuasive essays, reports and functional writing — solid English and clear communication skills essential. → Copywriter, communications officer, teacher.',
+    careers: ['Copywriter','Communications Officer','Teacher','Policy Writer'],
+    universities: ['University of Sydney','Monash University','University of Melbourne'] },
+
+  /* ── HUMANITIES FACULTY (incl. Commerce electives) ─── */
+  { id: 'history', name: 'History', category: 'humanities', badge: 'badge-humanities',
+    description: 'Dig into why major world events happened and what they changed — suits strong Humanities and English students. → Historian, politician, policy analyst.',
+    careers: ['Historian','Politician','Policy Analyst','Journalist','Archaeologist'],
+    universities: ['University of Melbourne','Australian National University (ANU)','University of Sydney','University of Oxford (UK)'] },
+  { id: 'geography', name: 'Geography', category: 'humanities', badge: 'badge-humanities',
+    description: 'Understand how people and environments shape each other through maps, data and fieldwork — links to Science and Humanities. → Urban planner, environmental consultant, geographer.',
+    careers: ['Urban Planner','Environmental Consultant','Geographer','GIS Analyst'],
+    universities: ['Australian National University (ANU)','University of Queensland (UQ)','University of Melbourne','University of Edinburgh (UK)'] },
+  { id: 'commerce_business_legal', name: 'Commerce Business & Legal', category: 'humanities', badge: 'badge-humanities',
+    description: 'Learn how real businesses run and how the law protects people — suits students good at Humanities and logical thinking. → Lawyer, business owner, compliance officer.',
+    careers: ['Lawyer','Business Owner','Compliance Officer','Entrepreneur'],
+    universities: ['University of Melbourne','UNSW Sydney','University of Sydney','University of Oxford (UK)'] },
+  { id: 'commerce_economics_finance', name: 'Commerce Economics & Finance', category: 'humanities', badge: 'badge-humanities',
+    description: 'Understand money, markets and economic decisions at every scale — needs strong Maths and analytical thinking. → Economist, financial analyst, accountant.',
+    careers: ['Economist','Financial Analyst','Accountant','Investment Banker'],
+    universities: ['UNSW Sydney','University of Melbourne','London School of Economics (LSE, UK)','University of Sydney'] },
+  { id: 'global_conflict', name: 'Global Conflict & Crisis', category: 'humanities', badge: 'badge-humanities',
+    description: 'Examine wars, genocides and humanitarian disasters through evidence and ethical debate — strong Humanities and English needed. → Diplomat, journalist, NGO worker.',
+    careers: ['Diplomat','Journalist','NGO Worker','Policy Advisor','Intelligence Analyst'],
+    universities: ['Australian National University (ANU)','University of Oxford (UK)','University of Melbourne','London School of Economics (LSE, UK)'] },
+
+  /* ── SCIENCE FACULTY ─────────────────────────────────── */
   { id: 'make_my_day_science', name: 'Make My Day Science', category: 'science', badge: 'badge-science',
-    description: '/* PLACEHOLDER: Curriculum description for Make My Day Science */',
-    careers: ['Science Teacher','Lab Technician','Research Assistant'],
+    description: 'Hands-on experiments across all science disciplines — great entry point linking core Science with curiosity and lab skills. → Scientist, science communicator, researcher.',
+    careers: ['Science Teacher','Lab Technician','Research Assistant','Science Communicator'],
     universities: ['University of Melbourne','Monash University','University of Queensland (UQ)'] },
   { id: 'environmental_science', name: 'Environmental Science', category: 'science', badge: 'badge-science',
-    description: '/* PLACEHOLDER: Curriculum description for Environmental Science */',
-    careers: ['Environmental Consultant','Ecologist','Conservation Scientist'],
-    universities: ['ANU','University of Queensland (UQ)','University of Melbourne','University of Edinburgh'] },
-  { id: 'physics',    name: 'Physics',    category: 'science', badge: 'badge-science',
-    description: '/* PLACEHOLDER: Curriculum description for Physics */',
-    careers: ['Physicist','Engineer','Data Scientist','Aerospace Technician'],
-    universities: ['MIT','UNSW Sydney','University of Melbourne','ETH Zurich'] },
-  { id: 'biology',    name: 'Biology',    category: 'science', badge: 'badge-science',
-    description: '/* PLACEHOLDER: Curriculum description for Biology */',
-    careers: ['Doctor','Biomedical Researcher','Nurse','Pharmacist'],
-    universities: ['University of Melbourne','UNSW Sydney','University of Queensland (UQ)','University of Oxford'] },
-  { id: 'chemistry',  name: 'Chemistry',  category: 'science', badge: 'badge-science',
-    description: '/* PLACEHOLDER: Curriculum description for Chemistry */',
-    careers: ['Pharmacist','Chemical Engineer','Forensic Scientist','Materials Scientist'],
-    universities: ['Monash University','UNSW Sydney','University of Melbourne','University of Cambridge'] },
-  // PE
-  { id: 'pe_for_life',    name: 'PE for Life',    category: 'pe', badge: 'badge-pe',
-    description: '/* PLACEHOLDER: Curriculum description for PE for Life */',
-    careers: ['PE Teacher','Personal Trainer','Sports Coach','Community Health Officer'],
+    description: 'Investigate ecosystems, pollution and climate change through fieldwork and data — links Science and Geography strongly. → Environmental scientist, conservation officer, sustainability consultant.',
+    careers: ['Environmental Scientist','Conservation Officer','Sustainability Consultant','Ecologist'],
+    universities: ['Australian National University (ANU)','University of Queensland (UQ)','University of Melbourne','University of Edinburgh (UK)'] },
+  { id: 'physics', name: 'Physics', category: 'science', badge: 'badge-science',
+    description: 'Tackle forces, motion and energy through experiments and maths — requires strong Maths and Science foundations. → Engineer, physicist, pilot.',
+    careers: ['Physicist','Engineer','Pilot','Aerospace Technician','Data Scientist'],
+    universities: ['MIT (USA)','UNSW Sydney','University of Melbourne','ETH Zurich (Switzerland)'] },
+  { id: 'biology', name: 'Biology', category: 'science', badge: 'badge-science',
+    description: 'Explore how living things work from cells to ecosystems — closely tied to core Science, suits detail-oriented students. → Doctor, nurse, marine biologist.',
+    careers: ['Doctor','Nurse','Marine Biologist','Biomedical Researcher','Pharmacist'],
+    universities: ['University of Melbourne','UNSW Sydney','University of Queensland (UQ)','University of Oxford (UK)'] },
+  { id: 'chemistry', name: 'Chemistry', category: 'science', badge: 'badge-science',
+    description: 'Mix, react and analyse substances in the lab — demands strong Maths and Science skills. → Pharmacist, chemist, food scientist.',
+    careers: ['Pharmacist','Chemist','Food Scientist','Chemical Engineer','Forensic Scientist'],
+    universities: ['Monash University','UNSW Sydney','University of Melbourne','University of Cambridge (UK)'] },
+
+  /* ── PE FACULTY ──────────────────────────────────────── */
+  { id: 'pe_for_life', name: 'PE for Life', category: 'pe', badge: 'badge-pe',
+    description: 'Train your body and study how it works — links to core PE and basic Science, needs commitment and physical effort. → Personal trainer, physiotherapist, sports coach.',
+    careers: ['Personal Trainer','Physiotherapist','Sports Coach','PE Teacher'],
     universities: ['University of Queensland (UQ)','Deakin University','Monash University'] },
   { id: 'human_movement', name: 'Human Movement', category: 'pe', badge: 'badge-pe',
-    description: '/* PLACEHOLDER: Curriculum description for Human Movement */',
-    careers: ['Physiotherapist','Exercise Physiologist','Sports Scientist','Occupational Therapist'],
+    description: 'Apply science to sport and exercise performance — combines core PE with Biology concepts. → Sports scientist, physiotherapist, exercise physiologist.',
+    careers: ['Sports Scientist','Physiotherapist','Exercise Physiologist','Occupational Therapist'],
     universities: ['University of Melbourne','Deakin University','University of Queensland (UQ)'] },
-  // ARTS
-  { id: 'literature',        name: 'Literature',           category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Literature */',
-    careers: ['Author','Publisher','Editor','Journalist','Academic'],
-    universities: ['University of Melbourne','University of Sydney','University of Oxford'] },
-  { id: 'creative_writing',  name: 'Creative Writing',     category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Creative Writing */',
-    careers: ['Author','Screenwriter','Content Creator','Copywriter'],
-    universities: ['RMIT University','Deakin University','University of Melbourne'] },
-  { id: 'english_writing',   name: 'The English Language', category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for The English Writing */',
-    careers: ['Journalist','Communications Officer','PR Specialist','Policy Writer'],
-    universities: ['University of Sydney','Monash University','University of Melbourne'] },
-  { id: 'sculpture',         name: 'Sculpture',            category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Sculpture */',
-    careers: ['Visual Artist','Sculptor','Art Educator','Museum Curator'],
-    universities: ['RMIT University','University of Melbourne (VCA)','ANU'] },
-  { id: 'vic_comm',          name: 'Visual Communication', category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Vic Comm */',
-    careers: ['Visual Communications Designer','Graphic Designer','Art Director'],
+  { id: 'outdoor_ed', name: 'Outdoor Ed', category: 'pe', badge: 'badge-pe',
+    description: 'Lead and survive in the outdoors through camps and adventures — builds teamwork and resilience, links to PE and Geography. → Outdoor education teacher, park ranger, expedition guide.',
+    careers: ['Outdoor Education Teacher','Park Ranger','Expedition Guide','Tourism Guide'],
+    universities: ['University of Queensland (UQ)','Australian National University (ANU)','Deakin University'] },
+
+  /* ── VISUAL ARTS FACULTY ─────────────────────────────── */
+  { id: 'sculpture', name: 'Sculpture', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Build three-dimensional artworks from real materials — needs spatial thinking, creativity and hands-on making skills. → Sculptor, set designer, product designer.',
+    careers: ['Sculptor','Set Designer','Product Designer','Art Educator'],
+    universities: ['RMIT University','University of Melbourne','Australian National University (ANU)'] },
+  { id: 'vic_comm', name: 'Visual Communication', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Communicate ideas through technical drawing and design layouts — links to Maths through precision and suits creative problem solvers. → Graphic designer, architect, UX designer.',
+    careers: ['Graphic Designer','Architect','UX Designer','Art Director'],
     universities: ['RMIT University','Swinburne University','University of Technology Sydney (UTS)'] },
-  { id: 'art',               name: 'Art',                  category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Art */',
-    careers: ['Artist','Graphic Designer','Art Teacher','Illustrator'],
-    universities: ['RMIT University','University of Melbourne (VCA)','ANU'] },
-  { id: 'ceramics',          name: 'Ceramics',             category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Ceramics */',
-    careers: ['Ceramicist','Designer','Art Educator','Gallery Curator'],
-    universities: ['RMIT University','ANU','University of Melbourne (VCA)'] },
-  { id: 'media',             name: 'Media',                category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Media */',
-    careers: ['Journalist','Film Director','Content Creator','Producer'],
+  { id: 'art', name: 'Art', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Develop a personal visual style through painting and mixed media — needs creativity, patience and strong artistic instincts. → Visual artist, art director, illustrator.',
+    careers: ['Visual Artist','Art Director','Illustrator','Art Teacher'],
+    universities: ['RMIT University','University of Melbourne','Australian National University (ANU)'] },
+  { id: 'ceramics', name: 'Ceramics', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Shape clay into functional and sculptural pieces by hand and on the wheel — needs patience, creativity and fine motor skills. → Ceramic artist, industrial designer, art therapist.',
+    careers: ['Ceramic Artist','Industrial Designer','Art Therapist','Gallery Curator'],
+    universities: ['RMIT University','Australian National University (ANU)','University of Melbourne'] },
+  { id: 'media', name: 'Media', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Analyse ads, films and news then create your own — links English and Arts, suits students who question what they watch and read. → Film director, journalist, social media strategist.',
+    careers: ['Film Director','Journalist','Social Media Strategist','Producer'],
     universities: ['RMIT University','University of Technology Sydney (UTS)','University of Melbourne'] },
-  { id: 'animation',         name: 'Animation',            category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Animation */',
+  { id: 'sustainable_design', name: 'Sustainable Design', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Design real solutions to real problems with the planet in mind — combines Engineering, Science and creative thinking. → Industrial designer, sustainability engineer, architect.',
+    careers: ['Industrial Designer','Sustainability Engineer','Architect','Urban Designer'],
+    universities: ['RMIT University','University of Melbourne','Swinburne University','ETH Zurich (Switzerland)'] },
+  { id: 'animation', name: 'Animation', category: 'visual_arts', badge: 'badge-visual-arts',
+    description: 'Bring characters and stories to life digitally — needs creativity, Engineering thinking and strong digital skills. → Animator, game designer, VFX artist.',
     careers: ['Animator','Game Designer','VFX Artist','Motion Graphics Designer'],
     universities: ['RMIT University','Swinburne University','University of Technology Sydney (UTS)'] },
-  { id: 'music_performance', name: 'Music Performance Craft', category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Music Performance Craft */',
+
+  /* ── PERFORMING ARTS FACULTY ─────────────────────────── */
+  { id: 'music_performance', name: 'Music Performance Craft', category: 'performing_arts', badge: 'badge-performing-arts',
+    description: 'Perform, rehearse and refine your instrument or voice — needs dedication, ear training and musical literacy. → Musician, music teacher, performer.',
     careers: ['Musician','Music Teacher','Performer','Conductor'],
-    universities: ['University of Melbourne (Conservatorium)','ANU','Monash University'] },
-  { id: 'music_technology',  name: 'Music Technology',     category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Music Technology */',
-    careers: ['Sound Engineer','Music Producer','Audio Technician','Composer'],
+    universities: ['University of Melbourne','Australian National University (ANU)','Monash University'] },
+  { id: 'music_technology', name: 'Music Technology', category: 'performing_arts', badge: 'badge-performing-arts',
+    description: 'Produce, mix and record original music using software — combines creativity with technical digital skills. → Music producer, sound designer, audio engineer.',
+    careers: ['Music Producer','Sound Designer','Audio Engineer','Composer'],
     universities: ['RMIT University','University of Melbourne','Swinburne University'] },
-  { id: 'theatre',           name: 'Theatre',              category: 'arts', badge: 'badge-arts',
-    description: '/* PLACEHOLDER: Curriculum description for Theatre */',
+  { id: 'theatre', name: 'Theatre', category: 'performing_arts', badge: 'badge-performing-arts',
+    description: 'Act, devise and perform on stage — needs confidence, collaboration and strong English and Arts engagement. → Actor, drama teacher, theatre director.',
     careers: ['Actor','Drama Teacher','Theatre Director','Arts Administrator'],
-    universities: ['University of Melbourne (VCA)','ANU','Flinders University'] },
-  // COMMERCE
-  { id: 'commerce_business_legal',    name: 'Commerce Business & Legal',    category: 'commerce', badge: 'badge-commerce',
-    description: '/* PLACEHOLDER: Curriculum description for Commerce Business & Legal */',
-    careers: ['Lawyer','Business Analyst','Compliance Officer','Entrepreneur'],
-    universities: ['University of Melbourne','UNSW Sydney','University of Sydney','University of Oxford'] },
-  { id: 'commerce_economics_finance', name: 'Commerce Economics & Finance', category: 'commerce', badge: 'badge-commerce',
-    description: '/* PLACEHOLDER: Curriculum description for Commerce Economics & Finance */',
-    careers: ['Economist','Financial Analyst','Investment Banker','Actuary'],
-    universities: ['UNSW Sydney','University of Melbourne','London School of Economics (LSE)','University of Sydney'] },
-  { id: 'global_conflict',   name: 'Global Conflict & Crisis', category: 'commerce', badge: 'badge-commerce',
-    description: '/* PLACEHOLDER: Curriculum description for Global Conflict & Crisis */',
-    careers: ['Diplomat','Intelligence Analyst','International Aid Worker','Policy Advisor'],
-    universities: ['ANU','University of Oxford','University of Melbourne','London School of Economics (LSE)'] },
-  // TECH
-  { id: 'sustainable_design',    name: 'Sustainable Design',        category: 'tech', badge: 'badge-tech',
-    description: '/* PLACEHOLDER: Curriculum description for Sustainable Design */',
-    careers: ['Architect','Industrial Designer','Sustainability Consultant','Urban Designer'],
-    universities: ['RMIT University','University of Melbourne','Swinburne University','ETH Zurich'] },
-  { id: 'information_systems',   name: 'Information Systems',       category: 'tech', badge: 'badge-tech',
-    description: '/* PLACEHOLDER: Curriculum description for Information Systems */',
-    careers: ['Business Analyst','IT Manager','Systems Analyst','Project Manager'],
-    universities: ['University of Melbourne','UNSW Sydney','Monash University','University of Queensland (UQ)'] },
-  { id: 'information_technology',name: 'Information Technology',    category: 'tech', badge: 'badge-tech',
-    description: '/* PLACEHOLDER: Curriculum description for Information Technology */',
-    careers: ['Software Developer','Data Scientist','Cybersecurity Analyst','Cloud Engineer'],
-    universities: ['UNSW Sydney','University of Melbourne','MIT','University of Queensland (UQ)'] },
-  { id: 'intro_engineering',     name: 'Introduction to Engineering', category: 'tech', badge: 'badge-tech',
-    description: '/* PLACEHOLDER: Curriculum description for Introduction to Engineering */',
-    careers: ['Civil Engineer','Mechanical Engineer','Electrical Engineer','Robotics Engineer'],
-    universities: ['University of Melbourne','UNSW Sydney','MIT','ETH Zurich'] },
-  // HEALTH & OUTDOOR
-  { id: 'outdoor_ed', name: 'Outdoor Ed', category: 'health', badge: 'badge-health',
-    description: '/* PLACEHOLDER: Curriculum description for Outdoor Ed */',
-    careers: ['Outdoor Education Teacher','Tourism Guide','Park Ranger','Adventure Therapist'],
-    universities: ['University of Queensland (UQ)','ANU','Deakin University'] },
-  { id: 'food_tech',  name: 'Food Tech',  category: 'health', badge: 'badge-health',
-    description: '/* PLACEHOLDER: Curriculum description for Food Tech */',
-    careers: ['Chef','Food Scientist','Nutritionist','Food Technologist'],
+    universities: ['University of Melbourne','Australian National University (ANU)','Flinders University'] },
+
+  /* ── HEALTH FACULTY ──────────────────────────────────── */
+  { id: 'food_tech', name: 'Food Tech', category: 'health', badge: 'badge-health',
+    description: 'Cook, experiment and understand nutrition science in the kitchen — links Science and creativity with real-life health knowledge. → Chef, nutritionist, food technologist.',
+    careers: ['Chef','Nutritionist','Food Technologist','Food Scientist'],
     universities: ['Monash University','University of Queensland (UQ)','RMIT University'] },
-  { id: 'health',     name: 'Health',     category: 'health', badge: 'badge-health',
-    description: '/* PLACEHOLDER: Curriculum description for Health */',
-    careers: ['Health Educator','Public Health Officer','Nurse','Counsellor'],
+  { id: 'health', name: 'Health', category: 'health', badge: 'badge-health',
+    description: 'Study mental health, relationships and lifestyle choices — links to Science and PE, suits empathetic and socially aware students. → Psychologist, health educator, social worker.',
+    careers: ['Psychologist','Health Educator','Social Worker','Counsellor'],
     universities: ['University of Melbourne','Deakin University','Flinders University'] },
+
+  /* ── ICT FACULTY ─────────────────────────────────────── */
+  { id: 'information_systems', name: 'Information Systems', category: 'ict', badge: 'badge-ict',
+    description: 'Design databases and understand how digital networks function — needs logical thinking and links to Maths and Engineering. → Systems analyst, IT project manager, cybersecurity analyst.',
+    careers: ['Systems Analyst','IT Project Manager','Cybersecurity Analyst','Business Analyst'],
+    universities: ['University of Melbourne','UNSW Sydney','Monash University','University of Queensland (UQ)'] },
+  { id: 'information_technology', name: 'Information Technology', category: 'ict', badge: 'badge-ict',
+    description: 'Write code, build websites and solve problems computationally — strong Maths and logical thinking required. → Software developer, data scientist, web developer.',
+    careers: ['Software Developer','Data Scientist','Web Developer','Cloud Engineer'],
+    universities: ['UNSW Sydney','University of Melbourne','MIT (USA)','University of Queensland (UQ)'] },
+  { id: 'intro_engineering', name: 'Introduction to Engineering', category: 'ict', badge: 'badge-ict',
+    description: 'Design and build real structures and mechanisms — links Maths, Science and hands-on problem solving. → Civil engineer, mechanical engineer, robotics engineer.',
+    careers: ['Civil Engineer','Mechanical Engineer','Robotics Engineer','Electrical Engineer'],
+    universities: ['University of Melbourne','UNSW Sydney','MIT (USA)','ETH Zurich (Switzerland)'] },
 ];
 
 const ALL_PROGRAM_SUBJECTS = [
-  'English','Mathematics','Science','Geography / History',
+  'English','Mathematics','Science','Humanities',
   ...ALL_ELECTIVES.map(e => e.name),
 ];
 
@@ -1014,7 +1023,17 @@ function runAlgorithm(studentData) {
 
 function buildYear10Selection(rankedIds) {
   const total = 8; const selected = []; const seen = new Set();
-  const CAT_CAPS = { science: 2, pe: 1, humanities: 2 };
+  // Per-faculty caps — prevent the first 8 from being dominated by one area
+  const CAT_CAPS = {
+    science:         2,  // max 2 science electives
+    pe:              2,  // allow up to 2 PE (e.g. PE for Life + Outdoor Ed)
+    humanities:      2,  // max 2 from History/Geography/Commerce/Global Conflict
+    english_faculty: 1,  // max 1 English elective
+    visual_arts:     2,  // max 2 visual arts
+    performing_arts: 1,  // max 1 performing arts
+    ict:             2,  // max 2 ICT
+    health:          2,  // only 2 exist anyway
+  };
   const catCount = {};
 
   // ── Similarity groups — max 1 per group in the final 8 ────────
@@ -1022,17 +1041,19 @@ function buildYear10Selection(rankedIds) {
   // appear together. The lower-ranked one is skipped and pushed
   // further down the swap pool instead.
   const SIM_GROUPS = [
-    // Near-identical point profiles — one is enough
+    // ICT — near-identical point profiles
     new Set(['information_systems', 'information_technology']),
-    // Visual arts (pick the best-fit one)
+    // PE — core PE types are very similar; Outdoor Ed is different enough
+    new Set(['pe_for_life', 'human_movement']),
+    // Visual arts — pick the best-fit one from the pure-art group
     new Set(['art', 'ceramics', 'sculpture', 'vic_comm']),
-    // Music
+    // Performing arts — only one music elective at a time
     new Set(['music_performance', 'music_technology']),
-    // English / writing (all very english-heavy)
+    // English faculty — all very english-heavy
     new Set(['literature', 'creative_writing', 'english_writing']),
-    // Soft sciences (very similar to each other)
+    // Soft sciences — very similar in nature
     new Set(['make_my_day_science', 'environmental_science']),
-    // Commerce (both business-oriented)
+    // Commerce within Humanities — both business-oriented
     new Set(['commerce_business_legal', 'commerce_economics_finance']),
   ];
 
@@ -1592,9 +1613,15 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
 
 function SuggestionCard({ elective, index, isAnimatingOut, onDismiss, locked }) {
   const categoryLabel = {
-    humanities: 'Humanities', science: 'Science', pe: 'Physical Ed',
-    arts: 'Arts', commerce: 'Commerce', tech: 'Technology',
-    health: 'Health & Outdoor', language: 'Language Continuation',
+    english_faculty:  'English',
+    humanities:       'Humanities',
+    science:          'Science',
+    pe:               'Physical Ed',
+    visual_arts:      'Visual Arts',
+    performing_arts:  'Performing Arts',
+    health:           'Health',
+    ict:              'ICT',
+    language:         'Language Continuation',
   }[elective.category] || elective.category;
 
   return (
