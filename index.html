@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Elect! — Year 10 Planner</title>
+
+  <!-- Supabase JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <!-- React + Babel -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Icons -->
+  <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:       #6366f1;
+      --primary-light: #818cf8;
+      --primary-dark:  #4338ca;
+      --accent:        #f59e0b;
+      --success:       #10b981;
+      --danger:        #ef4444;
+      --bg:            #f8fafc;
+      --surface:       #ffffff;
+      --surface2:      #f1f5f9;
+      --border:        #e2e8f0;
+      --text:          #1e293b;
+      --text-muted:    #64748b;
+      --radius:        14px;
+      --shadow:        0 4px 24px rgba(99,102,241,.10);
+      --shadow-lg:     0 8px 40px rgba(99,102,241,.16);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    #root { min-height: 100vh; display: flex; flex-direction: column; }
+    .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ═══ AUTH SCREEN ═══ */
+    .auth-bg {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #eef2ff 0%, #f5f3ff 50%, #fdf2f8 100%);
+      padding: 1.5rem;
+    }
+    .auth-card {
+      background: var(--surface); border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(99,102,241,.15);
+      padding: 2.5rem; width: 100%; max-width: 420px;
+    }
+    .auth-logo {
+      display: flex; align-items: center; gap: .6rem;
+      justify-content: center; margin-bottom: 1.75rem;
+    }
+    .auth-logo-icon {
+      width: 44px; height: 44px; background: var(--primary);
+      border-radius: 12px; display: grid; place-items: center;
+    }
+    .auth-logo-text {
+      font-size: 1.9rem; font-weight: 900; color: var(--primary);
+      letter-spacing: -.03em;
+    }
+    .auth-tabs { display: flex; background: var(--surface2); border-radius: 10px; padding: .25rem; margin-bottom: 1.75rem; }
+    .auth-tab {
+      flex: 1; padding: .55rem; border-radius: 8px; border: none;
+      font-size: .9rem; font-weight: 600; cursor: pointer;
+      background: transparent; color: var(--text-muted); transition: all .18s;
+    }
+    .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+    .auth-field { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1rem; }
+    .auth-label { font-size: .83rem; font-weight: 600; color: var(--text); }
+    .auth-input {
+      padding: .65rem .9rem; border: 1.5px solid var(--border);
+      border-radius: 9px; font-size: .92rem; color: var(--text);
+      background: var(--surface); outline: none;
+      transition: border-color .15s, box-shadow .15s; width: 100%;
+    }
+    .auth-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,.12); }
+    .auth-btn {
+      width: 100%; padding: .72rem; border-radius: 10px; border: none;
+      background: var(--primary); color: #fff; font-size: .95rem; font-weight: 700;
+      cursor: pointer; transition: all .18s; margin-top: .25rem;
+    }
+    .auth-btn:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,.3); }
+    .auth-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .auth-error {
+      background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 9px;
+      padding: .6rem .85rem; font-size: .84rem; color: var(--danger); margin-bottom: 1rem;
+    }
+    .auth-success {
+      background: #ecfdf5; border: 1.5px solid #6ee7b7; border-radius: 9px;
+      padding: .6rem .85rem; font-size: .84rem; color: #065f46; margin-bottom: 1rem;
+    }
+    .auth-divider { text-align: center; color: var(--text-muted); font-size: .8rem; margin: 1rem 0; }
+
+    /* ═══ LOADING SCREEN ═══ */
+    .loading-screen {
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 1rem;
+    }
+    .spinner {
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 3px solid var(--border); border-top-color: var(--primary);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-size: .9rem; color: var(--text-muted); font-weight: 500; }
+
+    /* ═══ NAV ═══ */
+    .nav {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem; display: flex; align-items: center; gap: 1.5rem; height: 64px;
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: .45rem;
+      font-weight: 900; font-size: 1.3rem; color: var(--primary);
+      text-decoration: none; flex-shrink: 0; letter-spacing: -.02em;
+    }
+    .nav-logo .logo-icon {
+      width: 32px; height: 32px; background: var(--primary);
+      border-radius: 8px; display: grid; place-items: center;
+    }
+    .nav-links { display: flex; gap: .25rem; flex: 1; }
+    .nav-link {
+      padding: .45rem .9rem; border-radius: 8px; font-size: .88rem; font-weight: 500;
+      cursor: pointer; border: none; background: transparent;
+      color: var(--text-muted); transition: all .18s; white-space: nowrap;
+    }
+    .nav-link:hover { background: var(--surface2); color: var(--text); }
+    .nav-link.active { background: var(--primary); color: #fff; }
+    .nav-link.coming-soon { opacity: .35; cursor: not-allowed; font-size: .78rem; }
+    .nav-badge {
+      margin-left: .35rem; font-size: .68rem; font-weight: 700;
+      background: var(--accent); color: #fff;
+      padding: .1rem .4rem; border-radius: 99px; vertical-align: middle;
+    }
+    /* User badge in nav */
+    .nav-user {
+      display: flex; align-items: center; gap: .6rem;
+      margin-left: auto; flex-shrink: 0;
+    }
+    .nav-avatar {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: grid; place-items: center; font-size: .8rem; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .nav-email { font-size: .82rem; color: var(--text-muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-logout {
+      padding: .35rem .75rem; border-radius: 7px;
+      border: 1.5px solid var(--border); background: transparent;
+      font-size: .8rem; color: var(--text-muted); cursor: pointer;
+      transition: all .15s; white-space: nowrap;
+    }
+    .nav-logout:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
+
+    /* Save indicator */
+    .save-indicator {
+      font-size: .75rem; color: var(--success); font-weight: 600;
+      display: flex; align-items: center; gap: .3rem;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ═══ PAGE ═══ */
+    .page { flex: 1; padding: 2.5rem 2rem; max-width: 1120px; margin: 0 auto; width: 100%; }
+    .page-header { margin-bottom: 2rem; }
+    .page-title { font-size: 1.9rem; font-weight: 800; line-height: 1.2; }
+    .page-subtitle { margin-top: .4rem; color: var(--text-muted); font-size: .97rem; }
+
+    /* ═══ CARDS ═══ */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow);
+    }
+    .card + .card { margin-top: 1.25rem; }
+    .card-title {
+      font-size: .97rem; font-weight: 700; margin-bottom: 1rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .icon-wrap {
+      width: 28px; height: 28px; border-radius: 8px;
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+
+    /* ═══ FORM ═══ */
+    .form-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+    .form-select, .form-input {
+      padding: .6rem .9rem; border: 1.5px solid var(--border);
+      border-radius: 8px; font-size: .91rem; color: var(--text);
+      background: var(--surface); outline: none; width: 100%; appearance: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .form-select:focus, .form-input:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+    }
+    .grade-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .75rem; }
+    .grade-cell { display: flex; flex-direction: column; gap: .3rem; }
+    .grade-cell label { font-size: .78rem; color: var(--text-muted); font-weight: 600; }
+
+    /* ═══ DESIRED ELECTIVES ═══ */
+    .desired-elective-row { display: flex; gap: .5rem; margin-bottom: .5rem; }
+    .desired-elective-row select { flex: 1; }
+    .remove-btn {
+      width: 34px; height: 34px; border-radius: 8px; border: 1.5px solid var(--border);
+      background: transparent; cursor: pointer; display: grid; place-items: center;
+      color: var(--text-muted); transition: all .15s; flex-shrink: 0;
+    }
+    .remove-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
+    .add-elective-btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .42rem .85rem; border-radius: 8px; border: 1.5px dashed var(--border);
+      background: transparent; cursor: pointer; font-size: .83rem; color: var(--text-muted);
+      transition: all .15s; margin-top: .3rem;
+    }
+    .add-elective-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,.04); }
+
+    /* ═══ UNI SECTIONS ═══ */
+    .uni-section-label {
+      font-size: .72rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--text-muted);
+      margin: .9rem 0 .5rem; display: flex; align-items: center; gap: .5rem;
+    }
+    .uni-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .multi-chip-grid { display: flex; flex-wrap: wrap; gap: .45rem; }
+    .multi-chip {
+      padding: .32rem .8rem; border-radius: 99px; border: 1.5px solid var(--border);
+      font-size: .8rem; font-weight: 500; cursor: pointer; transition: all .15s;
+      background: var(--surface); color: var(--text-muted);
+    }
+    .multi-chip:hover { border-color: var(--primary-light); color: var(--primary); }
+    .multi-chip.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+
+    /* ═══ BUTTONS ═══ */
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .65rem 1.4rem; border-radius: 10px; font-size: .92rem; font-weight: 600;
+      cursor: pointer; border: none; transition: all .18s;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(99,102,241,.3); }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1.5px solid var(--border); }
+    .btn-secondary:hover { background: var(--border); }
+    .btn-lock { background: linear-gradient(135deg, var(--success), #059669); color: #fff; border: none; box-shadow: 0 4px 14px rgba(16,185,129,.3); }
+    .btn-lock:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(16,185,129,.4); }
+    .submit-row { margin-top: 1.5rem; display: flex; gap: .75rem; align-items: center; }
+
+    /* ═══ REQUIREMENT BARS ═══ */
+    .req-bars { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+    .req-bar { flex: 1; min-width: 140px; background: var(--surface2); border-radius: 10px; padding: .65rem .9rem; }
+    .req-bar-label { font-size: .76rem; color: var(--text-muted); margin-bottom: .35rem; }
+    .req-bar-track { height: 6px; background: var(--border); border-radius: 99px; overflow: hidden; }
+    .req-bar-fill { height: 100%; border-radius: 99px; transition: width .4s ease; }
+    .req-bar-count { font-size: .8rem; font-weight: 700; margin-top: .3rem; }
+
+    /* ═══ INFO / LOCKED BANNERS ═══ */
+    .info-banner {
+      background: rgba(99,102,241,.07); border: 1.5px solid rgba(99,102,241,.2);
+      border-radius: 10px; padding: .7rem 1rem; font-size: .84rem; color: var(--primary);
+      margin-bottom: 1.25rem; display: flex; align-items: center; gap: .6rem;
+    }
+    .locked-banner {
+      background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
+      border: 1.5px solid #6ee7b7; border-radius: 12px;
+      padding: .85rem 1.1rem; margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: .75rem;
+      font-size: .88rem; font-weight: 600; color: #065f46;
+    }
+
+    /* ═══ LOCK / RESTART ACTIONS ═══ */
+    .lock-action-row { margin-top: 1.5rem; display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+    .restart-confirm {
+      background: #fff1f2; border: 1.5px solid #fecdd3; border-radius: 10px;
+      padding: .65rem 1rem; display: flex; align-items: center; gap: .75rem;
+      font-size: .85rem; color: var(--danger); font-weight: 500;
+    }
+    .restart-confirm-btns { display: flex; gap: .4rem; }
+    .btn-confirm-yes {
+      padding: .3rem .8rem; border-radius: 7px; background: var(--danger); color: #fff;
+      border: none; cursor: pointer; font-size: .82rem; font-weight: 600; transition: all .15s;
+    }
+    .btn-confirm-yes:hover { background: #dc2626; }
+    .btn-confirm-no {
+      padding: .3rem .8rem; border-radius: 7px; background: var(--surface2); color: var(--text);
+      border: 1.5px solid var(--border); cursor: pointer; font-size: .82rem; font-weight: 600; transition: all .15s;
+    }
+    .btn-confirm-no:hover { background: var(--border); }
+
+    /* ═══ SUGGESTION CARDS ═══ */
+    .suggestions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+    .suggestion-card {
+      border: 1.5px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); padding: 1.2rem; box-shadow: var(--shadow);
+      transition: box-shadow .2s, transform .2s;
+      animation: fadeSlideIn .3s ease forwards;
+    }
+    .suggestion-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .suggestion-card.dismissed { animation: swipeOut .28s ease forwards; }
+    @keyframes swipeOut { to { opacity: 0; transform: translateX(60px) scale(.95); } }
+    .sug-header { display: flex; align-items: flex-start; justify-content: space-between; gap: .5rem; margin-bottom: .65rem; }
+    .sug-subject-name { font-size: 1rem; font-weight: 700; line-height: 1.25; }
+    .sug-category-badge { font-size: .7rem; font-weight: 700; padding: .18rem .55rem; border-radius: 99px; white-space: nowrap; flex-shrink: 0; margin-top: .1rem; }
+    .sug-description { font-size: .83rem; color: var(--text-muted); line-height: 1.55; margin-bottom: .75rem; }
+    .sug-footer { display: flex; align-items: center; justify-content: space-between; }
+    .sug-unit-badge { font-size: .74rem; color: var(--text-muted); display: flex; align-items: center; gap: .3rem; }
+    .dismiss-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .32rem .75rem; border-radius: 8px; border: 1.5px solid var(--border);
+      background: transparent; cursor: pointer; font-size: .79rem; color: var(--text-muted); transition: all .15s;
+    }
+    .dismiss-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
+
+    /* BADGE COLOURS */
+    .badge-humanities { background: #fef3c7; color: #92400e; }
+    .badge-science    { background: #d1fae5; color: #065f46; }
+    .badge-pe         { background: #fee2e2; color: #991b1b; }
+    .badge-arts       { background: #ede9fe; color: #5b21b6; }
+    .badge-commerce   { background: #e0f2fe; color: #0369a1; }
+    .badge-tech       { background: #f0fdf4; color: #166534; }
+    .badge-health     { background: #fdf2f8; color: #9d174d; }
+
+    /* ═══ LANGUAGE NOTE ═══ */
+    .language-note {
+      background: linear-gradient(135deg, #fefce8, #fff7ed); border: 1.5px solid #fde68a;
+      border-radius: 12px; padding: 1rem 1.25rem;
+      display: flex; gap: .75rem; align-items: flex-start; margin-top: 1.25rem;
+    }
+    .language-note-icon { font-size: 1.5rem; flex-shrink: 0; line-height: 1; }
+    .language-note-title { font-weight: 700; font-size: .95rem; margin-bottom: .25rem; color: #92400e; }
+    .language-note-text { font-size: .85rem; color: #78350f; line-height: 1.55; }
+
+    /* ═══ PAGE 2 TABS ═══ */
+    .tabs { display: flex; gap: .25rem; margin-bottom: 1.5rem; background: var(--surface2); border-radius: 10px; padding: .3rem; }
+    .tab-btn {
+      flex: 1; padding: .58rem .75rem; border-radius: 8px; border: none; background: transparent;
+      font-size: .86rem; font-weight: 600; cursor: pointer;
+      color: var(--text-muted); transition: all .18s; white-space: nowrap;
+    }
+    .tab-btn.active { background: var(--surface); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+
+    /* ═══ PROGRAM SECTION ═══ */
+    .section-label { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin-bottom: .7rem; }
+    .filter-chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: 1.25rem; }
+    .filter-chip {
+      padding: .28rem .75rem; border-radius: 99px; border: 1.5px solid var(--border);
+      font-size: .78rem; font-weight: 500; cursor: pointer; background: var(--surface); color: var(--text-muted); transition: all .15s;
+    }
+    .filter-chip:hover { border-color: var(--primary-light); color: var(--primary); }
+    .filter-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .empty-programs {
+      text-align: center; padding: 3rem 1.5rem; background: var(--surface);
+      border: 1px dashed var(--border); border-radius: var(--radius);
+    }
+    .empty-programs-emoji { font-size: 2.5rem; margin-bottom: .75rem; }
+    .empty-programs-text { font-size: .95rem; font-weight: 600; color: var(--text-muted); }
+    .empty-programs-sub { font-size: .83rem; color: var(--text-muted); margin-top: .3rem; }
+
+    /* ═══ CAREER MAP ═══ */
+    .career-map {
+      background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+      border: 1px solid var(--border); border-radius: var(--radius); padding: 1.75rem; overflow-x: auto;
+    }
+    .map-header-row { display: grid; grid-template-columns: 200px 32px 1fr 32px 1fr; gap: .5rem; margin-bottom: .75rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+    .map-col-title { font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); }
+    .map-row { display: grid; grid-template-columns: 200px 32px 1fr 32px 1fr; gap: .5rem; align-items: center; margin-bottom: .6rem; }
+    .map-node { background: var(--surface); border-radius: 9px; border: 1.5px solid var(--border); padding: .5rem .8rem; font-size: .82rem; font-weight: 600; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+    .map-node.elective-node { border-left-width: 4px; }
+    .map-node.career-node { color: var(--text-muted); font-weight: 500; }
+    .map-node.uni-node { border-left: 4px solid var(--accent); font-size: .8rem; }
+    .map-arrow-cell { display: flex; align-items: center; justify-content: center; color: var(--primary-light); font-size: 1.1rem; font-weight: 700; }
+    .map-multi { display: flex; flex-direction: column; gap: .35rem; }
+
+    /* ═══ LOCKED OVERLAY ═══ */
+    .locked-overlay {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center; padding: 3rem 2rem; gap: 1rem;
+    }
+    .locked-icon { font-size: 2.8rem; }
+    .locked-title { font-size: 1.05rem; font-weight: 700; color: var(--text-muted); }
+    .locked-sub { font-size: .86rem; color: var(--text-muted); max-width: 320px; line-height: 1.5; }
+
+    /* ═══ PROGRESS CHECKLIST ═══ */
+    .progress-subject { margin-bottom: 1.25rem; }
+    .progress-subject-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: .6rem; }
+    .progress-subject-name { font-size: .97rem; font-weight: 700; }
+    .progress-pct { font-size: .83rem; font-weight: 700; color: var(--primary); }
+    .progress-bar-track { height: 7px; background: var(--border); border-radius: 99px; overflow: hidden; margin-bottom: .7rem; }
+    .progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); transition: width .5s ease; }
+    .checklist-items { display: flex; flex-direction: column; gap: .4rem; }
+    .checklist-item {
+      display: flex; align-items: center; gap: .6rem; padding: .48rem .75rem; border-radius: 8px;
+      background: var(--surface2); cursor: pointer; transition: background .15s; user-select: none;
+    }
+    .checklist-item:hover { background: var(--border); }
+    .checklist-item.done { opacity: .6; }
+    .checklist-item.done .checklist-label { text-decoration: line-through; }
+    .checklist-checkbox { width: 17px; height: 17px; border-radius: 5px; border: 2px solid var(--border); flex-shrink: 0; display: grid; place-items: center; transition: all .15s; }
+    .checklist-checkbox.checked { border-color: var(--success); background: var(--success); }
+    .checklist-label { font-size: .85rem; }
+
+    @media (max-width: 780px) {
+      .form-two-col { grid-template-columns: 1fr; }
+      .suggestions-grid { grid-template-columns: 1fr; }
+      .grade-grid { grid-template-columns: 1fr 1fr; }
+      .nav { padding: 0 1rem; gap: .75rem; }
+      .map-header-row, .map-row { grid-template-columns: 140px 24px 1fr 24px 1fr; }
+      .nav-email { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useCallback, useRef } = React;
+
+/* ═══════════════════════════════════════════════════════════════
+   SUPABASE CLIENT
+   ─────────────────────────────────────────────────────────────
+   Tables required (run once in Supabase SQL Editor):
+
+   create table elective_results (
+     id uuid default gen_random_uuid() primary key,
+     user_id uuid references auth.users not null unique,
+     student_data jsonb, suggestions jsonb, pool jsonb,
+     is_locked boolean default false, updated_at timestamptz default now()
+   );
+   create table checklist_progress (
+     id uuid default gen_random_uuid() primary key,
+     user_id uuid references auth.users not null unique,
+     checklist_state jsonb default '{}', updated_at timestamptz default now()
+   );
+   alter table elective_results enable row level security;
+   alter table checklist_progress enable row level security;
+   create policy "own results" on elective_results for all using (auth.uid() = user_id);
+   create policy "own checklist" on checklist_progress for all using (auth.uid() = user_id);
+═══════════════════════════════════════════════════════════════ */
+const { createClient } = window.supabase;
+const db = createClient(
+  'https://mtlvsihwixgucgxbvaog.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10bHZzaWh3aXhndWNneGJ2YW9nIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1Njk1NzMsImV4cCI6MjA5NjE0NTU3M30.R7y3XVJVMfaZE55QNrYg9ppNazXt6Ubk3cUS4N3wWoM'
+);
+
+/* ── DB helpers ── */
+async function dbLoadUser(userId) {
+  const [{ data: res }, { data: chk }] = await Promise.all([
+    db.from('elective_results').select('*').eq('user_id', userId).maybeSingle(),
+    db.from('checklist_progress').select('*').eq('user_id', userId).maybeSingle(),
+  ]);
+  return {
+    submittedData: res ? { studentData: res.student_data, suggestions: res.suggestions, pool: res.pool, isLocked: res.is_locked } : null,
+    checklistState: chk?.checklist_state || {},
+  };
+}
+
+async function dbSaveElectiveResults(userId, { studentData, suggestions, pool, isLocked }) {
+  await db.from('elective_results').upsert({
+    user_id: userId,
+    student_data: studentData,
+    suggestions,
+    pool,
+    is_locked: isLocked,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+}
+
+async function dbSaveChecklist(userId, checklistState) {
+  await db.from('checklist_progress').upsert({
+    user_id: userId,
+    checklist_state: checklistState,
+    updated_at: new Date().toISOString(),
+  }, { onConflict: 'user_id' });
+}
+
+async function dbClearResults(userId) {
+  await Promise.all([
+    db.from('elective_results').delete().eq('user_id', userId),
+    db.from('checklist_progress').delete().eq('user_id', userId),
+  ]);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   STATIC DATA
+═══════════════════════════════════════════════════════════════ */
+const CAREER_CATEGORIES = [
+  'Hospitality & Tourism', 'Medicine & Health Sciences', 'Transportation & Logistics',
+  'Business & Finance', 'Law & Justice', 'Technology & Engineering',
+  'Arts & Creative Industries', 'Education & Social Work', 'Agriculture & Environment',
+  'Military & Defence', 'Architecture & Design', 'Media & Communications',
+];
+
+const CORE_SUBJECTS = ['English', 'Mathematics', 'Science', 'Geography / History'];
+
+const GRADE_OPTIONS = [
+  { value: '',                label: 'Select…' },
+  { value: 'outstanding',    label: 'Outstanding (90+)' },
+  { value: 'excellent',      label: 'Excellent (80+)' },
+  { value: 'very_good',      label: 'Very Good (70+)' },
+  { value: 'good',           label: 'Good (60+)' },
+  { value: 'moderate',       label: 'Moderate (50+)' },
+  { value: 'below_moderate', label: 'Below Moderate (<50)' },
+];
+
+const UNIVERSITIES_AU = [
+  'University of Melbourne','UNSW Sydney','University of Sydney','Monash University',
+  'University of Queensland (UQ)','Australian National University (ANU)','University of Adelaide',
+  'University of Western Australia (UWA)','Macquarie University','RMIT University',
+  'Deakin University','La Trobe University','Swinburne University',
+  'Queensland University of Technology (QUT)','University of Technology Sydney (UTS)',
+  'Curtin University','Bond University','University of Newcastle',
+  'University of Wollongong','Flinders University',
+];
+
+const UNIVERSITIES_INTL = [
+  'Harvard University','University of Oxford','University of Cambridge','MIT',
+  'Stanford University','ETH Zurich','University of Toronto',
+  'London School of Economics (LSE)','Imperial College London','Yale University',
+  'Princeton University','Columbia University','University of Edinburgh',
+  'National University of Singapore (NUS)',
+];
+
+const HUMANITIES_IDS = ['history', 'geography'];
+const SCIENCE_IDS    = ['make_my_day_science', 'environmental_science', 'physics', 'biology', 'chemistry'];
+const PE_IDS         = ['pe_for_life', 'human_movement'];
+
+const ALL_ELECTIVES = [
+  // HUMANITIES
+  { id: 'history',    name: 'History',    category: 'humanities', badge: 'badge-humanities',
+    description: '/* PLACEHOLDER: Curriculum description for History */',
+    careers: ['Historian','Lawyer','Archaeologist','Teacher','Journalist'],
+    universities: ['University of Melbourne','ANU','University of Sydney','University of Oxford'] },
+  { id: 'geography',  name: 'Geography',  category: 'humanities', badge: 'badge-humanities',
+    description: '/* PLACEHOLDER: Curriculum description for Geography */',
+    careers: ['Urban Planner','Environmental Consultant','GIS Analyst','Policy Advisor'],
+    universities: ['ANU','University of Queensland (UQ)','University of Melbourne','University of Edinburgh'] },
+  // SCIENCES
+  { id: 'make_my_day_science', name: 'Make My Day Science', category: 'science', badge: 'badge-science',
+    description: '/* PLACEHOLDER: Curriculum description for Make My Day Science */',
+    careers: ['Science Teacher','Lab Technician','Research Assistant'],
+    universities: ['University of Melbourne','Monash University','University of Queensland (UQ)'] },
+  { id: 'environmental_science', name: 'Environmental Science', category: 'science', badge: 'badge-science',
+    description: '/* PLACEHOLDER: Curriculum description for Environmental Science */',
+    careers: ['Environmental Consultant','Ecologist','Conservation Scientist'],
+    universities: ['ANU','University of Queensland (UQ)','University of Melbourne','University of Edinburgh'] },
+  { id: 'physics',    name: 'Physics',    category: 'science', badge: 'badge-science',
+    description: '/* PLACEHOLDER: Curriculum description for Physics */',
+    careers: ['Physicist','Engineer','Data Scientist','Aerospace Technician'],
+    universities: ['MIT','UNSW Sydney','University of Melbourne','ETH Zurich'] },
+  { id: 'biology',    name: 'Biology',    category: 'science', badge: 'badge-science',
+    description: '/* PLACEHOLDER: Curriculum description for Biology */',
+    careers: ['Doctor','Biomedical Researcher','Nurse','Pharmacist'],
+    universities: ['University of Melbourne','UNSW Sydney','University of Queensland (UQ)','University of Oxford'] },
+  { id: 'chemistry',  name: 'Chemistry',  category: 'science', badge: 'badge-science',
+    description: '/* PLACEHOLDER: Curriculum description for Chemistry */',
+    careers: ['Pharmacist','Chemical Engineer','Forensic Scientist','Materials Scientist'],
+    universities: ['Monash University','UNSW Sydney','University of Melbourne','University of Cambridge'] },
+  // PE
+  { id: 'pe_for_life',    name: 'PE for Life',    category: 'pe', badge: 'badge-pe',
+    description: '/* PLACEHOLDER: Curriculum description for PE for Life */',
+    careers: ['PE Teacher','Personal Trainer','Sports Coach','Community Health Officer'],
+    universities: ['University of Queensland (UQ)','Deakin University','Monash University'] },
+  { id: 'human_movement', name: 'Human Movement', category: 'pe', badge: 'badge-pe',
+    description: '/* PLACEHOLDER: Curriculum description for Human Movement */',
+    careers: ['Physiotherapist','Exercise Physiologist','Sports Scientist','Occupational Therapist'],
+    universities: ['University of Melbourne','Deakin University','University of Queensland (UQ)'] },
+  // ARTS
+  { id: 'literature',        name: 'Literature',           category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Literature */',
+    careers: ['Author','Publisher','Editor','Journalist','Academic'],
+    universities: ['University of Melbourne','University of Sydney','University of Oxford'] },
+  { id: 'creative_writing',  name: 'Creative Writing',     category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Creative Writing */',
+    careers: ['Author','Screenwriter','Content Creator','Copywriter'],
+    universities: ['RMIT University','Deakin University','University of Melbourne'] },
+  { id: 'english_writing',   name: 'The English Writing',  category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for The English Writing */',
+    careers: ['Journalist','Communications Officer','PR Specialist','Policy Writer'],
+    universities: ['University of Sydney','Monash University','University of Melbourne'] },
+  { id: 'sculpture',         name: 'Sculpture',            category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Sculpture */',
+    careers: ['Visual Artist','Sculptor','Art Educator','Museum Curator'],
+    universities: ['RMIT University','University of Melbourne (VCA)','ANU'] },
+  { id: 'vic_comm',          name: 'Vic Comm',             category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Vic Comm */',
+    careers: ['Visual Communications Designer','Graphic Designer','Art Director'],
+    universities: ['RMIT University','Swinburne University','University of Technology Sydney (UTS)'] },
+  { id: 'art',               name: 'Art',                  category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Art */',
+    careers: ['Artist','Graphic Designer','Art Teacher','Illustrator'],
+    universities: ['RMIT University','University of Melbourne (VCA)','ANU'] },
+  { id: 'ceramics',          name: 'Ceramics',             category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Ceramics */',
+    careers: ['Ceramicist','Designer','Art Educator','Gallery Curator'],
+    universities: ['RMIT University','ANU','University of Melbourne (VCA)'] },
+  { id: 'media',             name: 'Media',                category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Media */',
+    careers: ['Journalist','Film Director','Content Creator','Producer'],
+    universities: ['RMIT University','University of Technology Sydney (UTS)','University of Melbourne'] },
+  { id: 'animation',         name: 'Animation',            category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Animation */',
+    careers: ['Animator','Game Designer','VFX Artist','Motion Graphics Designer'],
+    universities: ['RMIT University','Swinburne University','University of Technology Sydney (UTS)'] },
+  { id: 'music_performance', name: 'Music Performance Craft', category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Music Performance Craft */',
+    careers: ['Musician','Music Teacher','Performer','Conductor'],
+    universities: ['University of Melbourne (Conservatorium)','ANU','Monash University'] },
+  { id: 'music_technology',  name: 'Music Technology',     category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Music Technology */',
+    careers: ['Sound Engineer','Music Producer','Audio Technician','Composer'],
+    universities: ['RMIT University','University of Melbourne','Swinburne University'] },
+  { id: 'theatre',           name: 'Theatre',              category: 'arts', badge: 'badge-arts',
+    description: '/* PLACEHOLDER: Curriculum description for Theatre */',
+    careers: ['Actor','Drama Teacher','Theatre Director','Arts Administrator'],
+    universities: ['University of Melbourne (VCA)','ANU','Flinders University'] },
+  // COMMERCE
+  { id: 'commerce_business_legal',    name: 'Commerce Business & Legal',    category: 'commerce', badge: 'badge-commerce',
+    description: '/* PLACEHOLDER: Curriculum description for Commerce Business & Legal */',
+    careers: ['Lawyer','Business Analyst','Compliance Officer','Entrepreneur'],
+    universities: ['University of Melbourne','UNSW Sydney','University of Sydney','University of Oxford'] },
+  { id: 'commerce_economics_finance', name: 'Commerce Economics & Finance', category: 'commerce', badge: 'badge-commerce',
+    description: '/* PLACEHOLDER: Curriculum description for Commerce Economics & Finance */',
+    careers: ['Economist','Financial Analyst','Investment Banker','Actuary'],
+    universities: ['UNSW Sydney','University of Melbourne','London School of Economics (LSE)','University of Sydney'] },
+  { id: 'global_conflict',   name: 'Global Conflict & Crisis', category: 'commerce', badge: 'badge-commerce',
+    description: '/* PLACEHOLDER: Curriculum description for Global Conflict & Crisis */',
+    careers: ['Diplomat','Intelligence Analyst','International Aid Worker','Policy Advisor'],
+    universities: ['ANU','University of Oxford','University of Melbourne','London School of Economics (LSE)'] },
+  // TECH
+  { id: 'sustainable_design',    name: 'Sustainable Design',        category: 'tech', badge: 'badge-tech',
+    description: '/* PLACEHOLDER: Curriculum description for Sustainable Design */',
+    careers: ['Architect','Industrial Designer','Sustainability Consultant','Urban Designer'],
+    universities: ['RMIT University','University of Melbourne','Swinburne University','ETH Zurich'] },
+  { id: 'information_systems',   name: 'Information Systems',       category: 'tech', badge: 'badge-tech',
+    description: '/* PLACEHOLDER: Curriculum description for Information Systems */',
+    careers: ['Business Analyst','IT Manager','Systems Analyst','Project Manager'],
+    universities: ['University of Melbourne','UNSW Sydney','Monash University','University of Queensland (UQ)'] },
+  { id: 'information_technology',name: 'Information Technology',    category: 'tech', badge: 'badge-tech',
+    description: '/* PLACEHOLDER: Curriculum description for Information Technology */',
+    careers: ['Software Developer','Data Scientist','Cybersecurity Analyst','Cloud Engineer'],
+    universities: ['UNSW Sydney','University of Melbourne','MIT','University of Queensland (UQ)'] },
+  { id: 'intro_engineering',     name: 'Introduction to Engineering', category: 'tech', badge: 'badge-tech',
+    description: '/* PLACEHOLDER: Curriculum description for Introduction to Engineering */',
+    careers: ['Civil Engineer','Mechanical Engineer','Electrical Engineer','Robotics Engineer'],
+    universities: ['University of Melbourne','UNSW Sydney','MIT','ETH Zurich'] },
+  // HEALTH & OUTDOOR
+  { id: 'outdoor_ed', name: 'Outdoor Ed', category: 'health', badge: 'badge-health',
+    description: '/* PLACEHOLDER: Curriculum description for Outdoor Ed */',
+    careers: ['Outdoor Education Teacher','Tourism Guide','Park Ranger','Adventure Therapist'],
+    universities: ['University of Queensland (UQ)','ANU','Deakin University'] },
+  { id: 'food_tech',  name: 'Food Tech',  category: 'health', badge: 'badge-health',
+    description: '/* PLACEHOLDER: Curriculum description for Food Tech */',
+    careers: ['Chef','Food Scientist','Nutritionist','Food Technologist'],
+    universities: ['Monash University','University of Queensland (UQ)','RMIT University'] },
+  { id: 'health',     name: 'Health',     category: 'health', badge: 'badge-health',
+    description: '/* PLACEHOLDER: Curriculum description for Health */',
+    careers: ['Health Educator','Public Health Officer','Nurse','Counsellor'],
+    universities: ['University of Melbourne','Deakin University','Flinders University'] },
+];
+
+const ALL_PROGRAM_SUBJECTS = [
+  'English','Mathematics','Science','Geography / History',
+  ...ALL_ELECTIVES.map(e => e.name),
+];
+
+const PLACEHOLDER_CHECKLIST = [
+  'Complete Unit 1 coursework',
+  'Submit Unit 1 assessment task',
+  'Revise Unit 1 content',
+  'Complete Unit 2 coursework',
+  'Submit Unit 2 assessment task',
+  'Revise Unit 2 content',
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   ALGORITHM PLACEHOLDER
+   ─────────────────────────────────────────────────────────────
+   studentData shape:
+   {
+     grades:           { English: "outstanding", ... },
+     careerCategory:   "Medicine & Health Sciences",
+     desiredElectives: ["biology", "history"],
+     language:         "Spanish" | "French" | "German" | "",
+     universities:     ["University of Melbourne", ...],
+     yearLevel:        "10",
+   }
+   Return: ordered array of elective IDs, best → worst.
+═══════════════════════════════════════════════════════════════ */
+function runAlgorithm(studentData) {
+  const { careerCategory } = studentData;
+  const affinityMap = {
+    'Medicine & Health Sciences':  ['biology','chemistry','human_movement','make_my_day_science','health'],
+    'Technology & Engineering':    ['physics','information_technology','intro_engineering','chemistry','information_systems'],
+    'Business & Finance':          ['commerce_economics_finance','commerce_business_legal','information_systems','global_conflict'],
+    'Law & Justice':               ['commerce_business_legal','history','global_conflict','commerce_economics_finance'],
+    'Arts & Creative Industries':  ['art','theatre','music_performance','animation','creative_writing','media','sculpture'],
+    'Hospitality & Tourism':       ['food_tech','geography','outdoor_ed','commerce_business_legal'],
+    'Education & Social Work':     ['health','history','theatre','biology','human_movement'],
+    'Transportation & Logistics':  ['physics','geography','information_technology','intro_engineering'],
+    'Agriculture & Environment':   ['environmental_science','biology','geography','chemistry'],
+    'Military & Defence':          ['physics','pe_for_life','history','global_conflict'],
+    'Architecture & Design':       ['sustainable_design','art','vic_comm','intro_engineering'],
+    'Media & Communications':      ['media','english_writing','creative_writing','animation','vic_comm'],
+  };
+  const affinities = affinityMap[careerCategory] || [];
+  const ranked = []; const seen = new Set();
+  const add = (id) => { if (!seen.has(id)) { seen.add(id); ranked.push(id); } };
+  affinities.forEach(add);
+  ALL_ELECTIVES.forEach(e => add(e.id));
+  return ranked;
+}
+
+function buildYear10Selection(rankedIds) {
+  const total = 8; const selected = []; const seen = new Set();
+  const CAT_CAPS = { science: 2, pe: 1, humanities: 2 };
+  const catCount = {};
+
+  const addById = (id) => {
+    if (seen.has(id)) return false;
+    const e = ALL_ELECTIVES.find(x => x.id === id);
+    if (!e) return false;
+    selected.push(e); seen.add(id);
+    catCount[e.category] = (catCount[e.category] || 0) + 1;
+    return true;
+  };
+
+  // Guaranteed minimums
+  addById(rankedIds.find(id => HUMANITIES_IDS.includes(id)) || 'history');
+  addById(rankedIds.find(id => SCIENCE_IDS.includes(id)) || 'biology');
+  addById(rankedIds.find(id => PE_IDS.includes(id)) || 'pe_for_life');
+
+  const canAdd = (id) => {
+    const e = ALL_ELECTIVES.find(x => x.id === id);
+    if (!e || seen.has(id)) return false;
+    const cap = CAT_CAPS[e.category];
+    return cap === undefined || (catCount[e.category] || 0) < cap;
+  };
+
+  for (const id of rankedIds) {
+    if (selected.length >= total) break;
+    if (canAdd(id)) addById(id);
+  }
+  for (const e of ALL_ELECTIVES) {
+    if (selected.length >= total) break;
+    if (canAdd(e.id)) addById(e.id);
+  }
+  for (const e of ALL_ELECTIVES) {
+    if (selected.length >= total) break;
+    if (!seen.has(e.id)) addById(e.id);
+  }
+  return selected.slice(0, total);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED COMPONENTS
+═══════════════════════════════════════════════════════════════ */
+function Icon({ name, size = 16 }) {
+  return (
+    <svg width={size} height={size} style={{ display:'inline-block', verticalAlign:'middle', flexShrink: 0 }}
+         dangerouslySetInnerHTML={{ __html: feather.icons[name]?.toSvg({ width: size, height: size }) || '' }} />
+  );
+}
+
+function RequirementBar({ label, filled, total, color }) {
+  const pct = Math.min(100, (filled / total) * 100);
+  return (
+    <div className="req-bar">
+      <div className="req-bar-label">{label}</div>
+      <div className="req-bar-track"><div className="req-bar-fill" style={{ width:`${pct}%`, background: color }} /></div>
+      <div className="req-bar-count" style={{ color }}>{filled}/{total}</div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AUTH SCREEN
+═══════════════════════════════════════════════════════════════ */
+function AuthScreen() {
+  const [tab, setTab] = useState('login');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const clear = () => { setError(''); setSuccess(''); };
+
+  const handleLogin = async (e) => {
+    e.preventDefault(); clear(); setLoading(true);
+    const { error } = await db.auth.signInWithPassword({ email, password });
+    if (error) setError(error.message);
+    setLoading(false);
+  };
+
+  const handleSignUp = async (e) => {
+    e.preventDefault(); clear(); setLoading(true);
+    const { error } = await db.auth.signUp({ email, password });
+    if (error) setError(error.message);
+    else setSuccess('Account created! Check your email to confirm, then log in.');
+    setLoading(false);
+  };
+
+  return (
+    <div className="auth-bg">
+      <div className="auth-card">
+        <div className="auth-logo">
+          <span className="auth-logo-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </span>
+          <span className="auth-logo-text">Elect!</span>
+        </div>
+
+        <div className="auth-tabs">
+          <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => { setTab('login'); clear(); }}>Log In</button>
+          <button className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => { setTab('signup'); clear(); }}>Sign Up</button>
+        </div>
+
+        {error && <div className="auth-error">{error}</div>}
+        {success && <div className="auth-success">{success}</div>}
+
+        <form onSubmit={tab === 'login' ? handleLogin : handleSignUp}>
+          <div className="auth-field">
+            <label className="auth-label">Email</label>
+            <input className="auth-input" type="email" placeholder="you@example.com"
+              value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+          </div>
+          <div className="auth-field">
+            <label className="auth-label">Password</label>
+            <input className="auth-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'}
+              value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+          </div>
+          <button className="auth-btn" type="submit" disabled={loading}>
+            {loading ? 'Please wait…' : tab === 'login' ? 'Log In' : 'Create Account'}
+          </button>
+        </form>
+
+        <div className="auth-divider">
+          {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
+          <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', fontSize: 'inherit' }}
+            onClick={() => { setTab(tab === 'login' ? 'signup' : 'login'); clear(); }}>
+            {tab === 'login' ? 'Sign up' : 'Log in'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE 1 — ELECTIVE SUGGESTION TOOL
+═══════════════════════════════════════════════════════════════ */
+function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
+  const [grades, setGrades] = useState(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
+  const [career, setCareer] = useState('');
+  const [language, setLanguage] = useState('');
+  const [universities, setUniversities] = useState([]);
+  const [desiredElectives, setDesiredElectives] = useState(['']);
+  const [submitted, setSubmitted] = useState(!!submittedData);
+  const [suggestions, setSuggestions] = useState(submittedData?.suggestions || []);
+  const [dismissAnimating, setDismissAnimating] = useState({});
+  const [dismissed, setDismissed] = useState({});
+  const [suggestionPool, setSuggestionPool] = useState(submittedData?.pool || []);
+  const [isLocked, setIsLocked] = useState(!!submittedData?.isLocked);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+
+  const toggleUni = (uni) => setUniversities(prev => prev.includes(uni) ? prev.filter(u => u !== uni) : [...prev, uni]);
+
+  const addDesiredElective = () => { if (desiredElectives.length < 3) setDesiredElectives(prev => [...prev, '']); };
+  const removeDesiredElective = (i) => setDesiredElectives(prev => prev.filter((_, idx) => idx !== i));
+  const setDesiredElective = (i, val) => setDesiredElectives(prev => { const n = [...prev]; n[i] = val; return n; });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const studentData = { grades, careerCategory: career, desiredElectives: desiredElectives.filter(Boolean), language, universities, yearLevel: '10' };
+    const rankedIds = runAlgorithm(studentData);
+    const top8 = buildYear10Selection(rankedIds);
+    const top8Ids = new Set(top8.map(e => e.id));
+    const pool = ALL_ELECTIVES.filter(e => !top8Ids.has(e.id));
+    const data = { studentData, suggestions: top8, pool, isLocked: false };
+    setSuggestions(top8); setSuggestionPool(pool); setIsLocked(false); setSubmitted(true);
+    onSubmit(data);
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+  };
+
+  const handleDismiss = useCallback((electiveId) => {
+    if (isLocked) return;
+    setDismissAnimating(prev => ({ ...prev, [electiveId]: true }));
+    setTimeout(async () => {
+      const usedIds = new Set(suggestions.map(e => e.id));
+      const usedPoolIds = new Set(Object.keys(dismissed));
+      const next = suggestionPool.find(e => !usedIds.has(e.id) && !usedPoolIds.has(e.id));
+      let newSuggestions;
+      setSuggestions(prev => {
+        const idx = prev.findIndex(e => e.id === electiveId);
+        const newList = [...prev];
+        if (next) { newList[idx] = next; setSuggestionPool(p => p.filter(e => e.id !== next.id)); }
+        else newList.splice(idx, 1);
+        newSuggestions = newList;
+        return newList;
+      });
+      setDismissed(prev => ({ ...prev, [electiveId]: true }));
+      setDismissAnimating(prev => { const n = { ...prev }; delete n[electiveId]; return n; });
+      if (user && newSuggestions) {
+        const updData = { studentData: submittedData?.studentData, suggestions: newSuggestions, pool: suggestionPool, isLocked: false };
+        onSubmit(updData);
+        await dbSaveElectiveResults(user.id, updData); onSaveIndicator();
+      }
+    }, 300);
+  }, [suggestions, suggestionPool, dismissed, isLocked, user]);
+
+  const handleLockIn = async () => {
+    setIsLocked(true); setShowRestartConfirm(false);
+    const data = { studentData: submittedData?.studentData, suggestions, pool: suggestionPool, isLocked: true };
+    onSubmit(data);
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+  };
+
+  const handleRestartConfirmed = async () => {
+    setSubmitted(false); setSuggestions([]); setSuggestionPool([]);
+    setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
+    setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
+    setCareer(''); setLanguage(''); setUniversities([]);
+    onSubmit(null);
+    if (user) { await dbClearResults(user.id); onSaveIndicator(); }
+  };
+
+  const humCount = suggestions.filter(e => HUMANITIES_IDS.includes(e.id)).length;
+  const sciCount = suggestions.filter(e => SCIENCE_IDS.includes(e.id)).length;
+  const peCount  = suggestions.filter(e => PE_IDS.includes(e.id)).length;
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div className="page-title">{submitted ? 'Your Year 10 Elective Profile' : 'Plan Your Year 10 Electives'}</div>
+        <div className="page-subtitle">
+          {submitted ? "Your personalised elective suggestions are below. Swap any you're not happy with."
+                     : "Tell us about yourself and we'll suggest the best electives for your goals."}
+        </div>
+      </div>
+
+      {!submitted ? (
+        <form onSubmit={handleSubmit}>
+          {/* GRADES */}
+          <div className="card">
+            <div className="card-title">
+              <span className="icon-wrap" style={{ background:'#ede9fe' }}><Icon name="book-open" size={14} /></span>
+              Core Subject Grades
+            </div>
+            <div className="grade-grid">
+              {CORE_SUBJECTS.map(subject => (
+                <div className="grade-cell" key={subject}>
+                  <label>{subject}</label>
+                  <select className="form-select" value={grades[subject]} onChange={e => setGrades(prev => ({ ...prev, [subject]: e.target.value }))}>
+                    {GRADE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                  </select>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-two-col">
+            {/* CAREER */}
+            <div className="card">
+              <div className="card-title">
+                <span className="icon-wrap" style={{ background:'#fef3c7' }}><Icon name="briefcase" size={14} /></span>
+                Career Category
+              </div>
+              <select className="form-select" value={career} onChange={e => setCareer(e.target.value)} required>
+                <option value="">Choose a career area…</option>
+                {CAREER_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+
+            {/* LANGUAGE */}
+            <div className="card">
+              <div className="card-title">
+                <span className="icon-wrap" style={{ background:'#d1fae5' }}><Icon name="globe" size={14} /></span>
+                Language in Year 9
+              </div>
+              <select className="form-select" value={language} onChange={e => setLanguage(e.target.value)}>
+                <option value="">No language taken</option>
+                <option value="Spanish">Spanish</option>
+                <option value="French">French</option>
+                <option value="German">German</option>
+              </select>
+              <p style={{ marginTop:'.6rem', fontSize:'.8rem', color:'var(--text-muted)', lineHeight:1.5 }}>
+                If you studied a language in Year 9, you may be able to continue it as an elective.
+              </p>
+            </div>
+          </div>
+
+          {/* DESIRED ELECTIVES */}
+          <div className="card" style={{ marginTop:'1.25rem' }}>
+            <div className="card-title">
+              <span className="icon-wrap" style={{ background:'#fef9c3' }}><Icon name="star" size={14} /></span>
+              Desired Electives
+              <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.25rem' }}>
+                (optional — up to 3, passed to your algorithm)
+              </span>
+            </div>
+            {desiredElectives.map((val, i) => (
+              <div className="desired-elective-row" key={i}>
+                <select className="form-select" value={val} onChange={e => setDesiredElective(i, e.target.value)}>
+                  <option value="">Any preference…</option>
+                  {ALL_ELECTIVES.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+                </select>
+                {desiredElectives.length > 1 && (
+                  <button type="button" className="remove-btn" onClick={() => removeDesiredElective(i)}><Icon name="x" size={14} /></button>
+                )}
+              </div>
+            ))}
+            {desiredElectives.length < 3 && (
+              <button type="button" className="add-elective-btn" onClick={addDesiredElective}>
+                <Icon name="plus" size={14} /> Add preference
+              </button>
+            )}
+          </div>
+
+          {/* UNIVERSITIES */}
+          <div className="card" style={{ marginTop:'1.25rem' }}>
+            <div className="card-title">
+              <span className="icon-wrap" style={{ background:'#fee2e2' }}><Icon name="award" size={14} /></span>
+              Preferred Universities
+              <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.25rem' }}>(select all that interest you)</span>
+            </div>
+            <div className="uni-section-label">Australian Universities</div>
+            <div className="multi-chip-grid">
+              {UNIVERSITIES_AU.map(uni => (
+                <button type="button" key={uni} className={`multi-chip${universities.includes(uni) ? ' selected' : ''}`} onClick={() => toggleUni(uni)}>{uni}</button>
+              ))}
+            </div>
+            <div className="uni-section-label">International Universities</div>
+            <div className="multi-chip-grid">
+              {UNIVERSITIES_INTL.map(uni => (
+                <button type="button" key={uni} className={`multi-chip${universities.includes(uni) ? ' selected' : ''}`} onClick={() => toggleUni(uni)}>{uni}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="submit-row">
+            <button type="submit" className="btn btn-primary"><Icon name="zap" size={16} /> Generate My Elective Plan</button>
+            <span style={{ fontSize:'.81rem', color:'var(--text-muted)' }}>Year 10 · 8 elective units</span>
+          </div>
+        </form>
+
+      ) : (
+        <>
+          <div className="req-bars">
+            <RequirementBar label="Humanities (min 1)" filled={humCount} total={1} color="#92400e" />
+            <RequirementBar label="Science (min 1)"    filled={sciCount} total={1} color="#065f46" />
+            <RequirementBar label="PE (min 1)"         filled={peCount}  total={1} color="#991b1b" />
+            <RequirementBar label="Total Units"        filled={suggestions.length} total={8} color="#4338ca" />
+          </div>
+
+          {isLocked ? (
+            <div className="locked-banner"><Icon name="lock" size={16} /> Your elective choices are locked in — good luck in Year 10!</div>
+          ) : (
+            <div className="info-banner">
+              <Icon name="info" size={15} />
+              Not happy with a suggestion? Hit <strong style={{ margin:'0 .3rem' }}>Swap</strong> to replace it.
+              When you're happy, click <strong style={{ margin:'0 .3rem' }}>Lock In</strong>.
+            </div>
+          )}
+
+          <div className="suggestions-grid">
+            {suggestions.map((elective, idx) => (
+              <SuggestionCard key={elective.id} elective={elective} index={idx}
+                isAnimatingOut={!!dismissAnimating[elective.id]}
+                onDismiss={() => handleDismiss(elective.id)} locked={isLocked} />
+            ))}
+          </div>
+
+          {submittedData?.studentData?.language && (
+            <div className="language-note">
+              <div className="language-note-icon">🌐</div>
+              <div>
+                <div className="language-note-title">{submittedData.studentData.language} Continuation Available</div>
+                <div className="language-note-text">
+                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9, you may replace
+                  <strong> 2 of the elective suggestions above</strong> with <strong>{submittedData.studentData.language} (continuation)</strong>.
+                  Speak to your subject coordinator to confirm availability.
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="lock-action-row">
+            {!isLocked && <button className="btn btn-lock" onClick={handleLockIn}><Icon name="lock" size={15} /> Lock In?</button>}
+            {!showRestartConfirm && (
+              <button className="btn btn-secondary" onClick={() => setShowRestartConfirm(true)}><Icon name="refresh-cw" size={15} /> Restart?</button>
+            )}
+            {showRestartConfirm && (
+              <div className="restart-confirm">
+                <span>Are you sure? {isLocked ? 'Your locked choices' : 'Everything'} will be cleared.</span>
+                <div className="restart-confirm-btns">
+                  <button className="btn-confirm-yes" onClick={handleRestartConfirmed}>Yes, restart</button>
+                  <button className="btn-confirm-no" onClick={() => setShowRestartConfirm(false)}>Cancel</button>
+                </div>
+              </div>
+            )}
+            <span style={{ fontSize:'.81rem', color:'var(--text-muted)', marginLeft:'auto' }}>
+              {suggestions.length} / 8 units {isLocked ? '🔒 locked' : 'selected'}
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function SuggestionCard({ elective, index, isAnimatingOut, onDismiss, locked }) {
+  const categoryLabel = {
+    humanities:'Humanities', science:'Science', pe:'Physical Ed',
+    arts:'Arts', commerce:'Commerce', tech:'Technology', health:'Health & Outdoor',
+  }[elective.category] || elective.category;
+
+  return (
+    <div className={`suggestion-card${isAnimatingOut ? ' dismissed' : ''}`} style={{ animationDelay:`${index * 55}ms` }}>
+      <div className="sug-header">
+        <div className="sug-subject-name">{elective.name}</div>
+        <span className={`sug-category-badge ${elective.badge}`}>{categoryLabel}</span>
+      </div>
+      <div className="sug-description">{elective.description}</div>
+      <div className="sug-footer">
+        <span className="sug-unit-badge"><Icon name="layers" size={12} /> 1 unit</span>
+        {!locked
+          ? <button className="dismiss-btn" onClick={onDismiss}><Icon name="refresh-cw" size={13} /> Swap</button>
+          : <span style={{ fontSize:'.75rem', color:'var(--success)', fontWeight:600, display:'flex', alignItems:'center', gap:'.3rem' }}><Icon name="check-circle" size={13} /> Locked</span>
+        }
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE 2 — EXPLORE & TRACK
+═══════════════════════════════════════════════════════════════ */
+function Page2({ user, submittedData, checklistState, onChecklistChange }) {
+  const [activeTab, setActiveTab] = useState('programs');
+  const [subjectFilter, setSubjectFilter] = useState('All');
+
+  const isUnlocked = !!submittedData;
+  const suggestions = submittedData?.suggestions || [];
+
+  const toggleChecklistItem = (electiveId, itemIndex) => {
+    const key = `${electiveId}-${itemIndex}`;
+    onChecklistChange({ ...checklistState, [key]: !checklistState[key] });
+  };
+
+  const getProgress = (electiveId) => {
+    const total = PLACEHOLDER_CHECKLIST.length;
+    const done = PLACEHOLDER_CHECKLIST.filter((_, i) => checklistState[`${electiveId}-${i}`]).length;
+    return { done, total, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
+  };
+
+  return (
+    <div className="page">
+      <div className="page-header">
+        <div className="page-title">Explore & Track</div>
+        <div className="page-subtitle">Discover external opportunities and monitor your elective progress.</div>
+      </div>
+
+      <div className="tabs">
+        <button className={`tab-btn${activeTab==='programs'?' active':''}`} onClick={() => setActiveTab('programs')}><Icon name="globe" size={14} /> Outside Programs</button>
+        <button className={`tab-btn${activeTab==='map'?' active':''}`} onClick={() => setActiveTab('map')}>
+          <Icon name="map" size={14} /> Career & Uni Map {!isUnlocked && <span className="nav-badge">🔒</span>}
+        </button>
+        <button className={`tab-btn${activeTab==='progress'?' active':''}`} onClick={() => setActiveTab('progress')}>
+          <Icon name="check-square" size={14} /> Progress Checklist {!isUnlocked && <span className="nav-badge">🔒</span>}
+        </button>
+      </div>
+
+      {/* SECTION A */}
+      {activeTab === 'programs' && (
+        <>
+          <div className="section-label">Filter by subject</div>
+          <div className="filter-chips">
+            <button className={`filter-chip${subjectFilter==='All'?' active':''}`} onClick={() => setSubjectFilter('All')}>All Subjects</button>
+            {ALL_PROGRAM_SUBJECTS.map(s => (
+              <button key={s} className={`filter-chip${subjectFilter===s?' active':''}`} onClick={() => setSubjectFilter(s)}>{s}</button>
+            ))}
+          </div>
+          <div className="empty-programs">
+            <div className="empty-programs-emoji">📬</div>
+            <div className="empty-programs-text">
+              {subjectFilter === 'All' ? 'Programs coming soon for all subjects!' : `Programs for ${subjectFilter}`}
+            </div>
+            <div className="empty-programs-sub">I'll let you know when I find any!</div>
+          </div>
+        </>
+      )}
+
+      {/* SECTION B */}
+      {activeTab === 'map' && (
+        !isUnlocked ? (
+          <div className="card"><div className="locked-overlay">
+            <div className="locked-icon">🗺️</div>
+            <div className="locked-title">Complete your elective profile first</div>
+            <div className="locked-sub">Go to the Elective Planner, fill in your details, and generate your suggestions — then this map will show your personalised career and university pathways.</div>
+          </div></div>
+        ) : (
+          <>
+            <div className="info-banner"><Icon name="info" size={15} /> Each of your 8 suggested electives maps to career pathways and universities.</div>
+            <div className="career-map">
+              <div className="map-header-row">
+                <div className="map-col-title">Elective</div><div></div>
+                <div className="map-col-title">Career Pathways</div><div></div>
+                <div className="map-col-title">Universities</div>
+              </div>
+              {suggestions.map(elective => {
+                const preferredUnis = submittedData?.studentData?.universities || [];
+                const linked = elective.universities || [];
+                const matched = linked.filter(u => preferredUnis.some(p => u.includes(p.split(' ')[0]) || p.includes(u.split(' ')[0])));
+                const displayUnis = matched.length > 0 ? matched : linked.slice(0, 2);
+                return (
+                  <div className="map-row" key={elective.id}>
+                    <div className={`map-node elective-node ${elective.badge}`}>{elective.name}</div>
+                    <div className="map-arrow-cell">→</div>
+                    <div className="map-multi">
+                      {(elective.careers||[]).slice(0,2).map((c,i) => <div key={i} className="map-node career-node">{c}</div>)}
+                    </div>
+                    <div className="map-arrow-cell">→</div>
+                    <div className="map-multi">
+                      {displayUnis.slice(0,2).map((u,i) => <div key={i} className="map-node uni-node">{u}</div>)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )
+      )}
+
+      {/* SECTION C */}
+      {activeTab === 'progress' && (
+        !isUnlocked ? (
+          <div className="card"><div className="locked-overlay">
+            <div className="locked-icon">📋</div>
+            <div className="locked-title">Complete your elective profile first</div>
+            <div className="locked-sub">Once you submit your elective preferences, your progress checklist will appear here.</div>
+          </div></div>
+        ) : (
+          <>
+            <div className="info-banner"><Icon name="info" size={15} /> Tick off milestones as you go. Progress saves automatically to your account.</div>
+            {suggestions.map(elective => {
+              const { pct } = getProgress(elective.id);
+              return (
+                <div className="progress-subject" key={elective.id}>
+                  <div className="card">
+                    <div className="progress-subject-header">
+                      <div className="progress-subject-name">{elective.name}</div>
+                      <div className="progress-pct">{pct}%</div>
+                    </div>
+                    <div className="progress-bar-track"><div className="progress-bar-fill" style={{ width:`${pct}%` }} /></div>
+                    <div className="checklist-items">
+                      {PLACEHOLDER_CHECKLIST.map((item, i) => {
+                        const key = `${elective.id}-${i}`;
+                        const checked = !!checklistState[key];
+                        return (
+                          <div key={i} className={`checklist-item${checked?' done':''}`} onClick={() => toggleChecklistItem(elective.id, i)}>
+                            <div className={`checklist-checkbox${checked?' checked':''}`}>{checked && <Icon name="check" size={11} />}</div>
+                            {/* PLACEHOLDER: Replace with real curriculum milestones */}
+                            <span className="checklist-label">{item}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </>
+        )
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   APP ROOT
+═══════════════════════════════════════════════════════════════ */
+function App() {
+  const [session, setSession] = useState(undefined); // undefined = loading
+  const [activePage, setActivePage] = useState('page1');
+  const [submittedData, setSubmittedData] = useState(null);
+  const [checklistState, setChecklistState] = useState({});
+  const [saveFlash, setSaveFlash] = useState(false);
+
+  // Debounce ref for checklist saves
+  const checklistSaveTimer = useRef(null);
+
+  useEffect(() => { if (window.feather) feather.replace(); });
+
+  // Auth listener + initial session load
+  useEffect(() => {
+    db.auth.getSession().then(async ({ data: { session } }) => {
+      setSession(session);
+      if (session) {
+        const { submittedData: sd, checklistState: cs } = await dbLoadUser(session.user.id);
+        setSubmittedData(sd); setChecklistState(cs);
+      }
+    });
+
+    const { data: { subscription } } = db.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      if (session) {
+        const { submittedData: sd, checklistState: cs } = await dbLoadUser(session.user.id);
+        setSubmittedData(sd); setChecklistState(cs);
+      } else {
+        setSubmittedData(null); setChecklistState({});
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await db.auth.signOut();
+    setActivePage('page1');
+  };
+
+  const showSaveIndicator = () => {
+    setSaveFlash(true);
+    setTimeout(() => setSaveFlash(false), 2000);
+  };
+
+  // Checklist changes: update state immediately, debounce save to Supabase
+  const handleChecklistChange = useCallback((newState) => {
+    setChecklistState(newState);
+    if (session?.user) {
+      clearTimeout(checklistSaveTimer.current);
+      checklistSaveTimer.current = setTimeout(async () => {
+        await dbSaveChecklist(session.user.id, newState);
+        showSaveIndicator();
+      }, 1200);
+    }
+  }, [session]);
+
+  // Loading state while checking session
+  if (session === undefined) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <div className="loading-text">Loading Elect!…</div>
+      </div>
+    );
+  }
+
+  // Not logged in
+  if (!session) return <AuthScreen />;
+
+  const user = session.user;
+  const initials = user.email?.slice(0, 2).toUpperCase() || '??';
+
+  return (
+    <div className="app-shell">
+      <nav className="nav">
+        <a className="nav-logo" href="#">
+          <span className="logo-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </span>
+          Elect!
+        </a>
+
+        <div className="nav-links">
+          <button className={`nav-link${activePage==='page1'?' active':''}`} onClick={() => setActivePage('page1')}>
+            <Icon name="zap" size={14} /> Elective Planner
+            <span style={{ marginLeft:'.3rem', fontSize:'.74rem', color: activePage==='page1'?'rgba(255,255,255,.65)':'var(--text-muted)' }}>Year 10</span>
+          </button>
+          <button className={`nav-link${activePage==='page2'?' active':''}`} onClick={() => setActivePage('page2')}>
+            <Icon name="compass" size={14} /> Explore & Track
+            {!submittedData && <span className="nav-badge">2 locked</span>}
+          </button>
+        </div>
+
+        {/* Future year levels */}
+        <div style={{ display:'flex', gap:'.2rem' }}>
+          {['Y9','Y11','Y12'].map(y => <button key={y} className="nav-link coming-soon" title={`${y} — coming soon`}>{y}</button>)}
+        </div>
+
+        {/* User badge */}
+        <div className="nav-user">
+          {saveFlash && <span className="save-indicator"><Icon name="check" size={13} /> Saved</span>}
+          <div className="nav-avatar">{initials}</div>
+          <span className="nav-email">{user.email}</span>
+          <button className="nav-logout" onClick={handleLogout}><Icon name="log-out" size={13} /> Log out</button>
+        </div>
+      </nav>
+
+      {activePage === 'page1' && (
+        <Page1
+          user={user}
+          submittedData={submittedData}
+          onSubmit={setSubmittedData}
+          onSaveIndicator={showSaveIndicator}
+        />
+      )}
+      {activePage === 'page2' && (
+        <Page2
+          user={user}
+          submittedData={submittedData}
+          checklistState={checklistState}
+          onChecklistChange={handleChecklistChange}
+        />
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
