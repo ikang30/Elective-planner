@@ -241,6 +241,7 @@
     }
     .multi-chip:hover { border-color: var(--primary-light); color: var(--primary); }
     .multi-chip.selected { border-color: var(--primary); background: var(--primary); color: #fff; }
+    .multi-chip.chip-disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
 
     /* ═══ BUTTONS ═══ */
     .btn {
@@ -501,34 +502,83 @@ const CAREER_CATEGORIES = [
   'Military & Defence', 'Architecture & Design', 'Media & Communications',
 ];
 
-const CORE_SUBJECTS = ['English', 'Mathematics', 'Science', 'Geography / History'];
+const CORE_SUBJECTS = ['English', 'Mathematics', 'Science', 'Humanities'];
 
 const GRADE_OPTIONS = [
-  { value: '',                label: 'Select…' },
-  { value: 'outstanding',    label: 'Outstanding (90+)' },
-  { value: 'excellent',      label: 'Excellent (80+)' },
-  { value: 'very_good',      label: 'Very Good (70+)' },
-  { value: 'good',           label: 'Good (60+)' },
-  { value: 'moderate',       label: 'Moderate (50+)' },
-  { value: 'below_moderate', label: 'Below Moderate (<50)' },
+  { value: '',       label: 'Select…'        },
+  { value: '95',     label: '95+'            },
+  { value: '90',     label: '90+'            },
+  { value: '85',     label: '85+'            },
+  { value: '80',     label: '80+'            },
+  { value: '75',     label: '75+'            },
+  { value: '70',     label: '70+'            },
+  { value: '65',     label: '65+'            },
+  { value: '60',     label: '60+'            },
+  { value: '55',     label: '55+'            },
+  { value: '50',     label: '50+'            },
+  { value: '45',     label: 'Below 50'       },
 ];
 
 const UNIVERSITIES_AU = [
-  'University of Melbourne','UNSW Sydney','University of Sydney','Monash University',
-  'University of Queensland (UQ)','Australian National University (ANU)','University of Adelaide',
-  'University of Western Australia (UWA)','Macquarie University','RMIT University',
-  'Deakin University','La Trobe University','Swinburne University',
-  'Queensland University of Technology (QUT)','University of Technology Sydney (UTS)',
-  'Curtin University','Bond University','University of Newcastle',
-  'University of Wollongong','Flinders University',
+  'University of Melbourne',
+  'University of Sydney',
+  'Australian National University (ANU)',
+  'University of Queensland (UQ)',
+  'Monash University',
+  'UNSW Sydney',
+  'University of Adelaide',
+  'University of Western Australia (UWA)',
+  'RMIT University',
+  'University of Technology Sydney (UTS)',
+  'Macquarie University',
+  'University of Newcastle',
+  'Deakin University',
+  'La Trobe University',
+  'Griffith University',
+  'University of Wollongong',
+  'Curtin University',
+  'Flinders University',
+  'James Cook University',
+  'Victoria University',
 ];
 
 const UNIVERSITIES_INTL = [
-  'Harvard University','University of Oxford','University of Cambridge','MIT',
-  'Stanford University','ETH Zurich','University of Toronto',
-  'London School of Economics (LSE)','Imperial College London','Yale University',
-  'Princeton University','Columbia University','University of Edinburgh',
+  // United States
+  'Harvard University (USA)',
+  'MIT (USA)',
+  'Stanford University (USA)',
+  'Johns Hopkins University (USA)',
+  'Princeton University (USA)',
+  'Yale University (USA)',
+  'Columbia University (USA)',
+  'New York University (NYU, USA)',
+  'Berklee College of Music (USA)',
+  // United Kingdom
+  'University of Oxford (UK)',
+  'University of Cambridge (UK)',
+  'University College London (UCL, UK)',
+  'Imperial College London (UK)',
+  'London School of Economics (LSE, UK)',
+  'University of Edinburgh (UK)',
+  "King's College London (UK)",
+  'Royal College of Art (UK)',
+  'Loughborough University (UK)',
+  // Europe
+  'ETH Zurich (Switzerland)',
+  'Sciences Po (France)',
+  'University of Amsterdam (Netherlands)',
+  'Karolinska Institute (Sweden)',
+  // Canada
+  'University of Toronto (Canada)',
+  'McGill University (Canada)',
+  // Asia
   'National University of Singapore (NUS)',
+  'University of Tokyo (Japan)',
+  'Peking University (China)',
+  'Seoul National University (South Korea)',
+  'Waseda University (Japan)',
+  // Other
+  'University of Cape Town (South Africa)',
 ];
 
 const HUMANITIES_IDS = ['history', 'geography'];
@@ -584,7 +634,7 @@ const ALL_ELECTIVES = [
     description: '/* PLACEHOLDER: Curriculum description for Creative Writing */',
     careers: ['Author','Screenwriter','Content Creator','Copywriter'],
     universities: ['RMIT University','Deakin University','University of Melbourne'] },
-  { id: 'english_writing',   name: 'The English Writing',  category: 'arts', badge: 'badge-arts',
+  { id: 'english_writing',   name: 'The English Language', category: 'arts', badge: 'badge-arts',
     description: '/* PLACEHOLDER: Curriculum description for The English Writing */',
     careers: ['Journalist','Communications Officer','PR Specialist','Policy Writer'],
     universities: ['University of Sydney','Monash University','University of Melbourne'] },
@@ -592,7 +642,7 @@ const ALL_ELECTIVES = [
     description: '/* PLACEHOLDER: Curriculum description for Sculpture */',
     careers: ['Visual Artist','Sculptor','Art Educator','Museum Curator'],
     universities: ['RMIT University','University of Melbourne (VCA)','ANU'] },
-  { id: 'vic_comm',          name: 'Vic Comm',             category: 'arts', badge: 'badge-arts',
+  { id: 'vic_comm',          name: 'Visual Communication', category: 'arts', badge: 'badge-arts',
     description: '/* PLACEHOLDER: Curriculum description for Vic Comm */',
     careers: ['Visual Communications Designer','Graphic Designer','Art Director'],
     universities: ['RMIT University','Swinburne University','University of Technology Sydney (UTS)'] },
@@ -683,6 +733,125 @@ const PLACEHOLDER_CHECKLIST = [
   'Revise Unit 2 content',
 ];
 
+/* ── Scoring dimensions (order matches all point tables below) ──
+   maths / english / science / arts / music / movement / engineering / society / humanities  */
+const DIMS = ['maths','english','science','arts','music','movement','engineering','society','humanities'];
+
+const p = (m,e,s,a,mu,mv,en,so,h) =>
+  ({ maths:m, english:e, science:s, arts:a, music:mu, movement:mv, engineering:en, society:so, humanities:h });
+
+/* ── Points per elective ── */
+const ELECTIVE_POINTS = {
+  literature:                p(0,   5,   0,   2,   0, 0, 0,   1,   2  ),
+  creative_writing:          p(0,   6,   0,   2,   0, 0, 0,   1,   1  ),
+  english_writing:           p(0,   8,   0,   1.5, 0, 0, 0,   0.5, 0  ),
+  history:                   p(0,   2,   0,   0,   0, 0, 0,   0,   8  ),
+  geography:                 p(0,   1,   1,   0,   0, 0, 0,   0,   8  ),
+  commerce_business_legal:   p(1.5, 1,   0,   0,   0, 0, 0,   6,   1.5),
+  commerce_economics_finance:p(3,   1,   0,   0,   0, 0, 0,   5.5, 0.5),
+  global_conflict:           p(0,   2,   0,   0,   0, 0, 0,   2,   6  ),
+  make_my_day_science:       p(1,   1,   7,   0,   0, 0, 1,   0,   0  ),
+  environmental_science:     p(1,   1,   6,   0,   0, 0, 1,   0.5, 0.5),
+  physics:                   p(4,   0,   4,   0,   0, 0, 2,   0,   0  ),
+  biology:                   p(0.5, 1,   8,   0,   0, 0, 0.5, 0,   0  ),
+  chemistry:                 p(3,   0,   6,   0,   0, 0, 1,   0,   0  ),
+  pe_for_life:               p(0,   1,   2,   0,   0, 7, 0,   0,   0  ),
+  human_movement:            p(1,   1,   4,   0,   0, 4, 0,   0,   0  ),
+  outdoor_ed:                p(0,   1,   2,   0,   0, 6, 0,   0.5, 0.5),
+  sculpture:                 p(0,   1,   0,   8,   0, 0, 1,   0,   0  ),
+  vic_comm:                  p(1,   1,   0,   6,   0, 0, 2,   0,   0  ),
+  art:                       p(0,   1,   0,   9,   0, 0, 0,   0,   0  ),
+  ceramics:                  p(0,   0.5, 0.5, 8,   0, 0, 1,   0,   0  ),
+  media:                     p(0,   3,   0,   4,   0, 0, 1,   1.5, 0.5),
+  sustainable_design:        p(1.5, 0.5, 2,   2,   0, 0, 4,   0,   0  ),
+  animation:                 p(1,   0.5, 0,   4,   0, 0, 4.5, 0,   0  ),
+  music_performance:         p(0,   1,   0,   2,   7, 0, 0,   0,   0  ),
+  music_technology:          p(0.5, 0.5, 0,   1,   6, 0, 2,   0,   0  ),
+  theatre:                   p(0,   3,   0,   4,   0, 2, 0,   0.5, 0.5),
+  food_tech:                 p(0.5, 0.5, 2,   1,   0, 0, 3,   2,   1  ),
+  health:                    p(0,   1.5, 3,   0,   0, 3, 0,   1.5, 1  ),
+  information_systems:       p(2,   0.5, 0.5, 0,   0, 0, 7,   0,   0  ),
+  information_technology:    p(2,   0.5, 0.5, 0,   0, 0, 7,   0,   0  ),
+  intro_engineering:         p(2,   0,   2,   0,   0, 0, 6,   0,   0  ),
+};
+
+/* ── Points per career category ── */
+const CAREER_POINTS = {
+  'Hospitality & Tourism':      p(0,   1,   0,   1,   0.5, 0.5, 0.5, 1.5, 0  ),
+  'Medicine & Health Sciences': p(1.5, 0.5, 2.5, 0,   0,   0,   0.5, 0,   0  ),
+  'Transportation & Logistics': p(1,   0.5, 0.5, 0,   0,   0.5, 2.5, 0,   0  ),
+  'Business & Finance':         p(1.5, 0.5, 0,   0,   0,   0,   0,   3,   0  ),
+  'Law & Justice':              p(0,   1.5, 0,   0,   0,   0,   0,   1.5, 2  ),
+  'Technology & Engineering':   p(1.5, 0,   1,   0,   0,   0,   2.5, 0,   0  ),
+  'Arts & Creative Industries': p(0,   1,   0,   2,   1,   0.5, 0,   0,   0.5),
+  'Education & Social Work':    p(0.5, 1.5, 0,   0.5, 0,   0.5, 0,   1,   1  ),
+  'Agriculture & Environment':  p(0.5, 0.5, 2,   0,   0,   0.5, 1,   0,   0.5),
+  'Military & Defence':         p(1,   0.5, 1,   0,   0,   2,   1.5, 0,   0  ),
+  'Architecture & Design':      p(1,   0,   0.5, 2,   0,   0,   1.5, 0,   0  ),
+  'Media & Communications':     p(0,   1.5, 0,   1.5, 0.5, 0,   1,   0.5, 0  ),
+};
+
+/* ── Points per university ── */
+const UNIVERSITY_POINTS = {
+  // Australian
+  'University of Melbourne':            p(0.5, 0.3, 0.5, 0.2, 0.1, 0,   0.2, 0.1, 0.1),
+  'University of Sydney':               p(0.3, 0.3, 0.4, 0.2, 0.1, 0,   0.2, 0.3, 0.2),
+  'Australian National University (ANU)':p(0.3,0.2, 0.5, 0.1, 0,   0,   0.2, 0.4, 0.3),
+  'University of Queensland (UQ)':      p(0.2, 0.2, 0.6, 0.1, 0,   0.1, 0.3, 0.3, 0.2),
+  'Monash University':                  p(0.3, 0.2, 0.5, 0.1, 0,   0.1, 0.4, 0.3, 0.1),
+  'UNSW Sydney':                        p(0.4, 0.1, 0.4, 0.1, 0,   0,   0.6, 0.3, 0.1),
+  'University of Adelaide':             p(0.3, 0.2, 0.5, 0.1, 0.1, 0,   0.4, 0.2, 0.2),
+  'University of Western Australia (UWA)':p(0.3,0.2,0.5, 0.1, 0,   0.1, 0.4, 0.2, 0.2),
+  'RMIT University':                    p(0.2, 0.1, 0.2, 0.4, 0.1, 0,   0.6, 0.2, 0.2),
+  'University of Technology Sydney (UTS)':p(0.3,0.2,0.3,0.2,  0,   0,   0.6, 0.3, 0.1),
+  'Macquarie University':               p(0.2, 0.3, 0.3, 0.2, 0.1, 0,   0.2, 0.4, 0.3),
+  'University of Newcastle':            p(0.2, 0.2, 0.4, 0.1, 0,   0.2, 0.5, 0.2, 0.2),
+  'Deakin University':                  p(0.1, 0.3, 0.3, 0.2, 0,   0.4, 0.2, 0.3, 0.2),
+  'La Trobe University':                p(0.1, 0.3, 0.4, 0.2, 0.1, 0.2, 0.1, 0.3, 0.3),
+  'Griffith University':                p(0.1, 0.2, 0.3, 0.3, 0.2, 0.2, 0.2, 0.3, 0.2),
+  'University of Wollongong':           p(0.3, 0.2, 0.3, 0.2, 0,   0.2, 0.5, 0.2, 0.1),
+  'Curtin University':                  p(0.3, 0.1, 0.3, 0.1, 0,   0.1, 0.7, 0.2, 0.2),
+  'Flinders University':                p(0.1, 0.2, 0.5, 0.2, 0,   0.2, 0.2, 0.3, 0.3),
+  'James Cook University':              p(0.1, 0.2, 0.7, 0.1, 0,   0.2, 0.2, 0.2, 0.3),
+  'Victoria University':                p(0.1, 0.2, 0.2, 0.2, 0.1, 0.5, 0.3, 0.3, 0.1),
+  // USA
+  'Harvard University (USA)':           p(0.3, 0.4, 0.3, 0.2, 0.1, 0.1, 0.1, 0.3, 0.2),
+  'MIT (USA)':                          p(0.6, 0.1, 0.4, 0.1, 0,   0,   0.7, 0.1, 0  ),
+  'Stanford University (USA)':          p(0.4, 0.2, 0.3, 0.1, 0,   0.1, 0.5, 0.3, 0.1),
+  'Johns Hopkins University (USA)':     p(0.3, 0.1, 0.6, 0,   0.2, 0,   0.4, 0.2, 0.2),
+  'Princeton University (USA)':         p(0.4, 0.2, 0.3, 0.1, 0.1, 0,   0.3, 0.3, 0.3),
+  'Yale University (USA)':              p(0.1, 0.3, 0.2, 0.4, 0.3, 0.1, 0.1, 0.2, 0.3),
+  'Columbia University (USA)':          p(0.3, 0.3, 0.2, 0.2, 0.1, 0,   0.3, 0.4, 0.2),
+  'New York University (NYU, USA)':     p(0.1, 0.3, 0.1, 0.5, 0.2, 0.1, 0.2, 0.3, 0.2),
+  'Berklee College of Music (USA)':     p(0,   0.1, 0,   0.5, 1.2, 0.1, 0.1, 0,   0  ),
+  // UK
+  'University of Oxford (UK)':          p(0.2, 0.4, 0.3, 0.2, 0.1, 0,   0.1, 0.2, 0.5),
+  'University of Cambridge (UK)':       p(0.5, 0.2, 0.5, 0.1, 0.1, 0,   0.3, 0.1, 0.2),
+  'University College London (UCL, UK)':p(0.2, 0.3, 0.4, 0.2, 0,   0,   0.3, 0.3, 0.3),
+  'Imperial College London (UK)':       p(0.5, 0,   0.5, 0,   0,   0,   0.8, 0.1, 0.1),
+  'London School of Economics (LSE, UK)':p(0.4,0.2, 0.1, 0,   0,   0,   0,   0.8, 0.5),
+  'University of Edinburgh (UK)':       p(0.2, 0.3, 0.3, 0.3, 0.2, 0,   0.2, 0.2, 0.3),
+  "King's College London (UK)":         p(0.1, 0.2, 0.4, 0.2, 0.1, 0,   0.2, 0.4, 0.4),
+  'Royal College of Art (UK)':          p(0,   0.1, 0,   1.5, 0,   0,   0.3, 0.1, 0  ),
+  'Loughborough University (UK)':       p(0.2, 0.1, 0.2, 0.1, 0,   0.9, 0.4, 0.1, 0  ),
+  // Europe
+  'ETH Zurich (Switzerland)':           p(0.6, 0,   0.5, 0,   0,   0,   0.8, 0.1, 0  ),
+  'Sciences Po (France)':               p(0.1, 0.2, 0,   0.2, 0,   0,   0,   0.8, 0.7),
+  'University of Amsterdam (Netherlands)':p(0.2,0.2,0.3, 0.2, 0.1, 0,   0.2, 0.5, 0.3),
+  'Karolinska Institute (Sweden)':      p(0.2, 0.1, 1.2, 0,   0,   0.2, 0.2, 0.1, 0  ),
+  // Canada
+  'University of Toronto (Canada)':     p(0.3, 0.2, 0.4, 0.2, 0.1, 0,   0.3, 0.3, 0.2),
+  'McGill University (Canada)':         p(0.3, 0.3, 0.4, 0.2, 0.1, 0,   0.2, 0.3, 0.2),
+  // Asia
+  'National University of Singapore (NUS)':p(0.4,0.1,0.4,0.1, 0,   0,   0.6, 0.3, 0.1),
+  'University of Tokyo (Japan)':        p(0.5, 0,   0.5, 0.1, 0,   0,   0.6, 0.2, 0.1),
+  'Peking University (China)':          p(0.4, 0.1, 0.4, 0.1, 0,   0,   0.4, 0.3, 0.3),
+  'Seoul National University (South Korea)':p(0.4,0.1,0.4,0.1,0,  0,   0.6, 0.3, 0.1),
+  'Waseda University (Japan)':          p(0.2, 0.2, 0.2, 0.2, 0.1, 0,   0.4, 0.4, 0.3),
+  // Other
+  'University of Cape Town (South Africa)':p(0.2,0.3,0.4,0.2,0.1, 0.1, 0.3, 0.2, 0.2),
+};
+
 /* ═══════════════════════════════════════════════════════════════
    ALGORITHM PLACEHOLDER
    ─────────────────────────────────────────────────────────────
@@ -698,27 +867,85 @@ const PLACEHOLDER_CHECKLIST = [
    Return: ordered array of elective IDs, best → worst.
 ═══════════════════════════════════════════════════════════════ */
 function runAlgorithm(studentData) {
-  const { careerCategory } = studentData;
-  const affinityMap = {
-    'Medicine & Health Sciences':  ['biology','chemistry','human_movement','make_my_day_science','health'],
-    'Technology & Engineering':    ['physics','information_technology','intro_engineering','chemistry','information_systems'],
-    'Business & Finance':          ['commerce_economics_finance','commerce_business_legal','information_systems','global_conflict'],
-    'Law & Justice':               ['commerce_business_legal','history','global_conflict','commerce_economics_finance'],
-    'Arts & Creative Industries':  ['art','theatre','music_performance','animation','creative_writing','media','sculpture'],
-    'Hospitality & Tourism':       ['food_tech','geography','outdoor_ed','commerce_business_legal'],
-    'Education & Social Work':     ['health','history','theatre','biology','human_movement'],
-    'Transportation & Logistics':  ['physics','geography','information_technology','intro_engineering'],
-    'Agriculture & Environment':   ['environmental_science','biology','geography','chemistry'],
-    'Military & Defence':          ['physics','pe_for_life','history','global_conflict'],
-    'Architecture & Design':       ['sustainable_design','art','vic_comm','intro_engineering'],
-    'Media & Communications':      ['media','english_writing','creative_writing','animation','vic_comm'],
+  /* ═══════════════════════════════════════════════════════════════
+     FULL SCORING ALGORITHM
+     ─────────────────────────────────────────────────────────────
+     Step 1  Start scoreboard at 0 for all 9 dimensions.
+     Step 2  Grade points — rank the 4 core subjects by grade;
+             highest gets +3, 2nd +2, 3rd +1, 4th +0 to its
+             matching dimension. Ties share the same points.
+     Step 3  Desired elective points — each desired elective
+             contributes HALF its point values to the scoreboard.
+     Step 4  Career category points.
+     Step 5  University points (max 2 universities).
+     Step 6  Apply a subtle major-subject bias to the board,
+             then score every elective by dot-product against
+             that biased board. Rank highest score first.
+  ═══════════════════════════════════════════════════════════════ */
+
+  const { grades = {}, desiredElectives = [], careerCategory, universities = [] } = studentData;
+
+  // ── Initialise scoreboard ──────────────────────────────────────
+  const board = Object.fromEntries(DIMS.map(d => [d, 0]));
+
+  // ── Step 2: Grade → dimension points ─────────────────────────
+  const coreDimMap = { English:'english', Mathematics:'maths', Science:'science', Humanities:'humanities' };
+  const gradeSubjects = CORE_SUBJECTS
+    .filter(s => grades[s] && grades[s] !== '')
+    .map(s => ({ dim: coreDimMap[s], value: Number(grades[s]) }));
+
+  gradeSubjects.sort((a, b) => b.value - a.value);
+
+  const rankPts = [3, 2, 1, 0]; // points by rank index
+  let i = 0;
+  while (i < gradeSubjects.length) {
+    let j = i;
+    while (j < gradeSubjects.length && gradeSubjects[j].value === gradeSubjects[i].value) j++;
+    // All subjects in [i, j) share the points of rank i
+    const pts = rankPts[i] ?? 0;
+    for (let k = i; k < j; k++) board[gradeSubjects[k].dim] += pts;
+    i = j;
+  }
+
+  // ── Step 3: Desired elective half-points ─────────────────────
+  for (const id of desiredElectives) {
+    const ep = ELECTIVE_POINTS[id];
+    if (ep) DIMS.forEach(d => { board[d] += (ep[d] || 0) * 0.5; });
+  }
+
+  // ── Step 4: Career points ────────────────────────────────────
+  const cp = CAREER_POINTS[careerCategory];
+  if (cp) DIMS.forEach(d => { board[d] += cp[d] || 0; });
+
+  // ── Step 5: University points ────────────────────────────────
+  for (const uni of universities) {
+    const up = UNIVERSITY_POINTS[uni];
+    if (up) DIMS.forEach(d => { board[d] += up[d] || 0; });
+  }
+
+  // ── Step 6: Bias + match scoring ─────────────────────────────
+  // Subtle multiplier — core academic dimensions score fractionally
+  // higher so that, when match scores are close, maths/science/
+  // english/engineering-heavy electives edge ahead of arts/music/
+  // movement alternatives. The difference is small enough to be
+  // invisible but consistent. (1.0 = no bias, higher = more weight)
+  const BIAS = {
+    maths: 1.16, science: 1.16, english: 1.13, engineering: 1.13,
+    society: 1.06, humanities: 1.06,
+    arts: 1.0, music: 1.0, movement: 1.0,
   };
-  const affinities = affinityMap[careerCategory] || [];
-  const ranked = []; const seen = new Set();
-  const add = (id) => { if (!seen.has(id)) { seen.add(id); ranked.push(id); } };
-  affinities.forEach(add);
-  ALL_ELECTIVES.forEach(e => add(e.id));
-  return ranked;
+
+  const biased = Object.fromEntries(DIMS.map(d => [d, board[d] * (BIAS[d] || 1)]));
+
+  const scored = ALL_ELECTIVES.map(e => {
+    const ep = ELECTIVE_POINTS[e.id];
+    if (!ep) return { id: e.id, score: 0 };
+    const score = DIMS.reduce((sum, d) => sum + biased[d] * (ep[d] || 0), 0);
+    return { id: e.id, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  return scored.map(s => s.id);
 }
 
 function buildYear10Selection(rankedIds) {
@@ -878,7 +1105,11 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   const [isLocked, setIsLocked] = useState(!!submittedData?.isLocked);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
 
-  const toggleUni = (uni) => setUniversities(prev => prev.includes(uni) ? prev.filter(u => u !== uni) : [...prev, uni]);
+  const toggleUni = (uni) => setUniversities(prev => {
+    if (prev.includes(uni)) return prev.filter(u => u !== uni); // always allow deselect
+    if (prev.length >= 2) return prev;                          // cap at 2
+    return [...prev, uni];
+  });
 
   const addDesiredElective = () => { if (desiredElectives.length < 3) setDesiredElectives(prev => [...prev, '']); };
   const removeDesiredElective = (i) => setDesiredElectives(prev => prev.filter((_, idx) => idx !== i));
@@ -1036,19 +1267,29 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
             <div className="card-title">
               <span className="icon-wrap" style={{ background:'#fee2e2' }}><Icon name="award" size={14} /></span>
               Preferred Universities
-              <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.25rem' }}>(select all that interest you)</span>
+              <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.25rem' }}>
+                (choose up to 2 — {universities.length}/2 selected)
+              </span>
             </div>
             <div className="uni-section-label">Australian Universities</div>
             <div className="multi-chip-grid">
-              {UNIVERSITIES_AU.map(uni => (
-                <button type="button" key={uni} className={`multi-chip${universities.includes(uni) ? ' selected' : ''}`} onClick={() => toggleUni(uni)}>{uni}</button>
-              ))}
+              {UNIVERSITIES_AU.map(uni => {
+                const sel = universities.includes(uni);
+                const capped = !sel && universities.length >= 2;
+                return <button type="button" key={uni}
+                  className={`multi-chip${sel?' selected':''}${capped?' chip-disabled':''}`}
+                  onClick={() => toggleUni(uni)}>{uni}</button>;
+              })}
             </div>
             <div className="uni-section-label">International Universities</div>
             <div className="multi-chip-grid">
-              {UNIVERSITIES_INTL.map(uni => (
-                <button type="button" key={uni} className={`multi-chip${universities.includes(uni) ? ' selected' : ''}`} onClick={() => toggleUni(uni)}>{uni}</button>
-              ))}
+              {UNIVERSITIES_INTL.map(uni => {
+                const sel = universities.includes(uni);
+                const capped = !sel && universities.length >= 2;
+                return <button type="button" key={uni}
+                  className={`multi-chip${sel?' selected':''}${capped?' chip-disabled':''}`}
+                  onClick={() => toggleUni(uni)}>{uni}</button>;
+              })}
             </div>
           </div>
 
