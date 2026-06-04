@@ -331,6 +331,29 @@
     .badge-commerce   { background: #e0f2fe; color: #0369a1; }
     .badge-tech       { background: #f0fdf4; color: #166534; }
     .badge-health     { background: #fdf2f8; color: #9d174d; }
+    .badge-language   { background: #fff7ed; color: #9a3412; }
+
+    /* LANGUAGE SWAP ACTIONS */
+    .lang-swap-row { display: flex; gap: .6rem; margin-top: .85rem; flex-wrap: wrap; align-items: center; }
+    .btn-lang-swap {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .4rem 1rem; border-radius: 8px; font-size: .83rem; font-weight: 600;
+      cursor: pointer; border: 1.5px solid #fde68a;
+      background: #fffbeb; color: #92400e; transition: all .15s;
+    }
+    .btn-lang-swap:hover { background: #fef3c7; border-color: #fcd34d; }
+    .btn-lang-undo {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .4rem .9rem; border-radius: 8px; font-size: .83rem; font-weight: 500;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: transparent; color: var(--text-muted); transition: all .15s;
+    }
+    .btn-lang-undo:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
+    .lang-swapped-badge {
+      font-size: .78rem; font-weight: 600; color: #92400e;
+      background: #fef3c7; border: 1px solid #fde68a;
+      padding: .25rem .7rem; border-radius: 99px;
+    }
 
     /* ═══ ENHANCEMENT BANNER ═══ */
     .enhancement-banner {
@@ -972,8 +995,17 @@ function runAlgorithm(studentData) {
     const ep = ELECTIVE_POINTS[e.id];
     if (!ep) return { id: e.id, score: 0 };
     const raw = DIMS.reduce((sum, d) => sum + biased[d] * (ep[d] || 0), 0);
-    const score = raw * (HARD_PENALTY[e.id] ?? 1);
-    return { id: e.id, score };
+
+    let penalty = HARD_PENALTY[e.id] ?? 1;
+    // If the student explicitly desired this elective, honour that wish ~60% of
+    // the time by softening the penalty dramatically. ×0.65 means it competes
+    // fairly against other electives for most student profiles, but still loses
+    // to strongly-fitting alternatives when the profile is truly mismatched
+    // (the rational 40%). The half-point scoreboard boost from Step 3 above
+    // compounds this, so desired hard electives genuinely tend to appear.
+    if (penalty < 1 && desiredElectives.includes(e.id)) penalty = 0.65;
+
+    return { id: e.id, score: raw * penalty };
   });
 
   scored.sort((a, b) => b.score - a.score);
@@ -1161,6 +1193,11 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   const [suggestionPool, setSuggestionPool] = useState(submittedData?.pool || []);
   const [isLocked, setIsLocked] = useState(!!submittedData?.isLocked);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [languageSwapped, setLanguageSwapped] = useState(
+    // Restore from saved data — detect by checking if slot 6 or 7 is a lang card
+    (submittedData?.suggestions || []).some(s => s?.id?.startsWith('lang_'))
+  );
+  const [displacedByLanguage, setDisplacedByLanguage] = useState(null);
 
   const toggleUni = (uni) => setUniversities(prev => {
     if (prev.includes(uni)) return prev.filter(u => u !== uni); // always allow deselect
@@ -1226,10 +1263,49 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   const handleRestartConfirmed = async () => {
     setSubmitted(false); setSuggestions([]); setSuggestionPool([]);
     setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
+    setLanguageSwapped(false); setDisplacedByLanguage(null);
     setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
     setCareer(''); setLanguage(''); setUniversities([]);
     onSubmit(null);
     if (user) { await dbClearResults(user.id); onSaveIndicator(); }
+  };
+
+  /* ── Language-swap helpers ────────────────────────────────── */
+  const handleLanguageSwap = async () => {
+    const lang = submittedData?.studentData?.language;
+    if (!lang || languageSwapped) return;
+    // Store originals so undo works within this session
+    setDisplacedByLanguage([suggestions[6], suggestions[7]]);
+    const makeCard = (suffix) => ({
+      id: `lang_${suffix}`,
+      name: `${lang} Continuation`,
+      category: 'language',
+      badge: 'badge-language',
+      description: `Year 10 continuation of Year 9 ${lang} — building on vocabulary, grammar, and conversational skills developed last year.`,
+      careers: ['Interpreter / Translator', 'Diplomat', 'International Business', 'Tourism Professional'],
+      universities: [],
+    });
+    const next = suggestions.map((s, i) =>
+      i === 6 ? makeCard('a') : i === 7 ? makeCard('b') : s
+    );
+    setSuggestions(next);
+    setLanguageSwapped(true);
+    const data = { studentData: submittedData?.studentData, suggestions: next, pool: suggestionPool, isLocked };
+    onSubmit(data);
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+  };
+
+  const handleLanguageSwapUndo = async () => {
+    if (!displacedByLanguage) return;
+    const next = suggestions.map((s, i) =>
+      i === 6 ? displacedByLanguage[0] : i === 7 ? displacedByLanguage[1] : s
+    );
+    setSuggestions(next);
+    setLanguageSwapped(false);
+    setDisplacedByLanguage(null);
+    const data = { studentData: submittedData?.studentData, suggestions: next, pool: suggestionPool, isLocked };
+    onSubmit(data);
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
   };
 
   const humCount = suggestions.filter(e => HUMANITIES_IDS.includes(e.id)).length;
@@ -1391,16 +1467,42 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
           {submittedData?.studentData?.language && (
             <div className="language-note">
               <div className="language-note-icon">🌐</div>
-              <div>
-                <div className="language-note-title">{submittedData.studentData.language} Continuation Available</div>
-                <div className="language-note-text">
-                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9,
-                  you might want to remove{' '}
-                  <strong>{suggestions[6]?.name || 'your 7th elective'}</strong> and{' '}
-                  <strong>{suggestions[7]?.name || 'your 8th elective'}</strong>{' '}
-                  and replace them with <strong>{submittedData.studentData.language} (continuation)</strong>.
-                  Speak to your subject coordinator to confirm availability.
+              <div style={{ flex: 1 }}>
+                <div className="language-note-title">
+                  {submittedData.studentData.language} Continuation Available
+                  {languageSwapped && <span className="lang-swapped-badge" style={{ marginLeft: '.65rem' }}>Added ✓</span>}
                 </div>
+                <div className="language-note-text">
+                  {languageSwapped ? (
+                    <>
+                      <strong>{submittedData.studentData.language} (continuation)</strong> has replaced slots 7 & 8 in your plan.
+                      Speak to your subject coordinator to confirm enrolment.
+                    </>
+                  ) : (
+                    <>
+                      Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9,
+                      you might want to remove{' '}
+                      <strong>{suggestions[6]?.name || 'your 7th elective'}</strong> and{' '}
+                      <strong>{suggestions[7]?.name || 'your 8th elective'}</strong>{' '}
+                      and replace both with <strong>{submittedData.studentData.language} (continuation)</strong>.
+                    </>
+                  )}
+                </div>
+                {!isLocked && (
+                  <div className="lang-swap-row">
+                    {!languageSwapped ? (
+                      <button className="btn-lang-swap" onClick={handleLanguageSwap}>
+                        🌐 Replace slots 7 & 8 with {submittedData.studentData.language}
+                      </button>
+                    ) : (
+                      displacedByLanguage && (
+                        <button className="btn-lang-undo" onClick={handleLanguageSwapUndo}>
+                          ↩ Undo — restore {displacedByLanguage[0]?.name} & {displacedByLanguage[1]?.name}
+                        </button>
+                      )
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1439,6 +1541,31 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
             );
           })()}
 
+          {/* Enhancement advisory — shown only before lock-in, only when the
+              enhancement banner above is visible */}
+          {!isLocked && (() => {
+            const g = submittedData?.studentData?.grades || {};
+            const eng  = Number(g['English']     || 0);
+            const math = Number(g['Mathematics']  || 0);
+            const sci  = Number(g['Science']      || 0);
+            if (!(eng > 70 && (math > 85 || sci > 85))) return null;
+            return (
+              <div style={{
+                marginTop: '1.1rem',
+                fontSize: '.83rem', fontStyle: 'italic',
+                color: 'var(--primary)',
+                background: 'rgba(99,102,241,.06)',
+                border: '1px solid rgba(99,102,241,.18)',
+                borderRadius: '9px',
+                padding: '.65rem 1rem',
+                lineHeight: 1.55,
+              }}>
+                💡 Lock in your choices first — you can edit your elective units on the{' '}
+                <strong>Explore & Track</strong> page if you choose to take the enhancement classes later on.
+              </div>
+            );
+          })()}
+
           <div className="lock-action-row">
             {!isLocked && <button className="btn btn-lock" onClick={handleLockIn}><Icon name="lock" size={15} /> Lock In?</button>}
             {!showRestartConfirm && (
@@ -1465,8 +1592,9 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
 
 function SuggestionCard({ elective, index, isAnimatingOut, onDismiss, locked }) {
   const categoryLabel = {
-    humanities:'Humanities', science:'Science', pe:'Physical Ed',
-    arts:'Arts', commerce:'Commerce', tech:'Technology', health:'Health & Outdoor',
+    humanities: 'Humanities', science: 'Science', pe: 'Physical Ed',
+    arts: 'Arts', commerce: 'Commerce', tech: 'Technology',
+    health: 'Health & Outdoor', language: 'Language Continuation',
   }[elective.category] || elective.category;
 
   return (
