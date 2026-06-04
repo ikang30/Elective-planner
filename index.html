@@ -334,6 +334,24 @@
     .badge-ict            { background: #f0fdf4; color: #166534; }
     .badge-language       { background: #fff7ed; color: #9a3412; }
 
+    /* PER-CARD LANGUAGE SWAP BUTTONS */
+    .card-lang-swap {
+      display: inline-flex; align-items: center; gap: .28rem;
+      padding: .22rem .55rem; border-radius: 6px; font-size: .73rem; font-weight: 600;
+      cursor: pointer; border: 1.5px solid #fde68a;
+      background: #fffbeb; color: #92400e; transition: all .15s; white-space: nowrap;
+    }
+    .card-lang-swap:hover { background: #fef3c7; }
+    .card-lang-undo {
+      display: inline-flex; align-items: center; gap: .28rem;
+      padding: .22rem .55rem; border-radius: 6px; font-size: .73rem; font-weight: 500;
+      cursor: pointer; border: 1.5px solid var(--border);
+      background: transparent; color: var(--text-muted); transition: all .15s; white-space: nowrap;
+    }
+    .card-lang-undo:hover { border-color: var(--danger); color: var(--danger); }
+    .card-required-tag { font-size: .7rem; color: var(--text-muted); font-style: italic; }
+    .card-lang-limit { font-size: .7rem; color: var(--accent); font-weight: 500; }
+
     /* LANGUAGE SWAP ACTIONS */
     .lang-swap-row { display: flex; gap: .6rem; margin-top: .85rem; flex-wrap: wrap; align-items: center; }
     .btn-lang-swap {
@@ -495,8 +513,26 @@ async function dbLoadUser(userId) {
     db.from('elective_results').select('*').eq('user_id', userId).maybeSingle(),
     db.from('checklist_progress').select('*').eq('user_id', userId).maybeSingle(),
   ]);
+  // Re-map saved suggestions/pool against the live ALL_ELECTIVES definitions so that
+  // faculty reclassifications, new descriptions, and badge updates are always shown —
+  // even when the DB row was saved before those code changes were deployed.
+  // Language continuation cards (id starts with "lang_") are kept as-is.
+  const remap = (arr) => {
+    if (!Array.isArray(arr)) return arr || [];
+    return arr.map(s => {
+      if (!s?.id || s.id.startsWith('lang_')) return s;
+      const live = ALL_ELECTIVES.find(e => e.id === s.id);
+      return live ? { ...live } : s;
+    });
+  };
+
   return {
-    submittedData: res ? { studentData: res.student_data, suggestions: res.suggestions, pool: res.pool, isLocked: res.is_locked } : null,
+    submittedData: res ? {
+      studentData: res.student_data,
+      suggestions: remap(res.suggestions),
+      pool:        remap(res.pool),
+      isLocked:    res.is_locked,
+    } : null,
     checklistState: chk?.checklist_state || {},
   };
 }
@@ -1021,18 +1057,32 @@ function runAlgorithm(studentData) {
   return scored.map(s => s.id);
 }
 
-function buildYear10Selection(rankedIds) {
+// PE universities — having one selected unlocks the PE cap to 2
+const PE_FOCUSED_UNIS = new Set([
+  'Deakin University', 'Victoria University', 'Loughborough University (UK)',
+  'University of Queensland (UQ)',
+]);
+const CREATIVE_CATS = new Set(['english_faculty', 'visual_arts', 'performing_arts']);
+
+function buildYear10Selection(rankedIds, studentData = {}) {
   const total = 8; const selected = []; const seen = new Set();
+
+  // PE cap: 1 by default; raises to 2 if the student chose a PE-focused
+  // university OR explicitly listed a PE elective in desired preferences
+  const isPEFocused = (studentData.universities || []).some(u => PE_FOCUSED_UNIS.has(u));
+  const isPEDesired = (studentData.desiredElectives || []).some(id => PE_IDS.includes(id));
+  const peCap = (isPEFocused || isPEDesired) ? 2 : 1;
+
   // Per-faculty caps — prevent the first 8 from being dominated by one area
   const CAT_CAPS = {
-    science:         2,  // max 2 science electives
-    pe:              2,  // allow up to 2 PE (e.g. PE for Life + Outdoor Ed)
-    humanities:      2,  // max 2 from History/Geography/Commerce/Global Conflict
-    english_faculty: 1,  // max 1 English elective
-    visual_arts:     2,  // max 2 visual arts
-    performing_arts: 1,  // max 1 performing arts
-    ict:             2,  // max 2 ICT
-    health:          2,  // only 2 exist anyway
+    science:         2,
+    pe:              peCap,
+    humanities:      2,
+    english_faculty: 1,
+    visual_arts:     2,
+    performing_arts: 1,
+    ict:             2,
+    health:          2,
   };
   const catCount = {};
 
@@ -1096,6 +1146,34 @@ function buildYear10Selection(rankedIds) {
     if (selected.length >= total) break;
     if (!seen.has(e.id)) addById(e.id);
   }
+
+  // ── Creative-subject safety net ──────────────────────────────
+  // If the final 8 contains zero English / Visual Arts / Performing Arts
+  // electives, inject the highest-ranked creative elective from rankedIds
+  // to ensure cultural breadth. The lowest-ranked non-compulsory slot is
+  // replaced (typically position 7 — the weakest data match).
+  const hasCreative = selected.some(e => CREATIVE_CATS.has(e.category));
+  if (!hasCreative) {
+    const bestCreativeId = rankedIds.find(id => {
+      const e = ALL_ELECTIVES.find(x => x.id === id);
+      return e && CREATIVE_CATS.has(e.category);
+    });
+    if (bestCreativeId) {
+      const compulsoryIds = new Set([
+        selected.find(e => HUMANITIES_IDS.includes(e.id))?.id,
+        selected.find(e => SCIENCE_IDS.includes(e.id))?.id,
+        selected.find(e => PE_IDS.includes(e.id))?.id,
+      ].filter(Boolean));
+      // Find the last non-compulsory slot to replace
+      for (let i = selected.length - 1; i >= 0; i--) {
+        if (!compulsoryIds.has(selected[i].id)) {
+          const creative = ALL_ELECTIVES.find(x => x.id === bestCreativeId);
+          if (creative) { selected[i] = creative; break; }
+        }
+      }
+    }
+  }
+
   return selected.slice(0, total);
 }
 
@@ -1214,11 +1292,14 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   const [suggestionPool, setSuggestionPool] = useState(submittedData?.pool || []);
   const [isLocked, setIsLocked] = useState(!!submittedData?.isLocked);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
-  const [languageSwapped, setLanguageSwapped] = useState(
-    // Restore from saved data — detect by checking if slot 6 or 7 is a lang card
-    (submittedData?.suggestions || []).some(s => s?.id?.startsWith('lang_'))
+  // Per-slot language replacements: { slotIndex: displaced_elective | null }
+  // null = slot is language-replaced but original unknown (loaded from DB)
+  const [langDisplaced, setLangDisplaced] = useState(() =>
+    (submittedData?.suggestions || []).reduce((acc, s, i) => {
+      if (s?.id?.startsWith('lang_')) acc[i] = null;
+      return acc;
+    }, {})
   );
-  const [displacedByLanguage, setDisplacedByLanguage] = useState(null);
 
   const toggleUni = (uni) => setUniversities(prev => {
     if (prev.includes(uni)) return prev.filter(u => u !== uni); // always allow deselect
@@ -1234,7 +1315,7 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
     e.preventDefault();
     const studentData = { grades, careerCategory: career, desiredElectives: desiredElectives.filter(Boolean), language, universities, yearLevel: '10' };
     const rankedIds = runAlgorithm(studentData);
-    const top8 = buildYear10Selection(rankedIds);
+    const top8 = buildYear10Selection(rankedIds, studentData);
     const top8Ids = new Set(top8.map(e => e.id));
     // Pool is the remainder of the algorithm's ranked list in order,
     // so swapping gives the 9th closest match, then 10th, then 11th…
@@ -1284,46 +1365,61 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   const handleRestartConfirmed = async () => {
     setSubmitted(false); setSuggestions([]); setSuggestionPool([]);
     setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
-    setLanguageSwapped(false); setDisplacedByLanguage(null);
+    setLangDisplaced({});
     setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
     setCareer(''); setLanguage(''); setUniversities([]);
     onSubmit(null);
     if (user) { await dbClearResults(user.id); onSaveIndicator(); }
   };
 
-  /* ── Language-swap helpers ────────────────────────────────── */
-  const handleLanguageSwap = async () => {
+  /* ── Per-slot language swap helpers ─────────────────────────
+     Students can replace any non-compulsory slot with their
+     Year 9 language continuation (max 2 slots = 2 language units).
+     Compulsory slots (the sole humanities, sole science, sole PE)
+     are protected and show a "Required" tag instead of a swap button.
+  ── */
+
+  // Which suggestion IDs are currently protecting a minimum requirement
+  const compulsoryIds = (() => {
+    const s = new Set();
+    const hum = suggestions.filter(e => HUMANITIES_IDS.includes(e.id));
+    const sci = suggestions.filter(e => SCIENCE_IDS.includes(e.id));
+    const pe  = suggestions.filter(e => PE_IDS.includes(e.id));
+    if (hum.length <= 1 && hum[0]) s.add(hum[0].id);
+    if (sci.length <= 1 && sci[0]) s.add(sci[0].id);
+    if (pe.length  <= 1 && pe[0])  s.add(pe[0].id);
+    return s;
+  })();
+
+  const langSlotCount = suggestions.filter(s => s?.id?.startsWith('lang_')).length;
+
+  const handleLanguageSwapSlot = async (idx) => {
     const lang = submittedData?.studentData?.language;
-    if (!lang || languageSwapped) return;
-    // Store originals so undo works within this session
-    setDisplacedByLanguage([suggestions[6], suggestions[7]]);
-    const makeCard = (suffix) => ({
-      id: `lang_${suffix}`,
+    if (!lang || isLocked || langSlotCount >= 2) return;
+    const displaced = suggestions[idx];
+    if (displaced?.id?.startsWith('lang_')) return; // already language
+    const langCard = {
+      id: `lang_${idx}`,
       name: `${lang} Continuation`,
-      category: 'language',
-      badge: 'badge-language',
+      category: 'language', badge: 'badge-language',
       description: `Year 10 continuation of Year 9 ${lang} — building on vocabulary, grammar, and conversational skills developed last year.`,
       careers: ['Interpreter / Translator', 'Diplomat', 'International Business', 'Tourism Professional'],
       universities: [],
-    });
-    const next = suggestions.map((s, i) =>
-      i === 6 ? makeCard('a') : i === 7 ? makeCard('b') : s
-    );
+    };
+    const next = suggestions.map((s, i) => i === idx ? langCard : s);
+    setLangDisplaced(prev => ({ ...prev, [idx]: displaced }));
     setSuggestions(next);
-    setLanguageSwapped(true);
     const data = { studentData: submittedData?.studentData, suggestions: next, pool: suggestionPool, isLocked };
     onSubmit(data);
     if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
   };
 
-  const handleLanguageSwapUndo = async () => {
-    if (!displacedByLanguage) return;
-    const next = suggestions.map((s, i) =>
-      i === 6 ? displacedByLanguage[0] : i === 7 ? displacedByLanguage[1] : s
-    );
+  const handleLanguageSwapUndo = async (idx) => {
+    const original = langDisplaced[idx];
+    if (!original) return; // loaded from DB — original unknown, can't restore
+    const next = suggestions.map((s, i) => i === idx ? original : s);
+    setLangDisplaced(prev => { const n = { ...prev }; delete n[idx]; return n; });
     setSuggestions(next);
-    setLanguageSwapped(false);
-    setDisplacedByLanguage(null);
     const data = { studentData: submittedData?.studentData, suggestions: next, pool: suggestionPool, isLocked };
     onSubmit(data);
     if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
@@ -1479,9 +1575,20 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
 
           <div className="suggestions-grid">
             {suggestions.map((elective, idx) => (
-              <SuggestionCard key={elective.id} elective={elective} index={idx}
+              <SuggestionCard key={elective.id + idx} elective={elective} index={idx}
                 isAnimatingOut={!!dismissAnimating[elective.id]}
-                onDismiss={() => handleDismiss(elective.id)} locked={isLocked} />
+                onDismiss={() => handleDismiss(elective.id)}
+                locked={isLocked}
+                language={submittedData?.studentData?.language || null}
+                isCompulsory={compulsoryIds.has(elective.id)}
+                isLangCard={!!elective.id?.startsWith('lang_')}
+                canSwapLang={!isLocked && !!submittedData?.studentData?.language && !elective.id?.startsWith('lang_') && !compulsoryIds.has(elective.id) && langSlotCount < 2}
+                canUndoLang={!!elective.id?.startsWith('lang_') && !!langDisplaced[idx]}
+                displacedName={langDisplaced[idx]?.name}
+                onLangSwap={() => handleLanguageSwapSlot(idx)}
+                onLangUndo={() => handleLanguageSwapUndo(idx)}
+                isLast2={idx >= 6}
+              />
             ))}
           </div>
 
@@ -1491,39 +1598,22 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
               <div style={{ flex: 1 }}>
                 <div className="language-note-title">
                   {submittedData.studentData.language} Continuation Available
-                  {languageSwapped && <span className="lang-swapped-badge" style={{ marginLeft: '.65rem' }}>Added ✓</span>}
-                </div>
-                <div className="language-note-text">
-                  {languageSwapped ? (
-                    <>
-                      <strong>{submittedData.studentData.language} (continuation)</strong> has replaced slots 7 & 8 in your plan.
-                      Speak to your subject coordinator to confirm enrolment.
-                    </>
-                  ) : (
-                    <>
-                      Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9,
-                      you might want to remove{' '}
-                      <strong>{suggestions[6]?.name || 'your 7th elective'}</strong> and{' '}
-                      <strong>{suggestions[7]?.name || 'your 8th elective'}</strong>{' '}
-                      and replace both with <strong>{submittedData.studentData.language} (continuation)</strong>.
-                    </>
+                  {langSlotCount > 0 && (
+                    <span className="lang-swapped-badge" style={{ marginLeft: '.65rem' }}>
+                      {langSlotCount}/2 slots replaced ✓
+                    </span>
                   )}
                 </div>
-                {!isLocked && (
-                  <div className="lang-swap-row">
-                    {!languageSwapped ? (
-                      <button className="btn-lang-swap" onClick={handleLanguageSwap}>
-                        🌐 Replace slots 7 & 8 with {submittedData.studentData.language}
-                      </button>
-                    ) : (
-                      displacedByLanguage && (
-                        <button className="btn-lang-undo" onClick={handleLanguageSwapUndo}>
-                          ↩ Undo — restore {displacedByLanguage[0]?.name} & {displacedByLanguage[1]?.name}
-                        </button>
-                      )
-                    )}
-                  </div>
-                )}
+                <div className="language-note-text">
+                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9, you can replace
+                  up to <strong>2 elective slots</strong> with language continuation units.
+                  {!isLocked && langSlotCount < 2 && (
+                    <> We suggest slots <strong>7 & 8</strong> — they match your profile the least.
+                    Use the 🌐 button on any card to swap it (compulsory slots are protected).</>
+                  )}
+                  {isLocked && langSlotCount === 0 && ' Unlock by restarting if you'd like to make this change.'}
+                  {langSlotCount === 2 && ' Both language slots are now set. Speak to your coordinator to confirm enrolment.'}
+                </div>
               </div>
             </div>
           )}
@@ -1611,7 +1701,11 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   );
 }
 
-function SuggestionCard({ elective, index, isAnimatingOut, onDismiss, locked }) {
+function SuggestionCard({
+  elective, index, isAnimatingOut, onDismiss, locked,
+  language, isCompulsory, isLangCard, canSwapLang, canUndoLang,
+  displacedName, onLangSwap, onLangUndo, isLast2,
+}) {
   const categoryLabel = {
     english_faculty:  'English',
     humanities:       'Humanities',
@@ -1625,18 +1719,56 @@ function SuggestionCard({ elective, index, isAnimatingOut, onDismiss, locked }) 
   }[elective.category] || elective.category;
 
   return (
-    <div className={`suggestion-card${isAnimatingOut ? ' dismissed' : ''}`} style={{ animationDelay:`${index * 55}ms` }}>
+    <div
+      className={`suggestion-card${isAnimatingOut ? ' dismissed' : ''}`}
+      style={{
+        animationDelay: `${index * 55}ms`,
+        // Subtle dim on the two weakest-match slots to hint at language replacement
+        opacity: isLast2 && language && !isLangCard && !locked ? 0.88 : 1,
+        borderColor: isLangCard ? '#fde68a' : undefined,
+      }}
+    >
       <div className="sug-header">
-        <div className="sug-subject-name">{elective.name}</div>
+        <div className="sug-subject-name">
+          {elective.name}
+          {isLast2 && language && !isLangCard && !locked && (
+            <span style={{ fontSize: '.68rem', color: 'var(--accent)', fontWeight: 600, marginLeft: '.4rem' }}>
+              weakest match
+            </span>
+          )}
+        </div>
         <span className={`sug-category-badge ${elective.badge}`}>{categoryLabel}</span>
       </div>
+
       <div className="sug-description">{elective.description}</div>
-      <div className="sug-footer">
+
+      <div className="sug-footer" style={{ flexWrap: 'wrap', gap: '.4rem' }}>
         <span className="sug-unit-badge"><Icon name="layers" size={12} /> 1 unit</span>
-        {!locked
-          ? <button className="dismiss-btn" onClick={onDismiss}><Icon name="refresh-cw" size={13} /> Swap</button>
-          : <span style={{ fontSize:'.75rem', color:'var(--success)', fontWeight:600, display:'flex', alignItems:'center', gap:'.3rem' }}><Icon name="check-circle" size={13} /> Locked</span>
-        }
+
+        <div style={{ display: 'flex', gap: '.35rem', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
+          {/* Language swap / undo */}
+          {canSwapLang && (
+            <button className="card-lang-swap" onClick={onLangSwap}>
+              🌐 {language}
+            </button>
+          )}
+          {canUndoLang && (
+            <button className="card-lang-undo" onClick={onLangUndo}>
+              ↩ {displacedName ? `Restore ${displacedName}` : 'Undo language'}
+            </button>
+          )}
+          {isCompulsory && language && !locked && !isLangCard && (
+            <span className="card-required-tag">🔒 Required slot</span>
+          )}
+
+          {/* Normal swap / locked indicator */}
+          {!locked && !isLangCard
+            ? <button className="dismiss-btn" onClick={onDismiss}><Icon name="refresh-cw" size={13} /> Swap</button>
+            : locked
+              ? <span style={{ fontSize:'.75rem', color:'var(--success)', fontWeight:600, display:'flex', alignItems:'center', gap:'.3rem' }}><Icon name="check-circle" size={13} /> Locked</span>
+              : null
+          }
+        </div>
       </div>
     </div>
   );
@@ -1813,11 +1945,16 @@ function App() {
 
     const { data: { subscription } } = db.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
-      if (session) {
+      if (!session) {
+        setSubmittedData(null); setChecklistState({});
+        return;
+      }
+      // TOKEN_REFRESHED fires every ~1 min and must NOT overwrite in-memory state,
+      // otherwise the enhancement banner and language swap UI disappear mid-session.
+      // Only reload user data on genuine sign-in events.
+      if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
         const { submittedData: sd, checklistState: cs } = await dbLoadUser(session.user.id);
         setSubmittedData(sd); setChecklistState(cs);
-      } else {
-        setSubmittedData(null); setChecklistState({});
       }
     });
 
