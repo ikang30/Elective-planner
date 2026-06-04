@@ -1292,6 +1292,7 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   const [suggestionPool, setSuggestionPool] = useState(submittedData?.pool || []);
   const [isLocked, setIsLocked] = useState(!!submittedData?.isLocked);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [lockError, setLockError] = useState('');
   // Per-slot language replacements: { slotIndex: displaced_elective | null }
   // null = slot is language-replaced but original unknown (loaded from DB)
   const [langDisplaced, setLangDisplaced] = useState(() =>
@@ -1356,6 +1357,15 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   }, [suggestions, suggestionPool, dismissed, isLocked, user]);
 
   const handleLockIn = async () => {
+    const missing = [];
+    if (!suggestions.some(e => HUMANITIES_IDS.includes(e.id))) missing.push('Geography or History');
+    if (!suggestions.some(e => SCIENCE_IDS.includes(e.id)))    missing.push('a Science elective');
+    if (!suggestions.some(e => PE_IDS.includes(e.id)))         missing.push('a PE elective');
+    if (missing.length > 0) {
+      setLockError(`Your plan is missing: ${missing.join(', ')}. Please swap those slots back to meet the required standards before locking in.`);
+      return;
+    }
+    setLockError('');
     setIsLocked(true); setShowRestartConfirm(false);
     const data = { studentData: submittedData?.studentData, suggestions, pool: suggestionPool, isLocked: true };
     onSubmit(data);
@@ -1557,7 +1567,7 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
       ) : (
         <>
           <div className="req-bars">
-            <RequirementBar label="Humanities (min 1)" filled={humCount} total={1} color="#92400e" />
+            <RequirementBar label="Geo / History (min 1)" filled={humCount} total={1} color="#92400e" />
             <RequirementBar label="Science (min 1)"    filled={sciCount} total={1} color="#065f46" />
             <RequirementBar label="PE (min 1)"         filled={peCount}  total={1} color="#991b1b" />
             <RequirementBar label="Total Units"        filled={suggestions.length} total={8} color="#4338ca" />
@@ -1676,6 +1686,12 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
               </div>
             );
           })()}
+
+          {lockError && (
+            <div className="auth-error" style={{ marginBottom: '1rem' }}>
+              ⚠️ {lockError}
+            </div>
+          )}
 
           <div className="lock-action-row">
             {!isLocked && <button className="btn btn-lock" onClick={handleLockIn}><Icon name="lock" size={15} /> Lock In?</button>}
