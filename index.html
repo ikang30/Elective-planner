@@ -115,6 +115,46 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { font-size: .9rem; color: var(--text-muted); font-weight: 500; }
 
+    /* ═══ SCHOOL SPLASH SIGN ═══ */
+    .school-splash-overlay {
+      position: fixed; inset: 0; z-index: 1200; pointer-events: none;
+      display: grid; place-items: center;
+      background: radial-gradient(circle at center, rgba(15,23,42,.45), rgba(15,23,42,.08) 46%, transparent 72%);
+      animation: schoolSplashFade 3.2s ease forwards;
+    }
+    .school-neon-sign {
+      padding: 1.15rem 1.6rem; border-radius: 18px;
+      border: 3px solid #fde047; background: rgba(15,23,42,.86);
+      color: #fef08a; text-align: center;
+      font-size: clamp(1.7rem, 5.8vw, 4.8rem);
+      font-weight: 950; letter-spacing: .02em; line-height: 1.05;
+      box-shadow:
+        0 0 10px rgba(250,204,21,.9),
+        0 0 28px rgba(250,204,21,.72),
+        0 0 58px rgba(250,204,21,.42),
+        inset 0 0 22px rgba(250,204,21,.22);
+      text-shadow:
+        0 0 4px #fef9c3,
+        0 0 12px #facc15,
+        0 0 28px #eab308;
+      animation: neonPop 3.2s ease forwards, neonFlicker 1.25s steps(2, end) infinite;
+    }
+    @keyframes neonPop {
+      0% { opacity: 0; transform: scale(.72) rotate(-1.5deg); }
+      12% { opacity: 1; transform: scale(1.04) rotate(.8deg); }
+      20%, 78% { opacity: 1; transform: scale(1) rotate(0); }
+      100% { opacity: 0; transform: scale(.96) translateY(-12px); }
+    }
+    @keyframes schoolSplashFade {
+      0%, 78% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+    @keyframes neonFlicker {
+      0%, 18%, 22%, 100% { filter: brightness(1); }
+      20% { filter: brightness(1.35); }
+      70% { filter: brightness(.92); }
+    }
+
     /* ═══ NAV ═══ */
     .nav {
       position: sticky; top: 0; z-index: 100;
@@ -5504,11 +5544,17 @@ function App() {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [enhancements, setEnhancements] = useState(['', '']);
   const [penguinDismissed, setPenguinDismissed] = useState(false);
+  const [showSchoolSplash, setShowSchoolSplash] = useState(true);
 
   // Debounce ref for checklist saves
   const checklistSaveTimer = useRef(null);
 
   useEffect(() => { if (window.feather) feather.replace(); });
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSchoolSplash(false), 3200);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Auth listener + initial session load
   useEffect(() => {
@@ -5595,19 +5641,33 @@ function App() {
     setPenguinDismissed(false);
   }, [activePage, !!submittedData, submittedData?.isLocked]);
 
+  const schoolSplash = showSchoolSplash ? (
+    <div className="school-splash-overlay">
+      <div className="school-neon-sign">for Mckinnon Secondary College Students!</div>
+    </div>
+  ) : null;
+
   // Loading state while checking session
   if (session === undefined && !isGuest) {
     return (
-      <div className="loading-screen">
-        <div className="spinner" />
-        <div className="loading-text">Loading Elect!…</div>
-      </div>
+      <>
+        {schoolSplash}
+        <div className="loading-screen">
+          <div className="spinner" />
+          <div className="loading-text">Loading Elect!…</div>
+        </div>
+      </>
     );
   }
 
   // Not logged in and not guest
   if ((!session && !isGuest) || passwordRecovery) {
-    return <AuthScreen onGuest={handleGuest} recoveryMode={passwordRecovery} onRecoveryDone={() => setPasswordRecovery(false)} />;
+    return (
+      <>
+        {schoolSplash}
+        <AuthScreen onGuest={handleGuest} recoveryMode={passwordRecovery} onRecoveryDone={() => setPasswordRecovery(false)} />
+      </>
+    );
   }
 
   const user = session?.user || null;
@@ -5666,6 +5726,7 @@ function App() {
 
   return (
     <div className="app-shell" onClick={() => showExploreDropdown && setShowExploreDropdown(false)}>
+      {schoolSplash}
       {isGuest && (
         <div className="guest-banner">
           👤 <strong>Guest Mode</strong> — your data will not be saved after you close this tab.
