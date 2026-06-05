@@ -362,6 +362,7 @@
     .badge-health         { background: #fdf2f8; color: #831843; }
     .badge-ict            { background: #f0fdf4; color: #166534; }
     .badge-language       { background: #fff7ed; color: #9a3412; }
+    .badge-enhancement    { background: #dcfce7; color: #166534; }
 
     /* PER-CARD LANGUAGE SWAP BUTTONS */
     .card-lang-swap {
@@ -820,10 +821,17 @@ async function dbSaveProfile(userId, profile) {
    STATIC DATA
 ═══════════════════════════════════════════════════════════════ */
 const CAREER_CATEGORIES = [
-  'Hospitality & Tourism', 'Medicine & Health Sciences', 'Transportation & Logistics',
-  'Business & Finance', 'Law & Justice', 'Technology & Engineering',
-  'Arts & Creative Industries', 'Education & Social Work', 'Agriculture & Environment',
-  'Military & Defence', 'Architecture & Design', 'Media & Communications',
+  'Medicine & Healthcare',
+  'Hospitality & Service',
+  'Finance & Law',
+  'Transportation & Logistics',
+  'Technology & Engineering',
+  'Visual Arts',
+  'Performing Arts',
+  'Environment & Agriculture',
+  'Education & Social Work',
+  'Design & Media',
+  'Military & Defence',
 ];
 
 const CORE_SUBJECTS = ['English', 'Mathematics', 'Science', 'Humanities'];
@@ -1130,433 +1138,283 @@ const PLACEHOLDER_CHECKLIST = [
   'Revise Unit 2 content',
 ];
 
-/* ── Scoring dimensions (order matches all point tables below) ──
-   maths / english / science / arts / music / movement / engineering / society / humanities  */
-const DIMS = ['maths','english','science','arts','music','movement','engineering','society','humanities'];
+/* ═══════════════════════════════════════════════════════════════
+   ALGORITHM DATA — 10-CATEGORY POINTSBOARD SYSTEM
+   Categories: engineering, maths, science, english, visual_arts,
+               performing_arts, ict, pe, law_economics, humanities
+═══════════════════════════════════════════════════════════════ */
 
-const p = (m,e,s,a,mu,mv,en,so,h) =>
-  ({ maths:m, english:e, science:s, arts:a, music:mu, movement:mv, engineering:en, society:so, humanities:h });
-
-/* ── Points per elective ── */
-const ELECTIVE_POINTS = {
-  literature:                p(0,   5,   0,   2,   0, 0, 0,   1,   2  ),
-  creative_writing:          p(0,   6,   0,   2,   0, 0, 0,   1,   1  ),
-  english_writing:           p(0,   8,   0,   1.5, 0, 0, 0,   0.5, 0  ),
-  history:                   p(0,   2,   0,   0,   0, 0, 0,   0,   8  ),
-  geography:                 p(0,   1,   1,   0,   0, 0, 0,   0,   8  ),
-  commerce_business_legal:   p(1.5, 1,   0,   0,   0, 0, 0,   6,   1.5),
-  commerce_economics_finance:p(3,   1,   0,   0,   0, 0, 0,   5.5, 0.5),
-  global_conflict:           p(0,   2,   0,   0,   0, 0, 0,   2,   6  ),
-  make_my_day_science:       p(1,   1,   7,   0,   0, 0, 1,   0,   0  ),
-  environmental_science:     p(1,   1,   6,   0,   0, 0, 1,   0.5, 0.5),
-  physics:                   p(4,   0,   4,   0,   0, 0, 2,   0,   0  ),
-  biology:                   p(0.5, 1,   8,   0,   0, 0, 0.5, 0,   0  ),
-  chemistry:                 p(3,   0,   6,   0,   0, 0, 1,   0,   0  ),
-  pe_for_life:               p(0,   1,   2,   0,   0, 7, 0,   0,   0  ),
-  human_movement:            p(1,   1,   4,   0,   0, 4, 0,   0,   0  ),
-  outdoor_ed:                p(0,   1,   2,   0,   0, 6, 0,   0.5, 0.5),
-  sculpture:                 p(0,   1,   0,   8,   0, 0, 1,   0,   0  ),
-  vic_comm:                  p(1,   1,   0,   6,   0, 0, 2,   0,   0  ),
-  art:                       p(0,   1,   0,   9,   0, 0, 0,   0,   0  ),
-  ceramics:                  p(0,   0.5, 0.5, 8,   0, 0, 1,   0,   0  ),
-  media:                     p(0,   3,   0,   4,   0, 0, 1,   1.5, 0.5),
-  sustainable_design:        p(1.5, 0.5, 2,   2,   0, 0, 4,   0,   0  ),
-  animation:                 p(1,   0.5, 0,   4,   0, 0, 4.5, 0,   0  ),
-  music_performance:         p(0,   1,   0,   2,   7, 0, 0,   0,   0  ),
-  music_technology:          p(0.5, 0.5, 0,   1,   6, 0, 2,   0,   0  ),
-  theatre:                   p(0,   3,   0,   4,   0, 2, 0,   0.5, 0.5),
-  food_tech:                 p(0.5, 0.5, 2,   1,   0, 0, 3,   2,   1  ),
-  health:                    p(0,   1.5, 3,   0,   0, 3, 0,   1.5, 1  ),
-  information_systems:       p(2,   0.5, 0.5, 0,   0, 0, 7,   0,   0  ),
-  information_technology:    p(2,   0.5, 0.5, 0,   0, 0, 7,   0,   0  ),
-  intro_engineering:         p(2,   0,   2,   0,   0, 0, 6,   0,   0  ),
+/* University → top 3 subject categories [1st=+1.5, 2nd=+1.0, 3rd=+0.5] */
+const UNI_SUBJECT_MAP = {
+  'University of Melbourne':                 ['law_economics','science','humanities'],
+  'University of Sydney':                    ['pe','science','law_economics'],
+  'Australian National University (ANU)':    ['humanities','science','law_economics'],
+  'University of Queensland (UQ)':           ['pe','science','engineering'],
+  'Monash University':                       ['science','law_economics','engineering'],
+  'UNSW Sydney':                             ['engineering','law_economics','science'],
+  'University of Adelaide':                  ['engineering','science','maths'],
+  'University of Western Australia (UWA)':   ['engineering','science','humanities'],
+  'RMIT University':                         ['visual_arts','engineering','ict'],
+  'University of Technology Sydney (UTS)':   ['engineering','ict','science'],
+  'Macquarie University':                    ['humanities','science','law_economics'],
+  'University of Newcastle':                 ['engineering','science','law_economics'],
+  'Deakin University':                       ['pe','science','humanities'],
+  'La Trobe University':                     ['pe','science','humanities'],
+  'Griffith University':                     ['humanities','law_economics','science'],
+  'University of Wollongong':                ['engineering','science','ict'],
+  'Curtin University':                       ['engineering','science','ict'],
+  'Flinders University':                     ['science','humanities','law_economics'],
+  'James Cook University':                   ['science','engineering','humanities'],
+  'Victoria University':                     ['pe','law_economics','engineering'],
+  'Harvard University (USA)':                ['law_economics','science','law_economics'],
+  'MIT (USA)':                               ['engineering','science','maths'],
+  'Stanford University (USA)':               ['engineering','ict','science'],
+  'Johns Hopkins University (USA)':          ['science','humanities','engineering'],
+  'Princeton University (USA)':              ['maths','science','humanities'],
+  'Yale University (USA)':                   ['law_economics','english','humanities'],
+  'Columbia University (USA)':               ['english','humanities','law_economics'],
+  'New York University (NYU, USA)':          ['performing_arts','law_economics','humanities'],
+  'Berklee College of Music (USA)':          ['performing_arts','visual_arts','humanities'],
+  'University of Oxford (UK)':               ['humanities','english','science'],
+  'University of Cambridge (UK)':            ['science','maths','humanities'],
+  'University College London (UCL, UK)':     ['humanities','science','engineering'],
+  'Imperial College London (UK)':            ['engineering','science','maths'],
+  'London School of Economics (LSE, UK)':    ['law_economics','law_economics','humanities'],
+  'University of Edinburgh (UK)':            ['science','english','humanities'],
+  "King's College London (UK)":              ['science','law_economics','humanities'],
+  'Royal College of Art (UK)':               ['visual_arts','performing_arts','humanities'],
+  'Loughborough University (UK)':            ['pe','visual_arts','engineering'],
+  'ETH Zurich (Switzerland)':                ['science','engineering','maths'],
+  'Sciences Po (France)':                    ['humanities','law_economics','law_economics'],
+  'University of Amsterdam (Netherlands)':   ['humanities','science','law_economics'],
+  'Karolinska Institute (Sweden)':           ['science','maths','engineering'],
+  'University of Toronto (Canada)':          ['pe','science','humanities'],
+  'McGill University (Canada)':              ['science','law_economics','engineering'],
+  'National University of Singapore (NUS)':  ['engineering','science','ict'],
+  'University of Tokyo (Japan)':             ['science','engineering','humanities'],
+  'Peking University (China)':               ['science','humanities','maths'],
+  'Seoul National University (South Korea)': ['science','engineering','law_economics'],
+  'Waseda University (Japan)':               ['humanities','pe','law_economics'],
+  'University of Cape Town (South Africa)':  ['humanities','science','law_economics'],
 };
 
-/* ── Points per career category ── */
-const CAREER_POINTS = {
-  'Hospitality & Tourism':      p(0,   1,   0,   1,   0.5, 0.5, 0.5, 1.5, 0  ),
-  'Medicine & Health Sciences': p(1.5, 0.5, 2.5, 0,   0,   0,   0.5, 0,   0  ),
-  'Transportation & Logistics': p(1,   0.5, 0.5, 0,   0,   0.5, 2.5, 0,   0  ),
-  'Business & Finance':         p(1.5, 0.5, 0,   0,   0,   0,   0,   3,   0  ),
-  'Law & Justice':              p(0,   1.5, 0,   0,   0,   0,   0,   1.5, 2  ),
-  'Technology & Engineering':   p(1.5, 0,   1,   0,   0,   0,   2.5, 0,   0  ),
-  'Arts & Creative Industries': p(0,   1,   0,   2,   1,   0.5, 0,   0,   0.5),
-  'Education & Social Work':    p(0.5, 1.5, 0,   0.5, 0,   0.5, 0,   1,   1  ),
-  'Agriculture & Environment':  p(0.5, 0.5, 2,   0,   0,   0.5, 1,   0,   0.5),
-  'Military & Defence':         p(1,   0.5, 1,   0,   0,   2,   1.5, 0,   0  ),
-  'Architecture & Design':      p(1,   0,   0.5, 2,   0,   0,   1.5, 0,   0  ),
-  'Media & Communications':     p(0,   1.5, 0,   1.5, 0.5, 0,   1,   0.5, 0  ),
+/* Career → subject categories that gain +2 pts each */
+const CAREER_SUBJECT_MAP = {
+  'Medicine & Healthcare':     ['maths','science'],
+  'Hospitality & Service':     [],
+  'Finance & Law':             ['law_economics'],
+  'Transportation & Logistics':['english'],
+  'Technology & Engineering':  ['ict','maths'],
+  'Visual Arts':               ['visual_arts'],
+  'Performing Arts':           ['performing_arts'],
+  'Environment & Agriculture': ['humanities'],
+  'Education & Social Work':   ['english'],
+  'Design & Media':            ['visual_arts','english'],
+  'Military & Defence':        [],
 };
 
-/* ── Points per university ── */
-const UNIVERSITY_POINTS = {
-  // Australian
-  'University of Melbourne':            p(0.5, 0.3, 0.5, 0.2, 0.1, 0,   0.2, 0.1, 0.1),
-  'University of Sydney':               p(0.3, 0.3, 0.4, 0.2, 0.1, 0,   0.2, 0.3, 0.2),
-  'Australian National University (ANU)':p(0.3,0.2, 0.5, 0.1, 0,   0,   0.2, 0.4, 0.3),
-  'University of Queensland (UQ)':      p(0.2, 0.2, 0.6, 0.1, 0,   0.1, 0.3, 0.3, 0.2),
-  'Monash University':                  p(0.3, 0.2, 0.5, 0.1, 0,   0.1, 0.4, 0.3, 0.1),
-  'UNSW Sydney':                        p(0.4, 0.1, 0.4, 0.1, 0,   0,   0.6, 0.3, 0.1),
-  'University of Adelaide':             p(0.3, 0.2, 0.5, 0.1, 0.1, 0,   0.4, 0.2, 0.2),
-  'University of Western Australia (UWA)':p(0.3,0.2,0.5, 0.1, 0,   0.1, 0.4, 0.2, 0.2),
-  'RMIT University':                    p(0.2, 0.1, 0.2, 0.4, 0.1, 0,   0.6, 0.2, 0.2),
-  'University of Technology Sydney (UTS)':p(0.3,0.2,0.3,0.2,  0,   0,   0.6, 0.3, 0.1),
-  'Macquarie University':               p(0.2, 0.3, 0.3, 0.2, 0.1, 0,   0.2, 0.4, 0.3),
-  'University of Newcastle':            p(0.2, 0.2, 0.4, 0.1, 0,   0.2, 0.5, 0.2, 0.2),
-  'Deakin University':                  p(0.1, 0.3, 0.3, 0.2, 0,   0.4, 0.2, 0.3, 0.2),
-  'La Trobe University':                p(0.1, 0.3, 0.4, 0.2, 0.1, 0.2, 0.1, 0.3, 0.3),
-  'Griffith University':                p(0.1, 0.2, 0.3, 0.3, 0.2, 0.2, 0.2, 0.3, 0.2),
-  'University of Wollongong':           p(0.3, 0.2, 0.3, 0.2, 0,   0.2, 0.5, 0.2, 0.1),
-  'Curtin University':                  p(0.3, 0.1, 0.3, 0.1, 0,   0.1, 0.7, 0.2, 0.2),
-  'Flinders University':                p(0.1, 0.2, 0.5, 0.2, 0,   0.2, 0.2, 0.3, 0.3),
-  'James Cook University':              p(0.1, 0.2, 0.7, 0.1, 0,   0.2, 0.2, 0.2, 0.3),
-  'Victoria University':                p(0.1, 0.2, 0.2, 0.2, 0.1, 0.5, 0.3, 0.3, 0.1),
-  // USA
-  'Harvard University (USA)':           p(0.3, 0.4, 0.3, 0.2, 0.1, 0.1, 0.1, 0.3, 0.2),
-  'MIT (USA)':                          p(0.6, 0.1, 0.4, 0.1, 0,   0,   0.7, 0.1, 0  ),
-  'Stanford University (USA)':          p(0.4, 0.2, 0.3, 0.1, 0,   0.1, 0.5, 0.3, 0.1),
-  'Johns Hopkins University (USA)':     p(0.3, 0.1, 0.6, 0,   0.2, 0,   0.4, 0.2, 0.2),
-  'Princeton University (USA)':         p(0.4, 0.2, 0.3, 0.1, 0.1, 0,   0.3, 0.3, 0.3),
-  'Yale University (USA)':              p(0.1, 0.3, 0.2, 0.4, 0.3, 0.1, 0.1, 0.2, 0.3),
-  'Columbia University (USA)':          p(0.3, 0.3, 0.2, 0.2, 0.1, 0,   0.3, 0.4, 0.2),
-  'New York University (NYU, USA)':     p(0.1, 0.3, 0.1, 0.5, 0.2, 0.1, 0.2, 0.3, 0.2),
-  'Berklee College of Music (USA)':     p(0,   0.1, 0,   0.5, 1.2, 0.1, 0.1, 0,   0  ),
-  // UK
-  'University of Oxford (UK)':          p(0.2, 0.4, 0.3, 0.2, 0.1, 0,   0.1, 0.2, 0.5),
-  'University of Cambridge (UK)':       p(0.5, 0.2, 0.5, 0.1, 0.1, 0,   0.3, 0.1, 0.2),
-  'University College London (UCL, UK)':p(0.2, 0.3, 0.4, 0.2, 0,   0,   0.3, 0.3, 0.3),
-  'Imperial College London (UK)':       p(0.5, 0,   0.5, 0,   0,   0,   0.8, 0.1, 0.1),
-  'London School of Economics (LSE, UK)':p(0.4,0.2, 0.1, 0,   0,   0,   0,   0.8, 0.5),
-  'University of Edinburgh (UK)':       p(0.2, 0.3, 0.3, 0.3, 0.2, 0,   0.2, 0.2, 0.3),
-  "King's College London (UK)":         p(0.1, 0.2, 0.4, 0.2, 0.1, 0,   0.2, 0.4, 0.4),
-  'Royal College of Art (UK)':          p(0,   0.1, 0,   1.5, 0,   0,   0.3, 0.1, 0  ),
-  'Loughborough University (UK)':       p(0.2, 0.1, 0.2, 0.1, 0,   0.9, 0.4, 0.1, 0  ),
-  // Europe
-  'ETH Zurich (Switzerland)':           p(0.6, 0,   0.5, 0,   0,   0,   0.8, 0.1, 0  ),
-  'Sciences Po (France)':               p(0.1, 0.2, 0,   0.2, 0,   0,   0,   0.8, 0.7),
-  'University of Amsterdam (Netherlands)':p(0.2,0.2,0.3, 0.2, 0.1, 0,   0.2, 0.5, 0.3),
-  'Karolinska Institute (Sweden)':      p(0.2, 0.1, 1.2, 0,   0,   0.2, 0.2, 0.1, 0  ),
-  // Canada
-  'University of Toronto (Canada)':     p(0.3, 0.2, 0.4, 0.2, 0.1, 0,   0.3, 0.3, 0.2),
-  'McGill University (Canada)':         p(0.3, 0.3, 0.4, 0.2, 0.1, 0,   0.2, 0.3, 0.2),
-  // Asia
-  'National University of Singapore (NUS)':p(0.4,0.1,0.4,0.1, 0,   0,   0.6, 0.3, 0.1),
-  'University of Tokyo (Japan)':        p(0.5, 0,   0.5, 0.1, 0,   0,   0.6, 0.2, 0.1),
-  'Peking University (China)':          p(0.4, 0.1, 0.4, 0.1, 0,   0,   0.4, 0.3, 0.3),
-  'Seoul National University (South Korea)':p(0.4,0.1,0.4,0.1,0,  0,   0.6, 0.3, 0.1),
-  'Waseda University (Japan)':          p(0.2, 0.2, 0.2, 0.2, 0.1, 0,   0.4, 0.4, 0.3),
-  // Other
-  'University of Cape Town (South Africa)':p(0.2,0.3,0.4,0.2,0.1, 0.1, 0.3, 0.2, 0.2),
+/* Elective ID → pointsboard category */
+const ELECTIVE_CAT_MAP = {
+  literature:'english', creative_writing:'english', english_writing:'english',
+  history:'humanities', geography:'humanities', global_conflict:'humanities',
+  commerce_business_legal:'law_economics', commerce_economics_finance:'law_economics',
+  make_my_day_science:'science', environmental_science:'science',
+  physics:'science', biology:'science', chemistry:'science',
+  pe_for_life:'pe', human_movement:'pe', outdoor_ed:'pe', health:'pe',
+  sculpture:'visual_arts', vic_comm:'visual_arts', art:'visual_arts',
+  ceramics:'visual_arts', media:'visual_arts', sustainable_design:'visual_arts', animation:'visual_arts',
+  music_performance:'performing_arts', music_technology:'performing_arts', theatre:'performing_arts',
+  food_tech:'humanities',
+  information_systems:'ict', information_technology:'ict',
+  intro_engineering:'engineering',
+};
+
+/* Skill → categories that get +1.0 if that skill is top-rated */
+const SKILL_CAT_MAP_ALGO = {
+  verbal:    ['english'],
+  numerical: ['maths'],
+  mechanical:['ict','science'],
+  logical:   ['law_economics','maths','science'],
+  visual:    ['visual_arts','performing_arts'],
 };
 
 /* ═══════════════════════════════════════════════════════════════
-   ALGORITHM PLACEHOLDER
-   ─────────────────────────────────────────────────────────────
-   studentData shape:
-   {
-     grades:           { English: "outstanding", ... },
-     careerCategory:   "Medicine & Health Sciences",
-     desiredElectives: ["biology", "history"],
-     language:         "Spanish" | "French" | "German" | "",
-     universities:     ["University of Melbourne", ...],
-     yearLevel:        "10",
-   }
-   Return: ordered array of elective IDs, best → worst.
+   ALGORITHM — 7-STEP CATEGORY POINTSBOARD
+   Returns pts object: { engineering, maths, science, english,
+     visual_arts, performing_arts, ict, pe, law_economics, humanities }
 ═══════════════════════════════════════════════════════════════ */
 function runAlgorithm(studentData) {
-  /* ═══════════════════════════════════════════════════════════════
-     FULL SCORING ALGORITHM
-     ─────────────────────────────────────────────────────────────
-     Step 1  Direction points from career, universities, skills, Y9 and STEM.
-     Step 2  Desired elective soft preference.
-     Step 3  Core grades as ability signal, not the main direction.
-     Step 4  Bias + dot-product scoring.
-     Step 5  Y9 elective grade bonus applied directly to matched
-             Y10 elective scores after dot-product.
-  ═══════════════════════════════════════════════════════════════ */
-
   const { grades = {}, desiredElectives = [], careerCategory, universities = [],
           skills = {}, year9Electives = [], stemPreference = false } = studentData;
 
-  // ── Initialise direction board ─────────────────────────────────
-  const board = Object.fromEntries(DIMS.map(d => [d, 0]));
+  const pts = { engineering:0, maths:0, science:0, english:0, visual_arts:0,
+                performing_arts:0, ict:0, pe:0, law_economics:0, humanities:0 };
 
-  // ── Step 1A: Career points, the strongest direction signal ────
-  const cp = CAREER_POINTS[careerCategory];
-  if (cp) DIMS.forEach(d => { board[d] += (cp[d] || 0) * 1.85; });
-
-  // ── Step 1B: University points ───────────────────────────────
+  // Step 1: University points (1st=+1.5, 2nd=+1.0, 3rd=+0.5 per uni, up to 2 unis)
   for (const uni of universities) {
-    const up = UNIVERSITY_POINTS[uni];
-    if (up) DIMS.forEach(d => { board[d] += (up[d] || 0) * 2.0; });
+    const cats = UNI_SUBJECT_MAP[uni];
+    if (!cats) continue;
+    [1.5, 1.0, 0.5].forEach((w, i) => { if (cats[i] in pts) pts[cats[i]] += w; });
   }
 
-  // ── Step 1C: Genuine skills boost ────────────────────────────
-  const sv = skills.verbal    || 0;
-  const sn = skills.numerical || 0;
-  const sm = skills.mechanical|| 0;
-  const sl = skills.logical   || 0;
-  const si = skills.visual    || 0;
-  board.english     += sv * 0.75;
-  board.society     += sv * 0.25;
-  board.humanities  += sv * 0.25;
-  board.maths       += sn * 0.7 + sm * 0.15 + sl * 0.45;
-  board.engineering += sm * 0.8 + sn * 0.25 + sl * 0.45;
-  board.arts        += si * 0.8;
-  board.music       += si * 0.2;
-
-  // ── Step 1D: Year 9 subjects nudge the direction board ───────
-  for (const { id: y9Id, grade } of year9Electives) {
-    const y10Id = Y9_TO_Y10[y9Id];
-    const ep = ELECTIVE_POINTS[y10Id];
-    if (!ep) continue;
-    const strength = grade ? Number(grade) / 100 : 0.65;
-    DIMS.forEach(d => { board[d] += (ep[d] || 0) * strength * 0.45; });
+  // Step 2: Career category → +2 pts each to assigned subjects
+  for (const cat of (CAREER_SUBJECT_MAP[careerCategory] || [])) {
+    if (cat in pts) pts[cat] += 2;
   }
 
-  // ── Step 1E: STEM preference is a direction, not a small bonus ─
-  if (stemPreference) {
-    board.maths       += 4.0;
-    board.science     += 4.0;
-    board.engineering += 4.0;
-  } else {
-    board.maths       *= 0.92;
-    board.science     *= 0.92;
-    board.engineering *= 0.92;
+  // Step 3: Core grades — >90 → +1.5, >80 → +1.0
+  const coreMap = { Mathematics:'maths', Science:'science', English:'english', Humanities:'humanities' };
+  for (const [subj, cat] of Object.entries(coreMap)) {
+    const g = Number(grades[subj] || 0);
+    if (g > 90) pts[cat] += 1.5;
+    else if (g > 80) pts[cat] += 1.0;
   }
 
-  // ── Step 2: Desired electives tweak the direction softly ─────
+  // Step 4: Desired electives → +1 each to their category
   for (const id of desiredElectives) {
-    const ep = ELECTIVE_POINTS[id];
-    if (ep) DIMS.forEach(d => { board[d] += (ep[d] || 0) * 0.35; });
+    const cat = ELECTIVE_CAT_MAP[id];
+    if (cat && cat in pts) pts[cat] += 1;
   }
 
-  // ── Step 3: Core grades as ability signal ────────────────────
-  const coreDimMap = { English:'english', Mathematics:'maths', Science:'science', Humanities:'humanities' };
-  for (const subject of CORE_SUBJECTS) {
-    const val = Number(grades[subject] || 0);
-    if (!val) continue;
-    const ability = Math.max(0, (val - 50) / 45);
-    board[coreDimMap[subject]] += ability * 1.8;
-  }
-
-  // ── Step 4: Bias + match scoring ─────────────────────────────
-  // Subtle multiplier — core academic dimensions score fractionally
-  // higher so that, when match scores are close, maths/science/
-  // english/engineering-heavy electives edge ahead of arts/music/
-  // movement alternatives. The difference is small enough to be
-  // invisible but consistent. (1.0 = no bias, higher = more weight)
-  const BIAS = {
-    maths: 1.16, science: 1.16, english: 1.13, engineering: 1.13,
-    society: 1.06, humanities: 1.06,
-    arts: 1.0, music: 1.0, movement: 1.0,
-  };
-
-  const biased = Object.fromEntries(DIMS.map(d => [d, board[d] * (BIAS[d] || 1)]));
-
-  // ── Hard-to-suggest penalty ──────────────────────────────────
-  // These electives are penalised heavily — a ×0.18 multiplier
-  // means their match score needs to be ~5.5× stronger than any
-  // normal elective's to break into the top 8. They can still
-  // appear (e.g. if a student's entire profile screams "Art"),
-  // but casual or mixed profiles will never see them in the
-  // initial suggestions. They remain fully swappable from the pool.
-  const HARD_PENALTY = {
-    creative_writing:     0.18,
-    english_writing:      0.18,
-    make_my_day_science:  0.18,
-    environmental_science:0.18,
-    sustainable_design:   0.18,
-    art:                  0.18,
-    ceramics:             0.18,
-    animation:            0.18,
-    food_tech:            0.18,
-    health:               0.18,
-  };
-
-  const scored = ALL_ELECTIVES.map(e => {
-    const ep = ELECTIVE_POINTS[e.id];
-    if (!ep) return { id: e.id, score: 0 };
-    const raw = DIMS.reduce((sum, d) => sum + biased[d] * (ep[d] || 0), 0);
-
-    let penalty = HARD_PENALTY[e.id] ?? 1;
-    // If the student explicitly desired this elective, honour that wish ~60% of
-    // the time by softening the penalty dramatically. ×0.65 means it competes
-    // fairly against other electives for most student profiles, but still loses
-    // to strongly-fitting alternatives when the profile is truly mismatched
-    // (the rational 40%). The half-point scoreboard boost from Step 3 above
-    // compounds this, so desired hard electives genuinely tend to appear.
-    if (penalty < 1 && desiredElectives.includes(e.id)) penalty = 0.65;
-
-    return { id: e.id, score: raw * penalty };
-  });
-
-  // ── Step 5: Y9 elective grade bonus ──────────────────────
-  // For each Y9 elective the student took, find the matching Y10 elective
-  // and add a direct score bonus proportional to their Y9 grade.
-  const y9BoostIds = new Set();
-  for (const { id: y9Id, grade } of year9Electives) {
-    const y10Id = Y9_TO_Y10[y9Id];
-    if (!y10Id || !grade) continue;
-    const bonus = (Number(grade) / 100) * 7;
-    const entry = scored.find(s => s.id === y10Id);
-    if (entry) { entry.score += bonus; y9BoostIds.add(y10Id); }
-  }
-
-  scored.sort((a, b) => b.score - a.score);
-  // Attach y9BoostIds to the result so callers can access it
-  const ranked = scored.map(s => s.id);
-  ranked._y9BoostIds = y9BoostIds;
-  return ranked;
-}
-
-// PE universities — having one selected unlocks the PE cap to 2
-const PE_FOCUSED_UNIS = new Set([
-  'Deakin University', 'Victoria University', 'Loughborough University (UK)',
-  'University of Queensland (UQ)',
-]);
-const CREATIVE_CATS = new Set(['english_faculty', 'visual_arts', 'performing_arts']);
-
-function buildYear10Selection(rankedIds, studentData = {}) {
-  const total = 8; const selected = []; const seen = new Set();
-
-  // PE cap: 1 by default. Raise only when the profile clearly points there:
-  // PE-focused university, PE desired elective, or no supplied core grades at all.
-  const isPEFocused = (studentData.universities || []).some(u => PE_FOCUSED_UNIS.has(u));
-  const isPEDesired = (studentData.desiredElectives || []).some(id => PE_IDS.includes(id));
-  const gradeValues = Object.values(studentData.grades || {}).filter(Boolean);
-  const noCoreGradeCare = gradeValues.length === 0;
-  const peCap = (isPEFocused || isPEDesired || noCoreGradeCare) ? 2 : 1;
-
-  const desiredCats = new Set((studentData.desiredElectives || [])
-    .map(id => ALL_ELECTIVES.find(e => e.id === id)?.category).filter(Boolean));
-  const y9Cats = new Set((studentData.year9Electives || [])
-    .map(r => ALL_ELECTIVES.find(e => e.id === Y9_TO_Y10[r.id])?.category).filter(Boolean));
-  const careerMinorCats = {
-    'Hospitality & Tourism': ['health'],
-    'Technology & Engineering': ['ict'],
-    'Arts & Creative Industries': ['visual_arts', 'performing_arts'],
-    'Architecture & Design': ['visual_arts', 'ict'],
-    'Media & Communications': ['visual_arts', 'english_faculty'],
-  }[studentData.careerCategory] || [];
-  const uniMinorCats = (studentData.universities || []).flatMap(u => {
-    if (/RMIT|Technology|MIT|UTS|UNSW|Imperial|ETH|Tokyo|Seoul|NUS/i.test(u)) return ['ict'];
-    if (/Royal College of Art|Berklee|NYU|Yale|Edinburgh/i.test(u)) return ['visual_arts', 'performing_arts'];
-    return [];
-  });
-  const minorDirectionCats = new Set([...desiredCats, ...y9Cats, ...careerMinorCats, ...uniMinorCats]
-    .filter(c => MINOR_CATS.has(c)));
-  const minorCap = minorDirectionCats.size > 0 ? 4 : 2;
-  let minorCount = 0;
-
-  // Per-faculty caps — prevent the first 8 from being dominated by one area
-  const CAT_CAPS = {
-    science:         2,
-    pe:              peCap,
-    humanities:      2,
-    english_faculty: 1,
-    visual_arts:     minorDirectionCats.has('visual_arts') ? 3 : 1,
-    performing_arts: minorDirectionCats.has('performing_arts') ? 2 : 1,
-    ict:             minorDirectionCats.has('ict') ? 3 : 1,
-    health:          minorDirectionCats.has('health') ? 3 : 1,
-  };
-  const catCount = {};
-
-  // ── Similarity groups — max 1 per group in the final 8 ────────
-  // Electives within the same group are considered too similar to
-  // appear together. The lower-ranked one is skipped and pushed
-  // further down the swap pool instead.
-  const SIM_GROUPS = [
-    // ICT — near-identical point profiles
-    new Set(['information_systems', 'information_technology']),
-    // PE — core PE types are very similar; Outdoor Ed is different enough
-    new Set(['pe_for_life', 'human_movement']),
-    // Visual arts — pick the best-fit one from the pure-art group
-    new Set(['art', 'ceramics', 'sculpture', 'vic_comm']),
-    // Performing arts — only one music elective at a time
-    new Set(['music_performance', 'music_technology']),
-    // English faculty — all very english-heavy
-    new Set(['literature', 'creative_writing', 'english_writing']),
-    // Soft sciences — very similar in nature
-    new Set(['make_my_day_science', 'environmental_science']),
-    // Commerce within Humanities — both business-oriented
-    new Set(['commerce_business_legal', 'commerce_economics_finance']),
-  ];
-
-  const tooSimilar = (id) =>
-    SIM_GROUPS.some(g => g.has(id) && selected.some(e => g.has(e.id)));
-
-  const addById = (id) => {
-    if (seen.has(id)) return false;
-    const e = ALL_ELECTIVES.find(x => x.id === id);
-    if (!e) return false;
-    if (MINOR_CATS.has(e.category)) minorCount++;
-    selected.push(e); seen.add(id);
-    catCount[e.category] = (catCount[e.category] || 0) + 1;
-    return true;
-  };
-
-  // Guaranteed minimums — structure overrides similarity
-  addById(rankedIds.find(id => HUMANITIES_IDS.includes(id)) || 'history');
-  addById(rankedIds.find(id => SCIENCE_IDS.includes(id)) || 'biology');
-  addById(rankedIds.find(id => PE_IDS.includes(id)) || 'pe_for_life');
-
-  const canAdd = (id) => {
-    const e = ALL_ELECTIVES.find(x => x.id === id);
-    if (!e || seen.has(id)) return false;
-    const cap = CAT_CAPS[e.category];
-    if (MINOR_CATS.has(e.category) && minorCount >= minorCap) return false;
-    return cap === undefined || (catCount[e.category] || 0) < cap;
-  };
-
-  // Pass 1 — ranked list, obey both caps AND similarity
-  for (const id of rankedIds) {
-    if (selected.length >= total) break;
-    if (canAdd(id) && !tooSimilar(id)) addById(id);
-  }
-  // Pass 2 — still short? relax similarity (keep caps)
-  for (const id of rankedIds) {
-    if (selected.length >= total) break;
-    if (canAdd(id)) addById(id);
-  }
-  // Pass 3 — last resort: fill with non-minor subjects first, then anything.
-  for (const e of ALL_ELECTIVES) {
-    if (selected.length >= total) break;
-    if (!seen.has(e.id) && !MINOR_CATS.has(e.category)) addById(e.id);
-  }
-  for (const e of ALL_ELECTIVES) {
-    if (selected.length >= total) break;
-    if (!seen.has(e.id)) addById(e.id);
-  }
-
-  // ── Creative-subject safety net ──────────────────────────────
-  // If the final 8 contains zero English / Visual Arts / Performing Arts
-  // electives, inject the highest-ranked creative elective from rankedIds
-  // to ensure cultural breadth. The lowest-ranked non-compulsory slot is
-  // replaced (typically position 7 — the weakest data match).
-  const hasCreative = selected.some(e => CREATIVE_CATS.has(e.category));
-  if (!hasCreative && (minorDirectionCats.size > 0 || minorCount < minorCap)) {
-    const bestCreativeId = rankedIds.find(id => {
-      const e = ALL_ELECTIVES.find(x => x.id === id);
-      return e && CREATIVE_CATS.has(e.category);
-    });
-    if (bestCreativeId) {
-      const compulsoryIds = new Set([
-        selected.find(e => HUMANITIES_IDS.includes(e.id))?.id,
-        selected.find(e => SCIENCE_IDS.includes(e.id))?.id,
-        selected.find(e => PE_IDS.includes(e.id))?.id,
-      ].filter(Boolean));
-      // Find the last non-compulsory slot to replace
-      for (let i = selected.length - 1; i >= 0; i--) {
-        if (!compulsoryIds.has(selected[i].id)) {
-          const creative = ALL_ELECTIVES.find(x => x.id === bestCreativeId);
-          if (creative) { selected[i] = creative; break; }
+  // Step 5: Genuine skills — top-rated skill(s) add +1.0 to each assigned category
+  const skillVals = Object.entries(skills).filter(([,v]) => v > 0);
+  if (skillVals.length > 0) {
+    const maxVal = Math.max(...skillVals.map(([,v]) => v));
+    for (const [skill, val] of skillVals) {
+      if (val === maxVal) {
+        for (const cat of (SKILL_CAT_MAP_ALGO[skill] || [])) {
+          if (cat in pts) pts[cat] += 1.0;
         }
       }
     }
   }
 
-  return selected.slice(0, total);
+  // Step 6: Y9 elective grade >90 → +1 to that elective's category
+  for (const { id: y9Id, grade } of year9Electives) {
+    if (Number(grade) > 90) {
+      const y10Id = Y9_TO_Y10[y9Id];
+      const cat = ELECTIVE_CAT_MAP[y10Id];
+      if (cat && cat in pts) pts[cat] += 1;
+    }
+  }
+
+  // Step 7: STEM O → +1 each to maths/science/ict/law_economics/humanities
+  //          STEM X → +1 each to english/visual_arts/performing_arts/pe
+  if (stemPreference) {
+    ['maths','science','ict','law_economics','humanities'].forEach(c => pts[c] += 1);
+  } else {
+    ['english','visual_arts','performing_arts','pe'].forEach(c => pts[c] += 1);
+  }
+
+  return pts;
+}
+
+function buildYear10Selection(pts, studentData = {}) {
+  const { grades = {}, careerCategory = '', desiredElectives = [] } = studentData;
+  const selected = [];
+  const usedIds = new Set();
+
+  const addE = (id) => {
+    const e = ALL_ELECTIVES.find(x => x.id === id);
+    if (e && !usedIds.has(id)) { selected.push(e); usedIds.add(id); return true; }
+    return false;
+  };
+
+  // ── 1. History vs Geography ───────────────────────────────────
+  // Geography-leaning: high science/engineering/ict/pe side
+  // History-leaning: high humanities/english/law_economics/performing_arts side
+  const geoScore = pts.science + pts.engineering + pts.ict + pts.pe;
+  const histScore = pts.humanities + pts.english + pts.law_economics + pts.performing_arts;
+  const desiredHist = desiredElectives.includes('history');
+  const desiredGeo  = desiredElectives.includes('geography');
+  let histGeoChoice;
+  if (desiredHist && !desiredGeo)       histGeoChoice = 'history';
+  else if (desiredGeo && !desiredHist)  histGeoChoice = 'geography';
+  else if (careerCategory === 'Environment & Agriculture' || geoScore > histScore)
+                                        histGeoChoice = 'geography';
+  else                                  histGeoChoice = 'history';
+  addE(histGeoChoice);
+
+  // ── 2. PE for Life vs Human Movement ─────────────────────────
+  // Human Movement only for medicine/healthcare career or PE teaching context
+  // (NOT chosen simply because of high grades or STEM)
+  const desiredHM  = desiredElectives.includes('human_movement');
+  const desiredPFL = desiredElectives.includes('pe_for_life');
+  let peChoice;
+  if (desiredHM && !desiredPFL)                   peChoice = 'human_movement';
+  else if (desiredPFL && !desiredHM)              peChoice = 'pe_for_life';
+  else if (careerCategory === 'Medicine & Healthcare') peChoice = 'human_movement';
+  else if (careerCategory === 'Education & Social Work' && pts.science >= 2)
+                                                  peChoice = 'human_movement';
+  else                                            peChoice = 'pe_for_life';
+  addE(peChoice);
+
+  // ── 3. Science elective choice ───────────────────────────────
+  const desiredSci = desiredElectives.find(id => SCIENCE_IDS.includes(id));
+  let sciChoice;
+  if (desiredSci) {
+    sciChoice = desiredSci;
+  } else if (careerCategory === 'Medicine & Healthcare') {
+    sciChoice = 'biology';
+  } else if (careerCategory === 'Environment & Agriculture') {
+    sciChoice = 'environmental_science';
+  } else if (pts.engineering >= pts.maths && pts.engineering > pts.humanities) {
+    sciChoice = 'physics';
+  } else if (pts.maths > pts.science && pts.maths > 0) {
+    sciChoice = 'chemistry';
+  } else {
+    sciChoice = 'biology';
+  }
+  addE(sciChoice);
+
+  // ── 4–8. Remaining 5 from category pointsboard (maths excluded) ──
+  const sciGrade = Number(grades['Science'] || 0);
+  const sciGradeHigh = sciGrade > 90;
+
+  // Build available electives per category (excluding already used)
+  const availByCat = {};
+  for (const e of ALL_ELECTIVES) {
+    if (usedIds.has(e.id)) continue;
+    const cat = ELECTIVE_CAT_MAP[e.id] || 'humanities';
+    if (!availByCat[cat]) availByCat[cat] = [];
+    availByCat[cat].push(e.id);
+  }
+
+  // Sort categories by pts descending, exclude maths
+  const workPts = { ...pts };
+  delete workPts.maths;
+  const sortedCats = Object.entries(workPts).sort((a, b) => b[1] - a[1]).map(([k]) => k);
+
+  // Prioritise desired non-mandatory electives within each category
+  for (const cat of Object.keys(availByCat)) {
+    availByCat[cat].sort((a, b) => {
+      const aD = desiredElectives.includes(a) ? -1 : 1;
+      const bD = desiredElectives.includes(b) ? -1 : 1;
+      return aD - bD;
+    });
+  }
+
+  let remaining = 5;
+  let isFirstCat = true;
+  for (const cat of sortedCats) {
+    if (remaining <= 0) break;
+    const avail = (availByCat[cat] || []).filter(id => !usedIds.has(id));
+    if (avail.length === 0) continue;
+    const maxFromCat = isFirstCat ? (cat === 'science' && sciGradeHigh ? 3 : 2) : 1;
+    isFirstCat = false;
+    for (let i = 0; i < Math.min(avail.length, maxFromCat) && remaining > 0; i++) {
+      addE(avail[i]);
+      remaining--;
+    }
+  }
+
+  // Fill any remaining slots with whatever is left
+  for (const e of ALL_ELECTIVES) {
+    if (selected.length >= 8) break;
+    if (!usedIds.has(e.id)) addE(e.id);
+  }
+
+  return selected.slice(0, 8);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1590,9 +1448,10 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  // forgot password flow: 'idle' | 'enter_email' | 'reset_sent' | 'new_password'
+  // forgot password flow: 'idle' | 'enter_email' | 'enter_code' | 'new_password'
   const [fpStep, setFpStep] = useState(recoveryMode ? 'new_password' : 'idle');
   const [fpEmail, setFpEmail] = useState('');
+  const [fpCode, setFpCode] = useState('');
   const [fpNewPw, setFpNewPw] = useState('');
   const [fpLoading, setFpLoading] = useState(false);
 
@@ -1624,11 +1483,18 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
   const handleFpSendCode = async () => {
     if (!fpEmail) return;
     setFpLoading(true); setError('');
-    const { error } = await db.auth.resetPasswordForEmail(fpEmail, {
-      redirectTo: window.location.origin,
-    });
+    const { error } = await db.auth.signInWithOtp({ email: fpEmail, options: { shouldCreateUser: false } });
     if (error) setError(error.message);
-    else { setFpStep('reset_sent'); setSuccess('Check your email for the password reset link. After opening it, you can set the new password here.'); }
+    else { setFpStep('enter_code'); setFpCode(''); setSuccess('A verification code has been sent to your email. Enter it below.'); }
+    setFpLoading(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!fpCode) return;
+    setFpLoading(true); setError('');
+    const { error } = await db.auth.verifyOtp({ email: fpEmail, token: fpCode, type: 'email' });
+    if (error) setError(error.message);
+    else { setFpStep('new_password'); setSuccess('Verified! Set your new password below.'); }
     setFpLoading(false);
   };
 
@@ -1685,14 +1551,25 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
                 </button>
               </>
             )}
-            {fpStep === 'reset_sent' && (
+            {fpStep === 'enter_code' && (
               <>
                 <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  We sent the reset email to <strong>{fpEmail}</strong>. Open the link from that email, then this page will let you create the new password.
+                  We sent a verification code to <strong>{fpEmail}</strong>. Enter it below.
                 </p>
-                <button className="auth-btn" onClick={handleFpSendCode} disabled={fpLoading}>
-                  {fpLoading ? 'Sending…' : 'Resend Reset Email'}
+                <div className="auth-field">
+                  <label className="auth-label">Verification Code</label>
+                  <input className="auth-input" type="text" placeholder="Enter the code from your email"
+                    value={fpCode} onChange={e => setFpCode(e.target.value)} autoFocus />
+                </div>
+                <button className="auth-btn" onClick={handleVerifyOtp} disabled={fpLoading}>
+                  {fpLoading ? 'Verifying…' : 'Verify Code'}
                 </button>
+                <div style={{ marginTop:'.65rem', textAlign:'center' }}>
+                  <button style={{ background:'none', border:'none', color:'var(--primary)', fontSize:'.8rem', cursor:'pointer' }}
+                    onClick={handleFpSendCode} disabled={fpLoading}>
+                    Resend code
+                  </button>
+                </div>
               </>
             )}
             {fpStep === 'new_password' && (
@@ -1933,15 +1810,19 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
       skills, year9Electives: year9Electives.filter(r => r.id && r.grade),
       stemPreference,
     };
-    const rankedIds = runAlgorithm(studentData);
-    const boostIds = rankedIds._y9BoostIds || new Set();
-    const top8 = buildYear10Selection(rankedIds, studentData);
+    const pts = runAlgorithm(studentData);
+    const top8 = buildYear10Selection(pts, studentData);
     const top8Ids = new Set(top8.map(e => e.id));
-    const pool = rankedIds
-      .filter(id => !top8Ids.has(id))
-      .map(id => ALL_ELECTIVES.find(e => e.id === id))
-      .filter(Boolean);
-    // Persist which Y10 electives are Y9-sourced as an array in studentData
+    // Pool sorted by category score so best remaining options appear first in swap
+    const pool = ALL_ELECTIVES
+      .filter(e => !top8Ids.has(e.id))
+      .sort((a, b) => (pts[ELECTIVE_CAT_MAP[b.id]] || 0) - (pts[ELECTIVE_CAT_MAP[a.id]] || 0));
+    // Track which top-8 electives were boosted by a Y9 match
+    const boostIds = new Set(
+      studentData.year9Electives
+        .map(r => Y9_TO_Y10[r.id])
+        .filter(id => id && top8Ids.has(id))
+    );
     const newStudentData = { ...studentData, year9BoostIds: [...boostIds] };
     const data = { studentData: newStudentData, suggestions: top8, pool, isLocked: false };
     setSuggestions(top8); setSuggestionPool(pool); setIsLocked(false); setSubmitted(true);
@@ -2604,6 +2485,7 @@ function SuggestionCard({
     health:           'Health',
     ict:              'ICT',
     language:         'Language Continuation',
+    enhancement:      'Enhancement',
   }[elective.category] || elective.category;
 
   return (
@@ -2662,11 +2544,13 @@ function SuggestionCard({
 const CAT_COLORS = {
   english_faculty:'#3b82f6', humanities:'#f59e0b', science:'#10b981',
   pe:'#ef4444', visual_arts:'#8b5cf6', performing_arts:'#f43f5e',
-  health:'#ec4899', ict:'#14b8a6', language:'#f97316',
+  health:'#ec4899', ict:'#14b8a6', language:'#f97316', enhancement:'#059669',
 };
 
-function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklistState, onChecklistChange }) {
+function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklistState, onChecklistChange, enhancements, onEnhancementSwap, onEnhancementUnswap }) {
   const [subjectFilter, setSubjectFilter] = useState('All');
+  const [enhSwapSlot, setEnhSwapSlot] = useState('');
+  const [enhSwapSubject, setEnhSwapSubject] = useState('');
 
   const isUnlocked = !!submittedData;
   const suggestions = submittedData?.suggestions || [];
@@ -2768,6 +2652,57 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
         ) : (
           <>
             <div className="info-banner"><Icon name="info" size={15} /> Tick off milestones as you go — progress saves automatically! Keep it up! 💪</div>
+
+            {/* Enhancement swap panel */}
+            {(() => {
+              const activeEnhs = (enhancements || []).filter(Boolean);
+              if (activeEnhs.length === 0) return null;
+              return (
+                <div style={{ background:'linear-gradient(135deg,#ecfdf5,#f0fdf4)', border:'1.5px solid #6ee7b7', borderRadius:'12px', padding:'1rem 1.25rem', marginBottom:'1.25rem' }}>
+                  <div style={{ fontWeight:700, fontSize:'.95rem', color:'#065f46', marginBottom:'.5rem' }}>⭐ Enhancement Subject Swap</div>
+                  <p style={{ fontSize:'.83rem', color:'#047857', lineHeight:1.5, marginBottom:'.75rem' }}>
+                    You have selected enhancement subject(s) on the Year 11 Preview page. You can replace one of your elective slots with an enhancement subject — this will update your plan across all pages.
+                  </p>
+                  <div style={{ display:'flex', gap:'.6rem', flexWrap:'wrap', alignItems:'flex-end' }}>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flex:1, minWidth:'160px' }}>
+                      <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>Elective to replace</label>
+                      <select className="form-select" value={enhSwapSlot} onChange={e => setEnhSwapSlot(e.target.value)}>
+                        <option value="">Select a slot…</option>
+                        {suggestions.map((s, i) => (
+                          <option key={i} value={i}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flex:1, minWidth:'160px' }}>
+                      <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>Enhancement subject</label>
+                      <select className="form-select" value={enhSwapSubject} onChange={e => setEnhSwapSubject(e.target.value)}>
+                        <option value="">Select enhancement…</option>
+                        {activeEnhs.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                    <button className="btn btn-primary" style={{ background:'#10b981', whiteSpace:'nowrap' }}
+                      onClick={() => {
+                        if (enhSwapSlot === '' || !enhSwapSubject) return;
+                        onEnhancementSwap(Number(enhSwapSlot), enhSwapSubject);
+                        setEnhSwapSlot(''); setEnhSwapSubject('');
+                      }}>
+                      ↔ Swap
+                    </button>
+                  </div>
+                  {suggestions.some(s => s.category === 'enhancement') && (
+                    <div style={{ marginTop:'.75rem', display:'flex', flexWrap:'wrap', gap:'.45rem' }}>
+                      {suggestions.map((s, i) => s.category === 'enhancement' ? (
+                        <button key={i} onClick={() => onEnhancementUnswap(i)}
+                          style={{ fontSize:'.78rem', padding:'.28rem .7rem', borderRadius:'99px', border:'1.5px solid #6ee7b7', background:'#d1fae5', color:'#065f46', cursor:'pointer', fontWeight:600 }}>
+                          ↩ Restore slot {i+1} ({s.name})
+                        </button>
+                      ) : null)}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div className="checklist-grid">
               {suggestions.map(elective => {
                 const { done, total, pct } = getProgress(elective.id);
@@ -2863,9 +2798,8 @@ const YEAR11_CATS = [
 
 const ENHANCEMENT_OPTIONS = YEAR11_CATS.flatMap(cat => cat.subjects.map(s => s.name));
 
-function Page3({ submittedData }) {
+function Page3({ submittedData, enhancements, setEnhancements }) {
   const [expandedCat, setExpandedCat] = useState(null);
-  const [enhancements, setEnhancements] = useState(['', '']);
 
   const enhancementValues = enhancements.filter(Boolean);
   const setEnhancement = (idx, value) => {
@@ -2997,6 +2931,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [userProfile, setUserProfile] = useState({ username: '', avatar_data: null });
   const [passwordRecovery, setPasswordRecovery] = useState(false);
+  const [enhancements, setEnhancements] = useState(['', '']);
   const [penguinDismissed, setPenguinDismissed] = useState(
     () => !!sessionStorage.getItem('elect_penguin_dismissed')
   );
@@ -3119,6 +3054,41 @@ function App() {
   const handleSetSubmittedData = (data) => {
     setSubmittedData(data);
     if (isGuest) guestSaveData(data, checklistState);
+  };
+
+  const handleEnhancementSwap = async (slotIndex, enhancementName) => {
+    if (!submittedData || !enhancementName) return;
+    const newSugs = [...submittedData.suggestions];
+    const original = newSugs[slotIndex];
+    newSugs[slotIndex] = {
+      id: `enh_${enhancementName.replace(/\W+/g,'_').toLowerCase()}`,
+      name: `${enhancementName} (Enhancement)`,
+      category: 'enhancement',
+      badge: 'badge-enhancement',
+      description: `Year 11 VCE ${enhancementName} studied in Year 10 as an acceleration/enhancement subject.`,
+      careers: [], universities: [],
+      _enhOriginalId: original?.id,
+    };
+    const newData = { ...submittedData, suggestions: newSugs };
+    setSubmittedData(newData);
+    if (user) await dbSaveElectiveResults(user.id, { studentData: newData.studentData, suggestions: newSugs, pool: newData.pool || [], isLocked: newData.isLocked });
+    else if (isGuest) guestSaveData(newData, checklistState);
+    showSaveIndicator();
+  };
+
+  const handleEnhancementUnswap = async (slotIndex) => {
+    if (!submittedData) return;
+    const newSugs = [...submittedData.suggestions];
+    const curr = newSugs[slotIndex];
+    const origId = curr?._enhOriginalId;
+    const original = origId ? ALL_ELECTIVES.find(e => e.id === origId) : null;
+    if (!original) return;
+    newSugs[slotIndex] = original;
+    const newData = { ...submittedData, suggestions: newSugs };
+    setSubmittedData(newData);
+    if (user) await dbSaveElectiveResults(user.id, { studentData: newData.studentData, suggestions: newSugs, pool: newData.pool || [], isLocked: newData.isLocked });
+    else if (isGuest) guestSaveData(newData, checklistState);
+    showSaveIndicator();
   };
 
   return (
@@ -3252,10 +3222,17 @@ function App() {
           submittedData={submittedData}
           checklistState={checklistState}
           onChecklistChange={handleChecklistChange}
+          enhancements={enhancements}
+          onEnhancementSwap={handleEnhancementSwap}
+          onEnhancementUnswap={handleEnhancementUnswap}
         />
       )}
       {activePage === 'page3' && (
-        <Page3 submittedData={submittedData} />
+        <Page3
+          submittedData={submittedData}
+          enhancements={enhancements}
+          setEnhancements={setEnhancements}
+        />
       )}
     </div>
   );
