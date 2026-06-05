@@ -271,6 +271,15 @@
       border-radius: 10px; padding: .7rem 1rem; font-size: .84rem; color: var(--primary);
       margin-bottom: 1.25rem; display: flex; align-items: center; gap: .6rem;
     }
+    .accuracy-warning {
+      background: linear-gradient(135deg, #fffbeb, #fff7ed);
+      border: 1.5px solid #fbbf24; border-radius: 12px;
+      padding: .85rem 1rem; margin-bottom: 1.25rem;
+      display: flex; align-items: flex-start; gap: .7rem;
+      color: #92400e; box-shadow: 0 4px 18px rgba(245,158,11,.12);
+    }
+    .accuracy-warning strong { display: block; font-size: .9rem; margin-bottom: .18rem; color: #78350f; }
+    .accuracy-warning span { font-size: .82rem; line-height: 1.5; }
     .locked-banner {
       background: linear-gradient(135deg, #ecfdf5, #f0fdf4);
       border: 1.5px solid #6ee7b7; border-radius: 12px;
@@ -701,42 +710,53 @@
     }
 
     /* ═══ PENGUIN MASCOT ═══ */
-    .penguin-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; }
+    .penguin-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; align-items: flex-end; gap: .55rem; }
     .speech-bubble {
-      background: #fff; border: 2px solid var(--primary); border-radius: 14px;
-      padding: .75rem 1rem; max-width: 220px; font-size: .82rem; line-height: 1.5;
+      background: #fff; border: 2px solid #93c5fd; border-radius: 18px;
+      padding: .8rem 1rem; max-width: 265px; font-size: .82rem; line-height: 1.5;
       box-shadow: 0 4px 16px rgba(99,102,241,.18); position: relative; color: var(--text);
     }
     .speech-bubble::after {
       content: ''; position: absolute; bottom: -10px; right: 18px;
       border-left: 8px solid transparent; border-right: 8px solid transparent;
-      border-top: 10px solid var(--primary);
+      border-top: 10px solid #93c5fd;
     }
     .speech-bubble::before {
       content: ''; position: absolute; bottom: -7px; right: 19px;
       border-left: 7px solid transparent; border-right: 7px solid transparent;
       border-top: 9px solid #fff; z-index: 1;
     }
-    .penguin-char { position: relative; width: 56px; height: 68px; cursor: pointer; animation: penguin-bob 1.8s ease-in-out infinite; }
-    @keyframes penguin-bob { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-7px) rotate(2deg)} }
-    .penguin-body { position: absolute; width: 56px; height: 62px; background: #1e293b; border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%; }
-    .penguin-belly { position: absolute; width: 32px; height: 40px; background: #f1f5f9; border-radius: 50%; top: 13px; left: 12px; }
-    .penguin-eye { position: absolute; width: 9px; height: 9px; background: #fff; border-radius: 50%; top: 15px; }
-    .penguin-eye.l { left: 10px; } .penguin-eye.r { right: 10px; }
-    .penguin-pupil { position: absolute; width: 4px; height: 4px; background: #1e293b; border-radius: 50%; top: 2.5px; left: 2.5px; }
-    .penguin-beak { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid #f59e0b; }
-    .penguin-wing { position: absolute; width: 14px; height: 26px; background: #1e293b; border-radius: 40%; top: 12px; }
-    .penguin-wing.l { left: -11px; border-radius: 40% 10% 10% 40%; }
-    .penguin-wing.r { right: -11px; border-radius: 10% 40% 40% 10%; }
-    .penguin-foot { position: absolute; width: 17px; height: 8px; background: #f59e0b; border-radius: 0 0 9px 9px; bottom: -7px; }
-    .penguin-foot.l { left: 5px; } .penguin-foot.r { right: 5px; }
-    .penguin-dismiss { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--danger); color: #fff; border: none; font-size: .65rem; cursor: pointer; display: grid; place-items: center; z-index: 1; }
+    .penguin-char { position: relative; width: 88px; height: 94px; cursor: pointer; animation: penguin-bob 1.65s ease-in-out infinite; filter: drop-shadow(0 10px 20px rgba(30,41,59,.22)); }
+    .penguin-char::before { content:'✦'; position:absolute; top:2px; left:-7px; color:#60a5fa; font-size:1rem; animation: sparkle 1.6s ease-in-out infinite; }
+    .penguin-char::after { content:'✧'; position:absolute; top:20px; right:-9px; color:#f59e0b; font-size:.95rem; animation: sparkle 1.9s ease-in-out infinite reverse; }
+    @keyframes penguin-bob { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-9px) rotate(3deg)} }
+    @keyframes sparkle { 0%,100%{opacity:.35; transform:scale(.8) rotate(0deg)} 50%{opacity:1; transform:scale(1.15) rotate(10deg)} }
+    .penguin-body { position: absolute; left: 10px; bottom: 8px; width: 68px; height: 78px; background: #172033; border-radius: 48% 48% 44% 44% / 45% 45% 55% 55%; }
+    .penguin-body::before { content:''; position:absolute; left: 7px; top: -7px; width: 54px; height: 34px; background:#172033; border-radius: 999px 999px 22px 22px; }
+    .penguin-belly { position: absolute; width: 46px; height: 54px; background: linear-gradient(180deg,#ffffff,#e0f2fe); border-radius: 50% 50% 47% 47%; top: 20px; left: 11px; box-shadow: inset 0 -8px 16px rgba(96,165,250,.16); }
+    .penguin-eye { position: absolute; width: 15px; height: 15px; background: #fff; border-radius: 50%; top: 14px; box-shadow: 0 1px 0 rgba(255,255,255,.8); }
+    .penguin-eye.l { left: 17px; } .penguin-eye.r { right: 17px; }
+    .penguin-pupil { position: absolute; width: 7px; height: 7px; background: #111827; border-radius: 50%; top: 4px; left: 4px; }
+    .penguin-pupil::after { content:''; position:absolute; width:2px; height:2px; border-radius:50%; background:#fff; top:1px; left:1px; }
+    .penguin-beak { position: absolute; top: 31px; left: 50%; transform: translateX(-50%); width: 18px; height: 12px; background:#f59e0b; border-radius: 50% 50% 65% 65%; clip-path: polygon(50% 100%, 0 0, 100% 0); }
+    .penguin-cheek { position: absolute; width: 11px; height: 7px; background: rgba(251,113,133,.48); border-radius: 50%; top: 34px; }
+    .penguin-cheek.l { left: 12px; } .penguin-cheek.r { right: 12px; }
+    .penguin-wing { position: absolute; width: 20px; height: 38px; background: #172033; border-radius: 999px; top: 32px; transform-origin: top center; }
+    .penguin-wing.l { left: -12px; transform: rotate(24deg); animation: wing-wave-l 2.2s ease-in-out infinite; }
+    .penguin-wing.r { right: -12px; transform: rotate(-24deg); animation: wing-wave-r 2.2s ease-in-out infinite; }
+    @keyframes wing-wave-l { 0%,100%{transform:rotate(24deg)} 50%{transform:rotate(43deg)} }
+    @keyframes wing-wave-r { 0%,100%{transform:rotate(-24deg)} 50%{transform:rotate(-43deg)} }
+    .penguin-foot { position: absolute; width: 23px; height: 11px; background: #f59e0b; border-radius: 70% 70% 45% 45%; bottom: -3px; }
+    .penguin-foot.l { left: 12px; transform: rotate(4deg); } .penguin-foot.r { right: 12px; transform: rotate(-4deg); }
+    .penguin-dismiss { position: absolute; top: -10px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #fff; border: 2px solid #fff; font-size: .65rem; cursor: pointer; display: grid; place-items: center; z-index: 1; box-shadow: 0 2px 8px rgba(239,68,68,.28); }
 
     @media (max-width: 780px) {
       .form-two-col { grid-template-columns: 1fr; }
       .suggestions-grid { grid-template-columns: 1fr; }
       .grade-grid { grid-template-columns: 1fr 1fr; }
       .skills-grid { grid-template-columns: repeat(3, 1fr); }
+      .penguin-wrap { right: 12px; bottom: 14px; transform: scale(.86); transform-origin: bottom right; }
+      .speech-bubble { max-width: 240px; }
       .nav { padding: 0 1rem; gap: .75rem; }
       .map-header-row, .map-row { grid-template-columns: 140px 24px 1fr 24px 1fr; }
       .nav-email { display: none; }
@@ -4399,6 +4419,14 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
         </div>
       </div>
 
+      <div className="accuracy-warning">
+        <Icon name="alert-triangle" size={18} />
+        <span>
+          <strong>Important: these suggestions may be very inaccurate.</strong>
+          This algorithm is not professional advice. Use the generated plan as a rough starting point, review every subject yourself, swap or manually change anything that feels wrong, then lock in only when the final 8 choices genuinely fit you.
+        </span>
+      </div>
+
       {!submitted ? (
         <form onSubmit={handleSubmit}>
           {/* GRADES */}
@@ -5480,9 +5508,7 @@ function App() {
   const [userProfile, setUserProfile] = useState({ username: '', avatar_data: null });
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [enhancements, setEnhancements] = useState(['', '']);
-  const [penguinDismissed, setPenguinDismissed] = useState(
-    () => !!sessionStorage.getItem('elect_penguin_dismissed')
-  );
+  const [penguinDismissed, setPenguinDismissed] = useState(false);
 
   // Debounce ref for checklist saves
   const checklistSaveTimer = useRef(null);
@@ -5570,6 +5596,10 @@ function App() {
     }
   }, [session, isGuest, submittedData]);
 
+  useEffect(() => {
+    setPenguinDismissed(false);
+  }, [activePage, !!submittedData, submittedData?.isLocked]);
+
   // Loading state while checking session
   if (session === undefined && !isGuest) {
     return (
@@ -5590,9 +5620,9 @@ function App() {
 
   const penguinMsg = (() => {
     if (activePage === 'page1') {
-      if (!submittedData) return "Hi! I'm Pingu 🐧 Fill in the form and I'll help find your perfect Year 10 electives!";
+      if (!submittedData) return "Hi! I'm Pingu. Quick warning: my algorithm is just a rough helper, not professional advice. Fill this in, then review everything carefully!";
       if (submittedData.isLocked) return "🎉 Amazing! You're all locked in! Go check out Explore & Track and Year 11 Preview — they just unlocked!";
-      return "Here are your suggestions! Not happy with one? Hit Swap! When you're ready, click Lock In ✨";
+      return "Suggestions are here, but please don't trust them blindly. Swap, use manual choices, and only lock in once the final 8 actually feel right.";
     }
     if (activePage === 'page2') return "Welcome to Explore & Track! Check out your career paths, uni options and progress here! 🗺️";
     if (activePage === 'page3') return "This is your Year 11 preview! Click any subject area to see what's inside! 📚";
@@ -5742,12 +5772,14 @@ function App() {
               <div className="penguin-eye l"><div className="penguin-pupil" /></div>
               <div className="penguin-eye r"><div className="penguin-pupil" /></div>
               <div className="penguin-beak" />
+              <div className="penguin-cheek l" />
+              <div className="penguin-cheek r" />
               <div className="penguin-wing l" />
               <div className="penguin-wing r" />
               <div className="penguin-foot l" />
               <div className="penguin-foot r" />
             </div>
-            <button className="penguin-dismiss" onClick={() => { setPenguinDismissed(true); sessionStorage.setItem('elect_penguin_dismissed','1'); }}>✕</button>
+            <button className="penguin-dismiss" onClick={() => setPenguinDismissed(true)}>✕</button>
           </div>
         </div>
       )}
