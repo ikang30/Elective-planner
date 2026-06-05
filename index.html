@@ -322,6 +322,35 @@
       background: transparent; cursor: pointer; font-size: .79rem; color: var(--text-muted); transition: all .15s;
     }
     .dismiss-btn:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
+    .restore-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .32rem .75rem; border-radius: 8px; border: 1.5px solid #bbf7d0;
+      background: #ecfdf5; cursor: pointer; font-size: .79rem; color: #047857; transition: all .15s;
+    }
+    .restore-btn:hover { border-color: var(--success); background: #d1fae5; }
+    .essential-panel, .manual-panel {
+      background: var(--surface); border: 1.5px solid var(--border);
+      border-radius: 12px; padding: 1rem 1.1rem; margin-top: 1.25rem; box-shadow: var(--shadow);
+    }
+    .essential-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9rem; margin-top: .75rem; }
+    .essential-title { font-size: .78rem; font-weight: 800; color: var(--text-muted); margin-bottom: .45rem; text-transform: uppercase; letter-spacing: .04em; }
+    .essential-options { display: flex; flex-wrap: wrap; gap: .35rem; }
+    .essential-chip {
+      padding: .3rem .65rem; border-radius: 999px; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text-muted); font-size: .78rem; font-weight: 600; cursor: pointer;
+    }
+    .essential-chip:hover { border-color: var(--primary); color: var(--primary); }
+    .essential-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .manual-panel-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+    .manual-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem; margin-top: .85rem; }
+    .manual-pick {
+      text-align: left; padding: .55rem .7rem; border-radius: 9px; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: .82rem; cursor: pointer; display: flex;
+      align-items: center; justify-content: space-between; gap: .5rem;
+    }
+    .manual-pick:hover { border-color: var(--primary-light); }
+    .manual-pick.selected { border-color: var(--primary); background: #eef2ff; color: var(--primary-dark); font-weight: 700; }
+    .manual-summary { margin-top: .8rem; display: flex; flex-wrap: wrap; gap: .45rem; align-items: center; font-size: .8rem; color: var(--text-muted); }
 
     /* BADGE COLOURS — one per faculty column */
     .badge-english        { background: #dbeafe; color: #1e40af; }
@@ -547,29 +576,54 @@
     @media (max-width: 780px) { .checklist-grid { grid-template-columns: 1fr; } }
 
     /* ═══ MINDMAP / PAGE 3 ═══ */
-    .mindmap-page { flex: 1; padding: 2.5rem 2rem; max-width: 1120px; margin: 0 auto; width: 100%; }
+    .mindmap-page { flex: 1; padding: 2.5rem 2rem; max-width: 1180px; margin: 0 auto; width: 100%; }
+    .enhancement-select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .75rem; }
+    .mindmap-canvas {
+      position: relative; min-height: 760px; border-radius: 18px; border: 1px solid var(--border);
+      background:
+        radial-gradient(circle at center, rgba(99,102,241,.12) 0 80px, transparent 82px),
+        linear-gradient(135deg, #f8fafc, #eef2ff);
+      overflow: hidden; box-shadow: var(--shadow); margin-top: 1.4rem;
+    }
     .mindmap-center-label {
-      text-align: center; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      color: #fff; border-radius: 999px; display: inline-block;
-      padding: .7rem 2rem; font-size: 1.1rem; font-weight: 800;
-      margin: 0 auto 2rem; letter-spacing: -.02em; box-shadow: 0 4px 16px rgba(99,102,241,.35);
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: 150px; height: 150px; text-align: center; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; border-radius: 50%; display: grid; place-items: center; padding: 1rem;
+      font-size: 1.1rem; font-weight: 900; letter-spacing: -.02em; box-shadow: 0 10px 30px rgba(99,102,241,.35); z-index: 4;
     }
-    .mindmap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-    .mindmap-cat-card {
-      border-radius: var(--radius); border: 2px solid transparent; overflow: hidden;
-      cursor: pointer; transition: box-shadow .18s, transform .18s; box-shadow: var(--shadow);
+    .mindmap-branch {
+      position: absolute; left: 50%; top: 50%; height: 2px; background: rgba(99,102,241,.22);
+      transform-origin: 0 50%; z-index: 1;
     }
-    .mindmap-cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
-    .mindmap-cat-header { padding: .85rem 1.1rem; display: flex; align-items: center; justify-content: space-between; }
-    .mindmap-cat-title { font-size: .97rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: .5rem; }
-    .mindmap-cat-arrow { font-size: .8rem; color: rgba(255,255,255,.8); transition: transform .2s; }
-    .mindmap-cat-arrow.open { transform: rotate(90deg); }
-    .mindmap-subjects-wrap { background: var(--surface); padding: .85rem 1.1rem; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: .5rem; }
-    .mindmap-subject-chip { padding: .32rem .8rem; border-radius: 999px; border: 1.5px solid var(--border); font-size: .82rem; font-weight: 500; color: var(--text); background: var(--surface2); }
-    .mindmap-subject-chip.enhanced { border-color: var(--success); background: #ecfdf5; color: #065f46; font-weight: 700; }
+    .mindmap-cat-node {
+      position: absolute; width: 150px; min-height: 78px; transform: translate(-50%, -50%);
+      border: 2px solid transparent; border-radius: 16px; background: var(--surface); box-shadow: var(--shadow);
+      cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: .25rem; padding: .65rem; text-align: center; transition: transform .18s, box-shadow .18s, border-color .18s; z-index: 3;
+    }
+    .mindmap-cat-node:hover, .mindmap-cat-node.open { transform: translate(-50%, -50%) scale(1.05); box-shadow: var(--shadow-lg); }
+    .mindmap-cat-node .emoji { font-size: 1.35rem; }
+    .mindmap-cat-node .name { font-size: .82rem; font-weight: 800; line-height: 1.2; }
+    .mindmap-cat-node .count { font-size: .68rem; color: var(--text-muted); }
+    .mindmap-subject-cloud {
+      position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      width: min(500px, calc(100% - 2rem)); background: rgba(255,255,255,.96); border: 1.5px solid var(--border);
+      border-radius: 16px; box-shadow: 0 14px 50px rgba(15,23,42,.18); padding: 1rem; z-index: 8;
+    }
+    .mindmap-cloud-title { display:flex; justify-content:space-between; align-items:center; gap:.75rem; font-weight:900; margin-bottom:.75rem; }
+    .mindmap-cloud-close { border:none; background:var(--surface2); width:28px; height:28px; border-radius:8px; cursor:pointer; }
+    .mindmap-subjects-wrap { display: flex; flex-wrap: wrap; gap: .5rem; }
+    .mindmap-subject-chip { padding: .35rem .8rem; border-radius: 999px; border: 1.5px solid var(--border); font-size: .82rem; font-weight: 600; color: var(--text); background: var(--surface2); }
+    .mindmap-subject-chip.enhanced { border-color: var(--success); background: #ecfdf5; color: #065f46; font-weight: 800; }
     .mindmap-subject-chip.note { border-color: #fde68a; background: #fffbeb; color: #92400e; font-style: italic; }
-    .mindmap-enhanced-note { font-size: .75rem; color: #065f46; background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 8px; padding: .45rem .75rem; margin-top: .6rem; width: 100%; line-height: 1.45; }
-    @media (max-width: 780px) { .mindmap-grid { grid-template-columns: 1fr; } }
+    .mindmap-enhanced-note { font-size: .77rem; color: #065f46; background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 8px; padding: .5rem .75rem; margin-top: .6rem; width: 100%; line-height: 1.45; }
+    @media (max-width: 780px) {
+      .essential-grid, .manual-grid, .enhancement-select-grid { grid-template-columns: 1fr; }
+      .mindmap-canvas { min-height: auto; padding: 1rem; display: flex; flex-direction: column; gap: .75rem; }
+      .mindmap-center-label, .mindmap-cat-node, .mindmap-subject-cloud { position: static; transform: none; width: 100%; }
+      .mindmap-cat-node:hover, .mindmap-cat-node.open { transform: none; }
+      .mindmap-branch { display: none; }
+    }
 
     /* ═══ PENGUIN MASCOT ═══ */
     .penguin-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; }
@@ -649,11 +703,32 @@ const db = createClient(
 );
 
 /* ── DB helpers ── */
+const accountCacheKey = (userId) => `elect_account_cache_${userId}`;
+const readAccountCache = (userId) => {
+  try { return JSON.parse(localStorage.getItem(accountCacheKey(userId)) || 'null'); }
+  catch { return null; }
+};
+const writeAccountCache = (userId, payload) => {
+  try { localStorage.setItem(accountCacheKey(userId), JSON.stringify(payload)); }
+  catch {}
+};
+
 async function dbLoadUser(userId) {
-  const [{ data: res }, { data: chk }] = await Promise.all([
-    db.from('elective_results').select('*').eq('user_id', userId).maybeSingle(),
-    db.from('checklist_progress').select('*').eq('user_id', userId).maybeSingle(),
-  ]);
+  const cached = readAccountCache(userId);
+  let res = null;
+  let chk = null;
+  try {
+    const results = await Promise.all([
+      db.from('elective_results').select('*').eq('user_id', userId).maybeSingle(),
+      db.from('checklist_progress').select('*').eq('user_id', userId).maybeSingle(),
+    ]);
+    if (results[0].error) throw results[0].error;
+    if (results[1].error) throw results[1].error;
+    res = results[0].data;
+    chk = results[1].data;
+  } catch (err) {
+    console.warn('Supabase load failed, using local account cache if available.', err);
+  }
   // Re-map saved suggestions/pool against the live ALL_ELECTIVES definitions so that
   // faculty reclassifications, new descriptions, and badge updates are always shown —
   // even when the DB row was saved before those code changes were deployed.
@@ -667,19 +742,31 @@ async function dbLoadUser(userId) {
     });
   };
 
-  return {
+  const loaded = {
     submittedData: res ? {
       studentData: res.student_data,
       suggestions: remap(res.suggestions),
       pool:        remap(res.pool),
       isLocked:    res.is_locked,
-    } : null,
-    checklistState: chk?.checklist_state || {},
+    } : (cached?.submittedData ? {
+      ...cached.submittedData,
+      suggestions: remap(cached.submittedData.suggestions),
+      pool: remap(cached.submittedData.pool),
+    } : null),
+    checklistState: chk?.checklist_state || cached?.checklistState || {},
   };
+  if (res || chk) writeAccountCache(userId, loaded);
+  return loaded;
 }
 
 async function dbSaveElectiveResults(userId, { studentData, suggestions, pool, isLocked }) {
-  await db.from('elective_results').upsert({
+  const cached = readAccountCache(userId) || {};
+  writeAccountCache(userId, {
+    ...cached,
+    submittedData: { studentData, suggestions, pool, isLocked },
+    checklistState: cached.checklistState || {},
+  });
+  const { error } = await db.from('elective_results').upsert({
     user_id: userId,
     student_data: studentData,
     suggestions,
@@ -687,14 +774,18 @@ async function dbSaveElectiveResults(userId, { studentData, suggestions, pool, i
     is_locked: isLocked,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
+  if (error) throw error;
 }
 
 async function dbSaveChecklist(userId, checklistState) {
-  await db.from('checklist_progress').upsert({
+  const cached = readAccountCache(userId) || {};
+  writeAccountCache(userId, { ...cached, checklistState });
+  const { error } = await db.from('checklist_progress').upsert({
     user_id: userId,
     checklist_state: checklistState,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'user_id' });
+  if (error) throw error;
 }
 
 async function dbClearResults(userId) {
@@ -816,7 +907,8 @@ const UNIVERSITIES_INTL = [
 
 const HUMANITIES_IDS = ['history', 'geography'];
 const SCIENCE_IDS    = ['make_my_day_science', 'environmental_science', 'physics', 'biology', 'chemistry'];
-const PE_IDS         = ['pe_for_life', 'human_movement'];
+const PE_IDS         = ['pe_for_life', 'human_movement', 'outdoor_ed'];
+const MINOR_CATS     = new Set(['visual_arts', 'performing_arts', 'health', 'ict']);
 
 const ALL_ELECTIVES = [
   /* ── ENGLISH FACULTY ────────────────────────────────── */
@@ -1175,81 +1267,80 @@ function runAlgorithm(studentData) {
   /* ═══════════════════════════════════════════════════════════════
      FULL SCORING ALGORITHM
      ─────────────────────────────────────────────────────────────
-     Step 1  Start scoreboard at 0 for all 9 dimensions.
-     Step 2  Grade points — rank the 4 core subjects by grade.
-     Step 3  Desired elective half-points.
-     Step 4  Career category points.
-     Step 5  University points (max 2).
-     Step 6  Genuine skills boost board dimensions.
-     Step 7  STEM multiplier if stemPreference is true.
-     Step 8  Bias + dot-product scoring.
-     Step 9  Y9 elective grade bonus applied directly to matched
+     Step 1  Direction points from career, universities, skills, Y9 and STEM.
+     Step 2  Desired elective soft preference.
+     Step 3  Core grades as ability signal, not the main direction.
+     Step 4  Bias + dot-product scoring.
+     Step 5  Y9 elective grade bonus applied directly to matched
              Y10 elective scores after dot-product.
   ═══════════════════════════════════════════════════════════════ */
 
   const { grades = {}, desiredElectives = [], careerCategory, universities = [],
           skills = {}, year9Electives = [], stemPreference = false } = studentData;
 
-  // ── Initialise scoreboard ──────────────────────────────────────
+  // ── Initialise direction board ─────────────────────────────────
   const board = Object.fromEntries(DIMS.map(d => [d, 0]));
 
-  // ── Step 2: Grade → dimension points ─────────────────────────
-  const coreDimMap = { English:'english', Mathematics:'maths', Science:'science', Humanities:'humanities' };
-  const gradeSubjects = CORE_SUBJECTS
-    .filter(s => grades[s] && grades[s] !== '')
-    .map(s => ({ dim: coreDimMap[s], value: Number(grades[s]) }));
-
-  gradeSubjects.sort((a, b) => b.value - a.value);
-
-  const rankPts = [3, 2, 1, 0]; // points by rank index
-  let i = 0;
-  while (i < gradeSubjects.length) {
-    let j = i;
-    while (j < gradeSubjects.length && gradeSubjects[j].value === gradeSubjects[i].value) j++;
-    // All subjects in [i, j) share the points of rank i
-    const pts = rankPts[i] ?? 0;
-    for (let k = i; k < j; k++) board[gradeSubjects[k].dim] += pts;
-    i = j;
-  }
-
-  // ── Step 3: Desired elective half-points ─────────────────────
-  for (const id of desiredElectives) {
-    const ep = ELECTIVE_POINTS[id];
-    if (ep) DIMS.forEach(d => { board[d] += (ep[d] || 0) * 0.5; });
-  }
-
-  // ── Step 4: Career points ────────────────────────────────────
+  // ── Step 1A: Career points, the strongest direction signal ────
   const cp = CAREER_POINTS[careerCategory];
-  if (cp) DIMS.forEach(d => { board[d] += cp[d] || 0; });
+  if (cp) DIMS.forEach(d => { board[d] += (cp[d] || 0) * 1.85; });
 
-  // ── Step 5: University points ────────────────────────────────
+  // ── Step 1B: University points ───────────────────────────────
   for (const uni of universities) {
     const up = UNIVERSITY_POINTS[uni];
-    if (up) DIMS.forEach(d => { board[d] += up[d] || 0; });
+    if (up) DIMS.forEach(d => { board[d] += (up[d] || 0) * 2.0; });
   }
 
-  // ── Step 6: Genuine skills boost ─────────────────────────
+  // ── Step 1C: Genuine skills boost ────────────────────────────
   const sv = skills.verbal    || 0;
   const sn = skills.numerical || 0;
   const sm = skills.mechanical|| 0;
   const sl = skills.logical   || 0;
   const si = skills.visual    || 0;
-  board.english     += sv * 0.4;
-  board.society     += sv * 0.1;
-  board.humanities  += sv * 0.1;
-  board.maths       += sn * 0.4 + sm * 0.1 + sl * 0.25;
-  board.engineering += sm * 0.4 + sn * 0.1 + sl * 0.25;
-  board.arts        += si * 0.4;
-  board.music       += si * 0.1;
+  board.english     += sv * 0.75;
+  board.society     += sv * 0.25;
+  board.humanities  += sv * 0.25;
+  board.maths       += sn * 0.7 + sm * 0.15 + sl * 0.45;
+  board.engineering += sm * 0.8 + sn * 0.25 + sl * 0.45;
+  board.arts        += si * 0.8;
+  board.music       += si * 0.2;
 
-  // ── Step 7: STEM multiplier ───────────────────────────────
-  if (stemPreference) {
-    board.maths       *= 1.5;
-    board.science     *= 1.5;
-    board.engineering *= 1.5;
+  // ── Step 1D: Year 9 subjects nudge the direction board ───────
+  for (const { id: y9Id, grade } of year9Electives) {
+    const y10Id = Y9_TO_Y10[y9Id];
+    const ep = ELECTIVE_POINTS[y10Id];
+    if (!ep) continue;
+    const strength = grade ? Number(grade) / 100 : 0.65;
+    DIMS.forEach(d => { board[d] += (ep[d] || 0) * strength * 0.45; });
   }
 
-  // ── Step 8: Bias + match scoring ─────────────────────────────
+  // ── Step 1E: STEM preference is a direction, not a small bonus ─
+  if (stemPreference) {
+    board.maths       += 4.0;
+    board.science     += 4.0;
+    board.engineering += 4.0;
+  } else {
+    board.maths       *= 0.92;
+    board.science     *= 0.92;
+    board.engineering *= 0.92;
+  }
+
+  // ── Step 2: Desired electives tweak the direction softly ─────
+  for (const id of desiredElectives) {
+    const ep = ELECTIVE_POINTS[id];
+    if (ep) DIMS.forEach(d => { board[d] += (ep[d] || 0) * 0.35; });
+  }
+
+  // ── Step 3: Core grades as ability signal ────────────────────
+  const coreDimMap = { English:'english', Mathematics:'maths', Science:'science', Humanities:'humanities' };
+  for (const subject of CORE_SUBJECTS) {
+    const val = Number(grades[subject] || 0);
+    if (!val) continue;
+    const ability = Math.max(0, (val - 50) / 45);
+    board[coreDimMap[subject]] += ability * 1.8;
+  }
+
+  // ── Step 4: Bias + match scoring ─────────────────────────────
   // Subtle multiplier — core academic dimensions score fractionally
   // higher so that, when match scores are close, maths/science/
   // english/engineering-heavy electives edge ahead of arts/music/
@@ -1300,14 +1391,14 @@ function runAlgorithm(studentData) {
     return { id: e.id, score: raw * penalty };
   });
 
-  // ── Step 9: Y9 elective grade bonus ──────────────────────
+  // ── Step 5: Y9 elective grade bonus ──────────────────────
   // For each Y9 elective the student took, find the matching Y10 elective
   // and add a direct score bonus proportional to their Y9 grade.
   const y9BoostIds = new Set();
   for (const { id: y9Id, grade } of year9Electives) {
     const y10Id = Y9_TO_Y10[y9Id];
     if (!y10Id || !grade) continue;
-    const bonus = (Number(grade) / 100) * 4;
+    const bonus = (Number(grade) / 100) * 7;
     const entry = scored.find(s => s.id === y10Id);
     if (entry) { entry.score += bonus; y9BoostIds.add(y10Id); }
   }
@@ -1329,11 +1420,34 @@ const CREATIVE_CATS = new Set(['english_faculty', 'visual_arts', 'performing_art
 function buildYear10Selection(rankedIds, studentData = {}) {
   const total = 8; const selected = []; const seen = new Set();
 
-  // PE cap: 1 by default; raises to 2 if the student chose a PE-focused
-  // university OR explicitly listed a PE elective in desired preferences
+  // PE cap: 1 by default. Raise only when the profile clearly points there:
+  // PE-focused university, PE desired elective, or no supplied core grades at all.
   const isPEFocused = (studentData.universities || []).some(u => PE_FOCUSED_UNIS.has(u));
   const isPEDesired = (studentData.desiredElectives || []).some(id => PE_IDS.includes(id));
-  const peCap = (isPEFocused || isPEDesired) ? 2 : 1;
+  const gradeValues = Object.values(studentData.grades || {}).filter(Boolean);
+  const noCoreGradeCare = gradeValues.length === 0;
+  const peCap = (isPEFocused || isPEDesired || noCoreGradeCare) ? 2 : 1;
+
+  const desiredCats = new Set((studentData.desiredElectives || [])
+    .map(id => ALL_ELECTIVES.find(e => e.id === id)?.category).filter(Boolean));
+  const y9Cats = new Set((studentData.year9Electives || [])
+    .map(r => ALL_ELECTIVES.find(e => e.id === Y9_TO_Y10[r.id])?.category).filter(Boolean));
+  const careerMinorCats = {
+    'Hospitality & Tourism': ['health'],
+    'Technology & Engineering': ['ict'],
+    'Arts & Creative Industries': ['visual_arts', 'performing_arts'],
+    'Architecture & Design': ['visual_arts', 'ict'],
+    'Media & Communications': ['visual_arts', 'english_faculty'],
+  }[studentData.careerCategory] || [];
+  const uniMinorCats = (studentData.universities || []).flatMap(u => {
+    if (/RMIT|Technology|MIT|UTS|UNSW|Imperial|ETH|Tokyo|Seoul|NUS/i.test(u)) return ['ict'];
+    if (/Royal College of Art|Berklee|NYU|Yale|Edinburgh/i.test(u)) return ['visual_arts', 'performing_arts'];
+    return [];
+  });
+  const minorDirectionCats = new Set([...desiredCats, ...y9Cats, ...careerMinorCats, ...uniMinorCats]
+    .filter(c => MINOR_CATS.has(c)));
+  const minorCap = minorDirectionCats.size > 0 ? 4 : 2;
+  let minorCount = 0;
 
   // Per-faculty caps — prevent the first 8 from being dominated by one area
   const CAT_CAPS = {
@@ -1341,10 +1455,10 @@ function buildYear10Selection(rankedIds, studentData = {}) {
     pe:              peCap,
     humanities:      2,
     english_faculty: 1,
-    visual_arts:     2,
-    performing_arts: 1,
-    ict:             2,
-    health:          2,
+    visual_arts:     minorDirectionCats.has('visual_arts') ? 3 : 1,
+    performing_arts: minorDirectionCats.has('performing_arts') ? 2 : 1,
+    ict:             minorDirectionCats.has('ict') ? 3 : 1,
+    health:          minorDirectionCats.has('health') ? 3 : 1,
   };
   const catCount = {};
 
@@ -1376,6 +1490,7 @@ function buildYear10Selection(rankedIds, studentData = {}) {
     if (seen.has(id)) return false;
     const e = ALL_ELECTIVES.find(x => x.id === id);
     if (!e) return false;
+    if (MINOR_CATS.has(e.category)) minorCount++;
     selected.push(e); seen.add(id);
     catCount[e.category] = (catCount[e.category] || 0) + 1;
     return true;
@@ -1390,6 +1505,7 @@ function buildYear10Selection(rankedIds, studentData = {}) {
     const e = ALL_ELECTIVES.find(x => x.id === id);
     if (!e || seen.has(id)) return false;
     const cap = CAT_CAPS[e.category];
+    if (MINOR_CATS.has(e.category) && minorCount >= minorCap) return false;
     return cap === undefined || (catCount[e.category] || 0) < cap;
   };
 
@@ -1403,7 +1519,11 @@ function buildYear10Selection(rankedIds, studentData = {}) {
     if (selected.length >= total) break;
     if (canAdd(id)) addById(id);
   }
-  // Pass 3 — last resort: ignore everything
+  // Pass 3 — last resort: fill with non-minor subjects first, then anything.
+  for (const e of ALL_ELECTIVES) {
+    if (selected.length >= total) break;
+    if (!seen.has(e.id) && !MINOR_CATS.has(e.category)) addById(e.id);
+  }
   for (const e of ALL_ELECTIVES) {
     if (selected.length >= total) break;
     if (!seen.has(e.id)) addById(e.id);
@@ -1415,7 +1535,7 @@ function buildYear10Selection(rankedIds, studentData = {}) {
   // to ensure cultural breadth. The lowest-ranked non-compulsory slot is
   // replaced (typically position 7 — the weakest data match).
   const hasCreative = selected.some(e => CREATIVE_CATS.has(e.category));
-  if (!hasCreative) {
+  if (!hasCreative && (minorDirectionCats.size > 0 || minorCount < minorCap)) {
     const bestCreativeId = rankedIds.find(id => {
       const e = ALL_ELECTIVES.find(x => x.id === id);
       return e && CREATIVE_CATS.has(e.category);
@@ -1463,21 +1583,28 @@ function RequirementBar({ label, filled, total, color }) {
 /* ═══════════════════════════════════════════════════════════════
    AUTH SCREEN
 ═══════════════════════════════════════════════════════════════ */
-function AuthScreen({ onGuest }) {
+function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
   const [tab, setTab] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  // forgot password flow: 'idle' | 'enter_email' | 'enter_code' | 'new_password'
-  const [fpStep, setFpStep] = useState('idle');
+  // forgot password flow: 'idle' | 'enter_email' | 'reset_sent' | 'new_password'
+  const [fpStep, setFpStep] = useState(recoveryMode ? 'new_password' : 'idle');
   const [fpEmail, setFpEmail] = useState('');
-  const [fpCode, setFpCode] = useState('');
   const [fpNewPw, setFpNewPw] = useState('');
   const [fpLoading, setFpLoading] = useState(false);
 
   const clear = () => { setError(''); setSuccess(''); };
+
+  useEffect(() => {
+    if (recoveryMode) {
+      setFpStep('new_password');
+      setSuccess('Password reset verified. Set your new password below.');
+      setError('');
+    }
+  }, [recoveryMode]);
 
   const handleLogin = async (e) => {
     e.preventDefault(); clear(); setLoading(true);
@@ -1497,18 +1624,11 @@ function AuthScreen({ onGuest }) {
   const handleFpSendCode = async () => {
     if (!fpEmail) return;
     setFpLoading(true); setError('');
-    const { error } = await db.auth.signInWithOtp({ email: fpEmail, options: { shouldCreateUser: false } });
+    const { error } = await db.auth.resetPasswordForEmail(fpEmail, {
+      redirectTo: window.location.origin,
+    });
     if (error) setError(error.message);
-    else { setFpStep('enter_code'); setSuccess('Check your email for a verification code!'); }
-    setFpLoading(false);
-  };
-
-  const handleFpVerifyCode = async () => {
-    if (!fpCode) return;
-    setFpLoading(true); setError('');
-    const { error } = await db.auth.verifyOtp({ email: fpEmail, token: fpCode, type: 'email' });
-    if (error) setError('Invalid code — please try again.');
-    else { setFpStep('new_password'); setSuccess(''); }
+    else { setFpStep('reset_sent'); setSuccess('Check your email for the password reset link. After opening it, you can set the new password here.'); }
     setFpLoading(false);
   };
 
@@ -1517,7 +1637,11 @@ function AuthScreen({ onGuest }) {
     setFpLoading(true); setError('');
     const { error } = await db.auth.updateUser({ password: fpNewPw });
     if (error) setError(error.message);
-    else { setSuccess('Password updated! You are now logged in.'); setFpStep('idle'); }
+    else {
+      setSuccess('Password updated! You are now logged in.');
+      setFpStep('idle');
+      onRecoveryDone?.();
+    }
     setFpLoading(false);
   };
 
@@ -1549,7 +1673,7 @@ function AuthScreen({ onGuest }) {
             {fpStep === 'enter_email' && (
               <>
                 <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  Enter your email and we will send you a verification code.
+                  Enter your email and we will send you a secure password reset link.
                 </p>
                 <div className="auth-field">
                   <label className="auth-label">Email</label>
@@ -1557,22 +1681,17 @@ function AuthScreen({ onGuest }) {
                     value={fpEmail} onChange={e => setFpEmail(e.target.value)} autoFocus />
                 </div>
                 <button className="auth-btn" onClick={handleFpSendCode} disabled={fpLoading}>
-                  {fpLoading ? 'Sending…' : 'Send Code'}
+                  {fpLoading ? 'Sending…' : 'Send Reset Email'}
                 </button>
               </>
             )}
-            {fpStep === 'enter_code' && (
+            {fpStep === 'reset_sent' && (
               <>
                 <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  Enter the verification code we sent to <strong>{fpEmail}</strong>.
+                  We sent the reset email to <strong>{fpEmail}</strong>. Open the link from that email, then this page will let you create the new password.
                 </p>
-                <div className="auth-field">
-                  <label className="auth-label">Verification Code</label>
-                  <input className="auth-input" type="text" placeholder="Enter code…"
-                    value={fpCode} onChange={e => setFpCode(e.target.value)} autoFocus />
-                </div>
-                <button className="auth-btn" onClick={handleFpVerifyCode} disabled={fpLoading}>
-                  {fpLoading ? 'Verifying…' : 'Verify Code'}
+                <button className="auth-btn" onClick={handleFpSendCode} disabled={fpLoading}>
+                  {fpLoading ? 'Sending…' : 'Resend Reset Email'}
                 </button>
               </>
             )}
@@ -1730,7 +1849,11 @@ function SettingsPanel({ user, profile, onSave, onClose }) {
    PAGE 1 — ELECTIVE SUGGESTION TOOL
 ═══════════════════════════════════════════════════════════════ */
 function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
-  const saveToGuest = (data) => sessionStorage.setItem('elect_guest_data', JSON.stringify({ sd: data, cs: {} }));
+  const saveToGuest = (data) => {
+    let existing = {};
+    try { existing = JSON.parse(sessionStorage.getItem('elect_guest_data') || '{}'); } catch {}
+    sessionStorage.setItem('elect_guest_data', JSON.stringify({ sd: data, cs: existing.cs || {} }));
+  };
   const [grades, setGrades] = useState(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
   const [career, setCareer] = useState('');
   const [language, setLanguage] = useState('');
@@ -1747,6 +1870,8 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const [isLocked, setIsLocked] = useState(!!submittedData?.isLocked);
   const [showRestartConfirm, setShowRestartConfirm] = useState(false);
   const [lockError, setLockError] = useState('');
+  const [swapHistory, setSwapHistory] = useState([]);
+  const [manualMode, setManualMode] = useState(false);
 
   // ── Bug fix: sync local state when DB data loads after a refresh ──
   useEffect(() => {
@@ -1754,6 +1879,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
       setSuggestions(submittedData.suggestions || []);
       setSuggestionPool(submittedData.pool || []);
       setIsLocked(!!submittedData.isLocked);
+      setSwapHistory([]);
       setLangDisplaced(
         (submittedData.suggestions || []).reduce((acc, s, i) => {
           if (s?.id?.startsWith('lang_')) acc[i] = null;
@@ -1782,6 +1908,22 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const removeDesiredElective = (i) => setDesiredElectives(prev => prev.filter((_, idx) => idx !== i));
   const setDesiredElective = (i, val) => setDesiredElectives(prev => { const n = [...prev]; n[i] = val; return n; });
 
+  const savePlan = async (data) => {
+    onSubmit(data);
+    try {
+      if (user) await dbSaveElectiveResults(user.id, data);
+      else if (isGuest) saveToGuest(data);
+      onSaveIndicator();
+    } catch (err) {
+      console.error('Save failed', err);
+      if (user) {
+        const cached = readAccountCache(user.id) || {};
+        writeAccountCache(user.id, { ...cached, submittedData: data, checklistState: cached.checklistState || {} });
+      }
+      onSaveIndicator();
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const studentData = {
@@ -1803,38 +1945,90 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     const newStudentData = { ...studentData, year9BoostIds: [...boostIds] };
     const data = { studentData: newStudentData, suggestions: top8, pool, isLocked: false };
     setSuggestions(top8); setSuggestionPool(pool); setIsLocked(false); setSubmitted(true);
-    onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
+    await savePlan(data);
   };
 
   const handleDismiss = useCallback((electiveId) => {
     if (isLocked) return;
+    const oldIndex = suggestions.findIndex(e => e.id === electiveId);
+    const oldElective = suggestions[oldIndex];
+    if (oldIndex < 0 || !oldElective) return;
     setDismissAnimating(prev => ({ ...prev, [electiveId]: true }));
     setTimeout(async () => {
       const usedIds = new Set(suggestions.map(e => e.id));
       const usedPoolIds = new Set(Object.keys(dismissed));
       const next = suggestionPool.find(e => !usedIds.has(e.id) && !usedPoolIds.has(e.id));
-      let newSuggestions;
-      setSuggestions(prev => {
-        const idx = prev.findIndex(e => e.id === electiveId);
-        const newList = [...prev];
-        if (next) { newList[idx] = next; setSuggestionPool(p => p.filter(e => e.id !== next.id)); }
-        else newList.splice(idx, 1);
-        newSuggestions = newList;
-        return newList;
-      });
+      const newSuggestions = [...suggestions];
+      if (next) newSuggestions[oldIndex] = next;
+      else newSuggestions.splice(oldIndex, 1);
+      const newPool = next ? suggestionPool.filter(e => e.id !== next.id) : suggestionPool;
+      setSuggestions(newSuggestions);
+      setSuggestionPool(newPool);
+      setSwapHistory(prev => [{ index: oldIndex, original: oldElective, replacement: next || null }, ...prev].slice(0, 8));
       setDismissed(prev => ({ ...prev, [electiveId]: true }));
       setDismissAnimating(prev => { const n = { ...prev }; delete n[electiveId]; return n; });
-      if (user && newSuggestions) {
-        const updData = { studentData: submittedData?.studentData, suggestions: newSuggestions, pool: suggestionPool, isLocked: false };
-        onSubmit(updData);
-        await dbSaveElectiveResults(user.id, updData); onSaveIndicator();
-      }
+      const updData = { studentData: submittedData?.studentData, suggestions: newSuggestions, pool: newPool, isLocked: false };
+      await savePlan(updData);
     }, 300);
-  }, [suggestions, suggestionPool, dismissed, isLocked, user, submittedData]);
+  }, [suggestions, suggestionPool, dismissed, isLocked, user, isGuest, submittedData]);
+
+  const handleRestoreSwap = async (entryIndex = 0) => {
+    if (isLocked || !swapHistory[entryIndex]) return;
+    const entry = swapHistory[entryIndex];
+    const newSuggestions = [...suggestions];
+    const replacementNow = newSuggestions[entry.index];
+    newSuggestions[entry.index] = entry.original;
+    const newPool = replacementNow && !replacementNow.id?.startsWith('lang_')
+      ? [replacementNow, ...suggestionPool.filter(e => e.id !== replacementNow.id)]
+      : suggestionPool;
+    setSuggestions(newSuggestions);
+    setSuggestionPool(newPool);
+    setSwapHistory(prev => prev.filter((_, i) => i !== entryIndex));
+    setLockError('');
+    await savePlan({ studentData: submittedData?.studentData, suggestions: newSuggestions, pool: newPool, isLocked: false });
+  };
+
+  const handleReplaceEssential = async (type, id) => {
+    if (isLocked || !id || suggestions.some(e => e.id === id)) return;
+    const ids = type === 'humanities' ? HUMANITIES_IDS : type === 'science' ? SCIENCE_IDS : PE_IDS;
+    const idx = suggestions.findIndex(e => ids.includes(e.id));
+    if (idx < 0) return;
+    const replacement = ALL_ELECTIVES.find(e => e.id === id);
+    if (!replacement) return;
+    const original = suggestions[idx];
+    const newSuggestions = [...suggestions];
+    newSuggestions[idx] = replacement;
+    const newPool = [original, ...suggestionPool.filter(e => e.id !== id)];
+    setSuggestions(newSuggestions);
+    setSuggestionPool(newPool);
+    setSwapHistory(prev => [{ index: idx, original, replacement }, ...prev].slice(0, 8));
+    setLockError('');
+    await savePlan({ studentData: submittedData?.studentData, suggestions: newSuggestions, pool: newPool, isLocked: false });
+  };
+
+  const toggleManualElective = async (id) => {
+    if (isLocked) return;
+    const exists = suggestions.some(e => e.id === id);
+    let newSuggestions;
+    if (exists) {
+      newSuggestions = suggestions.filter(e => e.id !== id);
+    } else {
+      if (suggestions.length >= 8) return;
+      const elective = ALL_ELECTIVES.find(e => e.id === id);
+      if (!elective) return;
+      newSuggestions = [...suggestions, elective];
+    }
+    const selectedIds = new Set(newSuggestions.map(e => e.id));
+    const newPool = ALL_ELECTIVES.filter(e => !selectedIds.has(e.id));
+    setSuggestions(newSuggestions);
+    setSuggestionPool(newPool);
+    setLockError('');
+    await savePlan({ studentData: submittedData?.studentData, suggestions: newSuggestions, pool: newPool, isLocked: false });
+  };
 
   const handleLockIn = async () => {
     const missing = [];
+    if (suggestions.length !== 8) missing.push('exactly 8 elective units');
     if (!suggestions.some(e => HUMANITIES_IDS.includes(e.id))) missing.push('Geography or History');
     if (!suggestions.some(e => SCIENCE_IDS.includes(e.id)))    missing.push('a Science elective');
     if (!suggestions.some(e => PE_IDS.includes(e.id)))         missing.push('a PE elective');
@@ -1845,13 +2039,13 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setLockError('');
     setIsLocked(true); setShowRestartConfirm(false);
     const data = { studentData: submittedData?.studentData, suggestions, pool: suggestionPool, isLocked: true };
-    onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
+    await savePlan(data);
   };
 
   const handleRestartConfirmed = async () => {
     setSubmitted(false); setSuggestions([]); setSuggestionPool([]);
     setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
+    setSwapHistory([]); setManualMode(false);
     setLangDisplaced({});
     setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
     setCareer(''); setLanguage(''); setUniversities([]);
@@ -1859,7 +2053,8 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setYear9Electives([{ id:'', grade:'' }]);
     setStemPreference(false);
     onSubmit(null);
-    if (user) { await dbClearResults(user.id); onSaveIndicator(); }
+    if (user) { await dbClearResults(user.id); localStorage.removeItem(accountCacheKey(user.id)); onSaveIndicator(); }
+    else if (isGuest) { sessionStorage.removeItem('elect_guest_data'); onSaveIndicator(); }
   };
 
   /* ── Per-slot language swap helpers ─────────────────────────
@@ -1910,8 +2105,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setLangDisplaced(newDisplaced);
     setSuggestions(newSugs);
     const data = { studentData: submittedData?.studentData, suggestions: newSugs, pool: suggestionPool, isLocked };
-    onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
+    await savePlan(data);
   };
 
   const handleRemoveLanguage = async () => {
@@ -1926,8 +2120,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setLangDisplaced({});
     setSuggestions(newSugs);
     const data = { studentData: submittedData?.studentData, suggestions: newSugs, pool: suggestionPool, isLocked };
-    onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
+    await savePlan(data);
   };
 
   const humCount = suggestions.filter(e => HUMANITIES_IDS.includes(e.id)).length;
@@ -2173,11 +2366,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                 language={submittedData?.studentData?.language || null}
                 isCompulsory={compulsoryIds.has(elective.id)}
                 isLangCard={!!elective.id?.startsWith('lang_')}
-                canSwapLang={!isLocked && !!submittedData?.studentData?.language && !elective.id?.startsWith('lang_') && !compulsoryIds.has(elective.id) && langSlotCount < 2}
-                canUndoLang={!!elective.id?.startsWith('lang_') && !!langDisplaced[idx]}
                 displacedName={langDisplaced[idx]?.name}
-                onLangSwap={() => handleLanguageSwapSlot(idx)}
-                onLangUndo={() => handleLanguageSwapUndo(idx)}
                 isLast2={idx >= 6}
                 isFromY9={y9Boost.has(elective.id)}
               />
@@ -2185,6 +2374,54 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
           </div>
             );
           })()}
+
+          {!isLocked && swapHistory.length > 0 && (
+            <div className="info-banner" style={{ marginTop:'1rem', marginBottom:0, justifyContent:'space-between', flexWrap:'wrap' }}>
+              <span>
+                <Icon name="rotate-ccw" size={15} /> Need that last subject back?
+                Restore <strong>{swapHistory[0].original.name}</strong>
+                {swapHistory[0].replacement ? <> instead of <strong>{swapHistory[0].replacement.name}</strong></> : null}.
+              </span>
+              <button className="restore-btn" onClick={() => handleRestoreSwap(0)}>
+                <Icon name="rotate-ccw" size={13} /> Re-swap back
+              </button>
+            </div>
+          )}
+
+          {!isLocked && (
+            <div className="essential-panel">
+              <div className="card-title" style={{ marginBottom:0 }}>
+                <span className="icon-wrap" style={{ background:'#eef2ff' }}><Icon name="sliders" size={14} /></span>
+                Essential requirement choices
+              </div>
+              <p style={{ marginTop:'.45rem', fontSize:'.82rem', color:'var(--text-muted)', lineHeight:1.5 }}>
+                Keep the required categories, but choose the subject inside them. For example: Geography ↔ History, Biology ↔ Chemistry, or a different PE option.
+              </p>
+              <div className="essential-grid">
+                {[
+                  { key:'humanities', title:'Geo / History', ids:HUMANITIES_IDS },
+                  { key:'science', title:'Science', ids:SCIENCE_IDS },
+                  { key:'pe', title:'PE', ids:PE_IDS },
+                ].map(group => (
+                  <div key={group.key}>
+                    <div className="essential-title">{group.title}</div>
+                    <div className="essential-options">
+                      {group.ids.map(id => {
+                        const e = ALL_ELECTIVES.find(x => x.id === id);
+                        const active = suggestions.some(s => s.id === id);
+                        return e && (
+                          <button key={id} className={`essential-chip${active ? ' active' : ''}`}
+                            onClick={() => handleReplaceEssential(group.key, id)}>
+                            {e.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {submittedData?.studentData?.language && (
             <div className="language-note">
@@ -2284,6 +2521,51 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
             </div>
           )}
 
+          {!isLocked && (
+            <div className="manual-panel">
+              <div className="manual-panel-header">
+                <div>
+                  <div className="card-title" style={{ marginBottom:'.25rem' }}>
+                    <span className="icon-wrap" style={{ background:'#fef3c7' }}><Icon name="edit-3" size={14} /></span>
+                    Still not satisfied after swapping multiple times?
+                  </div>
+                  <p style={{ fontSize:'.84rem', color:'var(--text-muted)', lineHeight:1.55 }}>
+                    My bad, the algorithm must have an error there or something. Choose your own 8 electives!
+                  </p>
+                </div>
+                <button className="btn btn-secondary" onClick={() => setManualMode(v => !v)}>
+                  {manualMode ? 'Hide Choices' : 'Choose Myself'}
+                </button>
+              </div>
+              {manualMode && (
+                <>
+                  <div className="manual-grid">
+                    {ALL_ELECTIVES.map(e => {
+                      const selected = suggestions.some(s => s.id === e.id);
+                      const disabled = !selected && suggestions.length >= 8;
+                      return (
+                        <button key={e.id} className={`manual-pick${selected ? ' selected' : ''}`}
+                          disabled={disabled}
+                          style={disabled ? { opacity:.45, cursor:'not-allowed' } : null}
+                          onClick={() => toggleManualElective(e.id)}>
+                          <span>{e.name}</span>
+                          <span>{selected ? '✓' : '+'}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="manual-summary">
+                    <span><strong>{suggestions.length}/8</strong> selected</span>
+                    <span>Geo/History: <strong>{humCount}</strong></span>
+                    <span>Science: <strong>{sciCount}</strong></span>
+                    <span>PE: <strong>{peCount}</strong></span>
+                    <span>You still need all three required categories before locking in.</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           <div className="lock-action-row">
             {!isLocked && <button className="btn btn-lock" onClick={handleLockIn}><Icon name="lock" size={15} /> Lock In?</button>}
             {!showRestartConfirm && (
@@ -2310,8 +2592,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
 
 function SuggestionCard({
   elective, index, isAnimatingOut, onDismiss, locked,
-  language, isCompulsory, isLangCard, canSwapLang, canUndoLang,
-  displacedName, onLangSwap, onLangUndo, isLast2, isFromY9,
+  language, isCompulsory, isLangCard, displacedName, isLast2, isFromY9,
 }) {
   const categoryLabel = {
     english_faculty:  'English',
@@ -2542,7 +2823,7 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
 ═══════════════════════════════════════════════════════════════ */
 const YEAR11_CATS = [
   { id:'english', name:'English', emoji:'📚', color:'#3b82f6', subjects:[
-    { name:'English', note:'Compulsory for most VCE pathways' },
+    { name:'English', note:'Compulsory and not counted in the 5 elective units' },
     { name:'English as an Additional Language (EAL)', note:'Situational — speak to your coordinator' },
     { name:'Literature' },
   ]},
@@ -2580,15 +2861,23 @@ const YEAR11_CATS = [
   ]},
 ];
 
-const ENHANCEMENT_OPTIONS = ['Mathematical Methods','Biology','Chemistry','Physics','English'];
+const ENHANCEMENT_OPTIONS = YEAR11_CATS.flatMap(cat => cat.subjects.map(s => s.name));
 
 function Page3({ submittedData }) {
   const [expandedCat, setExpandedCat] = useState(null);
-  const [enhancements, setEnhancements] = useState([]);
+  const [enhancements, setEnhancements] = useState(['', '']);
 
-  const toggleEnh = (sub) => setEnhancements(prev =>
-    prev.includes(sub) ? prev.filter(e => e !== sub) : [...prev, sub]
-  );
+  const enhancementValues = enhancements.filter(Boolean);
+  const setEnhancement = (idx, value) => {
+    setEnhancements(prev => {
+      const next = [...prev];
+      next[idx] = value;
+      return next;
+    });
+  };
+  const isEnhancedSubject = (subject) => enhancementValues.includes(subject.name) ||
+    (subject.enhancementKey && enhancementValues.includes(subject.enhancementKey));
+  const activeCat = YEAR11_CATS.find(cat => cat.id === expandedCat);
 
   return (
     <div className="mindmap-page">
@@ -2604,76 +2893,86 @@ function Page3({ submittedData }) {
           Are you completing any enhancement (Unit 1/2 VCE) subjects in Year 10?
           <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.4rem' }}>(optional)</span>
         </div>
-        <div className="multi-chip-grid" style={{ marginTop:'.6rem' }}>
-          {ENHANCEMENT_OPTIONS.map(sub => (
-            <button type="button" key={sub}
-              className={`multi-chip${enhancements.includes(sub)?' selected':''}`}
-              onClick={() => toggleEnh(sub)}>
-              {sub}
-            </button>
+        <div className="enhancement-select-grid">
+          {[0, 1].map(idx => (
+            <select key={idx} className="form-select" value={enhancements[idx]}
+              onChange={e => setEnhancement(idx, e.target.value)}>
+              <option value="">{idx === 0 ? 'First enhancement subject…' : 'Second enhancement subject…'}</option>
+              {ENHANCEMENT_OPTIONS
+                .filter(opt => !enhancementValues.includes(opt) || enhancements[idx] === opt)
+                .map(opt => <option key={opt} value={opt}>{opt}</option>)}
+            </select>
           ))}
         </div>
-        {enhancements.length > 0 && (
+        {enhancementValues.length > 0 && (
           <div style={{ marginTop:'.85rem', fontSize:'.83rem', color:'#065f46', background:'#ecfdf5', border:'1px solid #bbf7d0', borderRadius:'9px', padding:'.6rem .9rem', lineHeight:1.55 }}>
             ✅ Enhancement subjects selected! These are highlighted green in the mindmap below. When entering Year 11, speak with your coordinators — if your grades are strong enough, you may be able to take the Unit 3/4 version of these subjects.
           </div>
         )}
       </div>
 
-      {/* Centre label */}
-      <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
-        <div className="mindmap-center-label">Year 11 VCE</div>
+      <div style={{ textAlign:'center', marginBottom:'1rem' }}>
         <p style={{ fontSize:'.88rem', color:'var(--text-muted)', marginTop:'.5rem', lineHeight:1.6 }}>
           Students choose <strong>5 units</strong> of electives. <strong>English is compulsory</strong> and does not count toward your 5 elective units.
           <br />Click any subject area below to explore the electives inside.
         </p>
       </div>
 
-      {/* Mindmap grid */}
-      <div className="mindmap-grid">
+      <div className="mindmap-canvas">
+        <div className="mindmap-center-label">Year 11<br/>VCE</div>
         {YEAR11_CATS.map(cat => {
           const isOpen = expandedCat === cat.id;
-          // Check if any subject in this cat has an active enhancement
-          const hasEnhancedSubject = cat.subjects.some(s => s.enhancementKey && enhancements.includes(s.enhancementKey));
+          const hasEnhancedSubject = cat.subjects.some(isEnhancedSubject);
+          const idx = YEAR11_CATS.findIndex(c => c.id === cat.id);
+          const angle = -90 + (idx * (360 / YEAR11_CATS.length));
+          const rad = angle * Math.PI / 180;
+          const xPct = 50 + Math.cos(rad) * 36;
+          const yPct = 50 + Math.sin(rad) * 38;
+          const branchLen = 300;
           return (
-            <div key={cat.id} className="mindmap-cat-card"
-              style={{ borderColor: hasEnhancedSubject ? '#86efac' : 'var(--border)' }}
-              onClick={() => setExpandedCat(isOpen ? null : cat.id)}>
-              <div className="mindmap-cat-header" style={{ background: cat.color }}>
-                <div className="mindmap-cat-title">
-                  <span>{cat.emoji}</span> {cat.name}
-                  {hasEnhancedSubject && <span style={{ fontSize:'.72rem', background:'rgba(255,255,255,.25)', padding:'.1rem .45rem', borderRadius:'999px', marginLeft:'.4rem' }}>✓ Enhancement</span>}
-                </div>
-                <span className={`mindmap-cat-arrow${isOpen?' open':''}`}>▶</span>
+            <React.Fragment key={cat.id}>
+              <div className="mindmap-branch" style={{ width: branchLen, transform: `rotate(${angle}deg)` }} />
+              <div className={`mindmap-cat-node${isOpen ? ' open' : ''}`}
+                style={{ left:`${xPct}%`, top:`${yPct}%`, borderColor: hasEnhancedSubject ? '#22c55e' : cat.color }}
+                onClick={() => setExpandedCat(isOpen ? null : cat.id)}>
+                <span className="emoji">{cat.emoji}</span>
+                <span className="name" style={{ color: cat.color }}>{cat.name}</span>
+                <span className="count">{cat.subjects.length} subjects</span>
+                {hasEnhancedSubject && <span className="count" style={{ color:'#047857', fontWeight:800 }}>Enhancement</span>}
               </div>
-              {isOpen && (
-                <div className="mindmap-subjects-wrap">
-                  {cat.subjects.map((s, i) => {
-                    const isEnhanced = s.enhancementKey && enhancements.includes(s.enhancementKey);
-                    return (
-                      <div key={i} style={{ width:'100%' }}>
-                        <span className={`mindmap-subject-chip${isEnhanced?' enhanced':''}${s.note && !isEnhanced?' note':''}`}>
-                          {s.name}
-                          {isEnhanced && ' ✓'}
-                        </span>
-                        {s.note && (
-                          <div style={{ fontSize:'.73rem', color:'var(--text-muted)', marginTop:'.2rem', marginBottom:'.25rem', paddingLeft:'.25rem' }}>
-                            ℹ️ {s.note}
-                          </div>
-                        )}
-                        {isEnhanced && (
-                          <div className="mindmap-enhanced-note">
-                            🎓 Because you&apos;re taking <strong>{s.enhancementKey}</strong> as an enhancement in Year 10, you may be able to take the Unit 3/4 version in Year 11! Speak with your coordinator when entering Year 11 to confirm — your grades will need to be strong enough.
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            </React.Fragment>
           );
         })}
+        {activeCat && (
+          <div className="mindmap-subject-cloud">
+            <div className="mindmap-cloud-title">
+              <span style={{ color: activeCat.color }}>{activeCat.emoji} {activeCat.name}</span>
+              <button className="mindmap-cloud-close" onClick={() => setExpandedCat(null)}>x</button>
+            </div>
+            <div className="mindmap-subjects-wrap">
+              {activeCat.subjects.map((s, i) => {
+                const isEnhanced = isEnhancedSubject(s);
+                return (
+                  <div key={i} style={{ width:'100%' }}>
+                    <span className={`mindmap-subject-chip${isEnhanced?' enhanced':''}${s.note && !isEnhanced?' note':''}`}>
+                      {s.name}{isEnhanced && ' ✓'}
+                    </span>
+                    {s.note && (
+                      <div style={{ fontSize:'.73rem', color:'var(--text-muted)', marginTop:'.25rem', marginBottom:'.25rem', paddingLeft:'.25rem' }}>
+                        ℹ️ {s.note}
+                      </div>
+                    )}
+                    {isEnhanced && (
+                      <div className="mindmap-enhanced-note">
+                        🎓 Because you&apos;re taking <strong>{s.name}</strong> as a Unit 1/2 enhancement in Year 10, it may be possible to take the Unit 3/4 version in Year 11. Speak with coordinators when entering Year 11 — your grades need to be strong enough.
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       <div style={{ marginTop:'2rem', padding:'1.25rem', background:'var(--surface2)', borderRadius:'var(--radius)', fontSize:'.85rem', color:'var(--text-muted)', lineHeight:1.65 }}>
@@ -2697,6 +2996,7 @@ function App() {
   const [saveFlash, setSaveFlash] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [userProfile, setUserProfile] = useState({ username: '', avatar_data: null });
+  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [penguinDismissed, setPenguinDismissed] = useState(
     () => !!sessionStorage.getItem('elect_penguin_dismissed')
   );
@@ -2721,6 +3021,10 @@ function App() {
 
     const { data: { subscription } } = db.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecovery(true);
+        return;
+      }
       if (!session) {
         setSubmittedData(null); setChecklistState({});
         return;
@@ -2771,7 +3075,11 @@ function App() {
     if (session?.user) {
       clearTimeout(checklistSaveTimer.current);
       checklistSaveTimer.current = setTimeout(async () => {
-        await dbSaveChecklist(session.user.id, newState);
+        try {
+          await dbSaveChecklist(session.user.id, newState);
+        } catch (err) {
+          console.error('Checklist save failed', err);
+        }
         showSaveIndicator();
       }, 1200);
     } else if (isGuest) {
@@ -2790,7 +3098,9 @@ function App() {
   }
 
   // Not logged in and not guest
-  if (!session && !isGuest) return <AuthScreen onGuest={handleGuest} />;
+  if ((!session && !isGuest) || passwordRecovery) {
+    return <AuthScreen onGuest={handleGuest} recoveryMode={passwordRecovery} onRecoveryDone={() => setPasswordRecovery(false)} />;
+  }
 
   const user = session?.user || null;
   const initials = user?.email?.slice(0, 2).toUpperCase() || '👤';
@@ -2875,7 +3185,7 @@ function App() {
 
         {/* Future year levels */}
         <div style={{ display:'flex', gap:'.2rem' }}>
-          {['Y9','Y12'].map(y => <button key={y} className="nav-link coming-soon" title={`${y} — coming soon`}>{y}</button>)}
+          {['Y9','Y11','Y12'].map(y => <button key={y} className="nav-link coming-soon" title={`${y} — coming soon`}>{y}</button>)}
         </div>
 
         {/* User badge */}
