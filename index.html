@@ -1262,12 +1262,12 @@ function runAlgorithm(studentData) {
     if (cat in pts) pts[cat] += 2;
   }
 
-  // Step 3: Core grades — >90 → +1.5, >80 → +1.0
+  // Step 3: Core grades — 90+ → +1.5, 80+ → +1.0
   const coreMap = { Mathematics:'maths', Science:'science', English:'english', Humanities:'humanities' };
   for (const [subj, cat] of Object.entries(coreMap)) {
     const g = Number(grades[subj] || 0);
-    if (g > 90) pts[cat] += 1.5;
-    else if (g > 80) pts[cat] += 1.0;
+    if (g >= 90) pts[cat] += 1.5;
+    else if (g >= 80) pts[cat] += 1.0;
   }
 
   // Step 4: Desired electives → +1 each to their category
@@ -1365,11 +1365,19 @@ function buildYear10Selection(pts, studentData = {}) {
   const histScore = pts.humanities + pts.english + pts.law_economics + pts.performing_arts;
   const desiredHist = desiredElectives.includes('history');
   const desiredGeo  = desiredElectives.includes('geography');
+  const uniCats = universities.flatMap(u => UNI_SUBJECT_MAP[u] || []);
+  const uniGeoLean = uniCats.filter(c => ['science','engineering','ict','pe'].includes(c)).length;
+  const uniHistLean = uniCats.filter(c => ['humanities','english','law_economics','performing_arts'].includes(c)).length;
+  const y9GeoLean = year9Electives.some(r => ['sustainability','cities_of_the_future','mission_to_mars','sports_science','robotics'].includes(r.id));
+  const y9HistLean = year9Electives.some(r => ['hands_on_history','indigenous_studies','journalism','literature','english_skills'].includes(r.id));
   let histGeoChoice;
   if (desiredHist && !desiredGeo)       histGeoChoice = 'history';
   else if (desiredGeo && !desiredHist)  histGeoChoice = 'geography';
-  else if (careerCategory === 'Environment & Agriculture' || geoScore > histScore)
+  else if (careerCategory === 'Environment & Agriculture' || y9GeoLean || geoScore + uniGeoLean > histScore + uniHistLean)
                                         histGeoChoice = 'geography';
+  else if (y9HistLean || histScore + uniHistLean > geoScore + uniGeoLean)
+                                        histGeoChoice = 'history';
+  else if (studentData.stemPreference)  histGeoChoice = 'geography';
   else                                  histGeoChoice = 'history';
   addE(histGeoChoice, true);
 
@@ -1430,18 +1438,18 @@ function buildYear10Selection(pts, studentData = {}) {
   }
 
   let remaining = 5;
-  let isFirstCat = true;
+  let firstViableCatUsed = false;
   for (const cat of sortedCats) {
     if (remaining <= 0) break;
     const avail = (availByCat[cat] || []).filter(id => !usedIds.has(id));
     if (avail.length === 0) continue;
-    const maxFromCat = isFirstCat ? (cat === 'science' && sciGradeHigh ? 3 : 2) : 1;
-    isFirstCat = false;
+    const maxFromCat = !firstViableCatUsed ? (cat === 'science' && sciGradeHigh ? 3 : 2) : 1;
     let addedFromCat = 0;
     for (const id of avail) {
       if (remaining <= 0 || addedFromCat >= maxFromCat) break;
       if (addE(id)) { remaining--; addedFromCat++; }
     }
+    if (addedFromCat > 0) firstViableCatUsed = true;
   }
 
   // Fill any remaining slots while still respecting PE/minor/category caps
