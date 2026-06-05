@@ -641,8 +641,12 @@
     .checklist-item-v2 { display: flex; align-items: center; gap: .55rem; padding: .42rem .6rem; border-radius: 8px; cursor: pointer; transition: background .12s; user-select: none; }
     .checklist-item-v2:hover { background: var(--surface2); }
     .checklist-item-v2.done .checklist-label { text-decoration: line-through; opacity: .55; }
+    .checklist-item-v2.highlight { background: #fffbeb; border: 1px solid #fde68a; font-weight: 800; }
+    .checklist-item-v2.highlight:hover { background: #fef3c7; }
+    .checklist-item-v2.highlight .checklist-label { color: #92400e; }
     .checklist-cb { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); flex-shrink: 0; display: grid; place-items: center; transition: all .15s; }
     .checklist-cb.checked { border-color: var(--success); background: var(--success); }
+    .checklist-missing-note { font-size: .78rem; line-height: 1.45; color: #92400e; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: .55rem .65rem; margin: .55rem 0 .75rem; }
     .checklist-complete-badge { display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; font-weight: 700; color: var(--success); margin-top: .5rem; }
     @media (max-width: 780px) { .checklist-grid { grid-template-columns: 1fr; } }
 
@@ -3032,14 +3036,430 @@ const Y9_TO_Y10 = {
   visual_communication_design: 'vic_comm',
 };
 
-const PLACEHOLDER_CHECKLIST = [
-  'Complete Unit 1 coursework',
-  'Submit Unit 1 assessment task',
-  'Revise Unit 1 content',
-  'Complete Unit 2 coursework',
-  'Submit Unit 2 assessment task',
-  'Revise Unit 2 content',
-];
+const CURRICULUM_MISSING_NOTE = "Couldn't find the curriculum paper, sorry for the inconvenience...!";
+
+const ELECTIVE_CHECKLIST_DATA = {
+  "creative_writing": [
+    "Critically analyze fictional texts across various genres and styles",
+    "Emulate specific structures and literary features of published works",
+    "Research, plan, and draft a Creative Writing text",
+    "Execute a peer-feedback process",
+    "Write and perform an original poem",
+    "Compose a self-reflection on the poetry composition process",
+    "Develop a writing folio documenting drafting and editing",
+    "Compose an exegesis to explore and explain final work",
+    "Produce an annotated short story"
+  ],
+  "english_writing": [
+    "Discover the origins and connections of the English language",
+    "Learn metalinguistic skills to explain language use",
+    "Learn the International Phonetic Alphabet",
+    "Research the etymology of English words",
+    "Explore sociolinguistics (factors influencing speech and perceptions)",
+    "Present research on etymology via presentation and poster",
+    "Analyze attitudes toward Australian accents (via The Castle)",
+    "Create a project (podcast or video) comparing generational slang"
+  ],
+  "literature": [
+    "Analyze conventions of narrative texts",
+    "Discuss complex attitudes, themes, and issues in literary texts",
+    "Formulate personal and objective critical responses to literature",
+    "Examine how texts are shaped by their time, place, and cultural setting",
+    "Perform a close reading of texts",
+    "Analyze how language, literary elements, and techniques function within a text",
+    "Interpret, analyze, and evaluate how different perspectives are constructed",
+    "Analyze how texts are structured for different purposes and audiences"
+  ],
+  "food_tech": [
+    "Practice food preparation and cooking (ranging from basic to complex skills)",
+    "Study functional properties of food",
+    "Learn food safety and personal hygiene practices in the kitchen",
+    "Analyze individual dietary needs",
+    "Evaluate food trends, food issues, and sustainability",
+    "Explore native Australian foods and global cuisines",
+    "Explain the contribution of innovation and emerging technologies to sustainability",
+    "Use design thinking to develop and justify food solutions against ethical criteria",
+    "Perform sensory analysis reports"
+  ],
+  "health": [
+    "Propose and evaluate personal strategies to manage identities and transitions",
+    "Evaluate how attitudes toward equality, respect, diversity, and inclusion influence relationships",
+    "Evaluate personal strategies for managing emotional responses",
+    "Propose and evaluate strategies to manage health, safety, and wellbeing in online and offline situations",
+    "Synthesize health information from credible sources to justify wellbeing strategies",
+    "Explain multiple dimensions of health and wellbeing",
+    "Analyze biological, sociocultural, and environmental factors across the lifespan",
+    "Research physical development stages (germinal, embryonic, and foetal)",
+    "Explore issues of sexual health, drug education, and risk-taking behaviors",
+    "Analyze how diversity and gender are represented in media and communities",
+    "Develop strategies to reduce stress and anxiety",
+    "Analyze data regarding Australia's aging population and quality of life",
+    "Research programs supporting vulnerable or disadvantaged older adults",
+    "Explore global health issues, including those relevant to Aboriginal and Torres Strait Islander Peoples"
+  ],
+  "commerce_business_legal": [
+    "Explore concepts of innovation, entrepreneurship, and business management",
+    "Investigate planning and strategic decision-making for competitive advantage",
+    "Design a business concept and develop a business plan",
+    "Pitch a business idea for a market day experience",
+    "Gain practical insights into marketing, finance, operations, and leadership",
+    "Examine the role, purpose, and creation of laws within society",
+    "Investigate the role of courts and the legal system",
+    "Analyze criminal law, criminal liability, and criminal processes",
+    "Explore civil law, individual rights, negligence, and consumer law",
+    "Engage in an authentic criminal law case experience"
+  ],
+  "commerce_economics_finance": [
+    "Analyze the relationship between scarce resources and decision-making for consumers, businesses, and governments",
+    "Investigate the impact of overseas economic decisions on the Australian economy",
+    "Evaluate the significance of domestic manufacturing",
+    "Implement financial forecasting and budgeting processes",
+    "Practice inventory management",
+    "Generate and interpret financial reports",
+    "Analyze personal and business financial decisions",
+    "Manage transactions for small business operations"
+  ],
+  "geography": [
+    "Investigate environmental functions that support life",
+    "Analyze major challenges to environmental sustainability",
+    "Compare world views (including Aboriginal and Torres Strait Islander perspectives) regarding environmental management",
+    "Investigate environmental change in Australia and one other country",
+    "Apply human-environment systems thinking to evaluate management strategies",
+    "Examine concepts and measures of human wellbeing",
+    "Analyze causes of global differences in human wellbeing",
+    "Explore spatial differences in wellbeing within and between countries",
+    "Evaluate programs designed to reduce gaps in human wellbeing",
+    "Interpret maps, photographs, and other representations of geographical data"
+  ],
+  "global_conflict": [
+    "Define state sovereignty and the roles of global actors (states, United Nations, international organizations)",
+    "Analyze the different types of power used by global actors",
+    "Examine the relationship between conflict and politics",
+    "Investigate the causes, responses, and impacts of a specific global conflict",
+    "Evaluate the effectiveness of processes used to manage and resolve a conflict",
+    "Analyze the nature of global crises requiring international cooperation",
+    "Research the proliferation of nuclear weapons",
+    "Create an intelligence brief on a selected global crisis"
+  ],
+  "history": [
+    "Analyze the development of Australia's national identity from 1901 to the present",
+    "Examine the impact of World War I on 20th-century ideological change",
+    "Investigate the causes and events of World War II, including the rise of the Nazi party",
+    "Analyze war campaigns across Europe, Africa, and the Asia-Pacific",
+    "Explore the history and impact of the Holocaust",
+    "Analyze migration patterns and the evolution of multiculturalism in Australia",
+    "Evaluate the struggle for rights and freedoms led by First Nations peoples",
+    "Practice historical document analysis",
+    "Develop critical thinking and research skills",
+    "Execute historical essay writing"
+  ],
+  "information_systems": [
+    "Convert between decimal, binary, and hexadecimal numbers",
+    "Convert between alphanumeric characters and ASCII codes",
+    "Develop Python programming skills (beginner to advanced)",
+    "Represent solution steps using pseudocode and flowcharts",
+    "Analyze how computers connect via wired and wireless network technologies",
+    "Identify hardware components involved in networking",
+    "Research and study an additional programming language in a collaborative team",
+    "Define learning milestones and resources for self-selected programming projects"
+  ],
+  "information_technology": [
+    "Apply the four phases of Information Processing (Investigation, Design, Production, Evaluation)",
+    "Use spreadsheet functions including SUM, AVERAGE, and Conditional Formatting",
+    "Create and format tables and charts (Pie, Column, Line, Sparkline)",
+    "Perform What-If Analysis using Goal Seek",
+    "Differentiate between data and information",
+    "Query and create databases using Airtable",
+    "Link tables to build a relational database",
+    "Utilize various database views (Grid, Gallery, Kanban, Calendar, Form)",
+    "Research and cite sources for computer-related issues",
+    "Design and deliver effective electronic and verbal presentations",
+    "Practice audience etiquette and responsibility",
+    "Explore cybersecurity fundamentals"
+  ],
+  "intro_engineering": [
+    "Apply the engineering process (investigating, generating, developing, evaluating, planning, and managing)",
+    "Analyze considerations for engineering projects, including cost, environmental sustainability, safety, and material properties",
+    "Demonstrate fundamental knowledge of electricity (voltage, current, resistance, power, and energy)",
+    "Analyze simple circuits and electrical appliances",
+    "Program using Arduino's script-based IDE",
+    "Connect programmable microcontrollers to external circuitry (sensors and actuators)",
+    "Use Computer-Aided Design (CAD) software for digital design",
+    "Produce physical models/prototypes using 3D printing",
+    "Evaluate the appropriateness of materials and systems for a specific purpose"
+  ],
+  "french": [
+    "Develop listening, speaking, reading, and writing skills in French",
+    "Communicate in simulated and real-world situations related to everyday life",
+    "Discuss teenage interests including health, sport, and personal responsibilities",
+    "Understand information conveyed through oral, visual, and written media",
+    "Compare and contrast life in French-speaking regions with Australia",
+    "Discuss relationships and issues facing young people",
+    "Describe physical health, injuries, and illnesses",
+    "Narrate past events and childhood experiences",
+    "Report on current events and analyze French media",
+    "Discuss environmental issues",
+    "Explore vocabulary and cultural skills related to future careers and the global workforce"
+  ],
+  "german": [
+    "Expand listening, speaking, reading, and writing competencies in German",
+    "Communicate in simulated and real-life situations involving recreation, travel, and social interaction",
+    "Interpret information conveyed orally, visually, and in writing",
+    "Compare and contrast lifestyle aspects between German-speaking regions and Australia",
+    "Describe holiday experiences using past tenses (transport, locations, accommodation)",
+    "Engage in social interaction with native speakers",
+    "Make and coordinate social arrangements",
+    "Plan a three-day itinerary for a trip to Berlin",
+    "Conduct the Unternehmen Deutsch project regarding German in Australian workplaces",
+    "Utilize language skills relevant to the professional world and career paths"
+  ],
+  "spanish": [
+    "Expand listening, speaking, reading, and writing competencies in Spanish",
+    "Communicate in simulated and real-life situations involving teenage interests, the digital world, and personal routines",
+    "Interpret information conveyed orally, visually, and in writing",
+    "Compare and contrast lifestyle aspects between Spanish-speaking regions and Australia",
+    "Report on current events and analyze Spanish media",
+    "Discuss future career paths and professional skills for the global workforce",
+    "Discuss the fashion industry, personal attire, and shopping",
+    "Describe personal routines and maintain discussions on relationships",
+    "Analyze global issues affecting young people and the environment",
+    "Explore dynamics of friendships and family relationships"
+  ],
+  "music_performance": [
+    "Analyze musical works and performances of different styles",
+    "Evaluate the use of musical elements and style characteristics",
+    "Demonstrate understanding of musical elements through original compositions and improvisations",
+    "Apply music theory and aural perception skills",
+    "Perform in solo and ensemble contexts",
+    "Develop effective rehearsal techniques for solo and group work",
+    "Demonstrate proper posture, technique, and safety when using voice, instruments, and technology",
+    "Manage all aspects of stage setup and live performance (from initial ideas to bump out)",
+    "Explore basic legal concepts related to music"
+  ],
+  "music_technology": [
+    "Aurally and visually analyze musical works and performances across various styles",
+    "Evaluate music elements and style characteristics in original compositions",
+    "Demonstrate music theory and aural perception skills",
+    "Compose and perform music using diverse styles",
+    "Configure microphones and sound equipment",
+    "Perform mixing tasks to develop understanding of balance and editing",
+    "Utilize looping technology",
+    "Implement sound effects (after effects)",
+    "Research copyright laws and legal aspects of recording",
+    "Study the history of technology-based compositions since the 1920s"
+  ],
+  "theatre": [
+    "Perform solo and ensemble pieces using varied techniques and conventions",
+    "Apply script analysis and dramaturgy processes to written texts",
+    "Analyze scripts from historical and contemporary playwrights (including Indigenous perspectives)",
+    "Research modern theatre styles (e.g., Epic, Poor, or Verbatim Theatre) and demonstrate their conventions",
+    "Write an analysis of a professional live theatre performance",
+    "Provide feedback using correct Theatre Studies terminology",
+    "Collaborate on a public production process",
+    "Execute a specific production role (e.g., lighting, costume, or set design)"
+  ],
+  "outdoor_ed": [
+    "Participate in outdoor activities including surfing, water safety, indoor rock climbing, mountain bike riding, camping, and bushwalking",
+    "Develop skills related to outdoor recreation",
+    "Identify risks associated with outdoor activities",
+    "Develop strategies and procedures to minimize harm during outdoor activities",
+    "Engage in activities that promote initiative and teamwork",
+    "Analyze the impact of outdoor activities on the environment",
+    "Investigate the consequences of human impact on outdoor environments"
+  ],
+  "pe_for_life": [
+    "Participate in a range of physical activities available in the local community",
+    "Explain the impact of physical activity on physical and mental health",
+    "Identify accessible forms of physical activity for everyday life",
+    "Collaborate with peers to coach and facilitate a sports competition",
+    "Understand the role of micro and macro nutrients",
+    "Analyze food advertising and apply knowledge to make healthy food choices",
+    "Analyze the Australian Guide to Healthy Eating as a health tool",
+    "Examine the link between diet, healthy lifestyle, and mental wellbeing"
+  ],
+  "physics": [
+    "Explain and model motion using Newton's Laws (inertia, force, acceleration, action/reaction)",
+    "Apply motion equations and conservation laws to solve problems",
+    "Describe the behavior of light using the ray model",
+    "Analyze the function of optical devices (e.g., telescopes, microscopes)",
+    "Demonstrate an understanding of gravity as a cause of motion",
+    "Identify and describe astronomical bodies (e.g., black holes, supernovas)",
+    "Apply physics theories and concepts to analyze physical phenomena",
+    "Develop individual and collaborative science investigation skills through inquiry",
+    "Analyze the behavior of vehicles during collisions",
+    "Explore practical applications of electricity and force through experimentation"
+  ],
+  "biology": [
+    "Outline the structure and function of prokaryotic and eukaryotic cells",
+    "Analyze the role of specialized organelles in cellular processes",
+    "Investigate cell membrane function and cellular responses to external environments",
+    "Understand DNA structure and patterns of inheritance",
+    "Explain the processes of mitosis and meiosis",
+    "Discuss natural selection and how evolutionary change contributes to speciation",
+    "Investigate evidence for evolution, including fossil records and comparative techniques",
+    "Explore structural and behavioral adaptations in human evolution",
+    "Contrast the structures of viruses and bacteria",
+    "Examine the immune system's role in preventing and responding to disease",
+    "Evaluate the importance of immunization programs",
+    "Discuss bioethical issues related to scientific and medical developments",
+    "Refine scientific inquiry skills through data collection, analysis, and interpretation"
+  ],
+  "chemistry": [
+    "Describe and explain the structure and properties of metals, molecules, and ionic compounds",
+    "Identify trends and patterns in the Periodic Table",
+    "Analyze types of bonding: metallic, covalent, and ionic",
+    "Predict products of chemical reactions (combustion, combination, decomposition, precipitation, metal displacement, and acid reactions)",
+    "Examine energy changes and reaction rates in chemical reactions",
+    "Perform experimental analytical techniques (gravimetric and volumetric analysis)",
+    "Investigate the chemistry of everyday substances and cosmetics",
+    "Evaluate the validity of scientific claims in product promotion and ingredient safety",
+    "Explain the sources and uses of organic compounds",
+    "Apply the IUPAC naming system to simple organic compounds"
+  ],
+  "environmental_science": [
+    "Differentiate between Earth's four systems and analyze their interactions",
+    "Explain the flow of matter, energy, and nutrients through ecosystems",
+    "Analyze the importance of biodiversity and evaluate efforts to maintain it",
+    "Identify threats to biodiversity and assess human impacts",
+    "Manage and monitor a specific natural resource",
+    "Design and conduct an ecosystem monitoring investigation based on collected data",
+    "Examine the causes and consequences of climate change",
+    "Model the carbon and oxygen cycles",
+    "Compare renewable and non-renewable energy sources and their sustainability",
+    "Investigate the environmental impact of waste (plastic, food, e-waste) and explore sustainable alternatives",
+    "Gain practical fieldwork skills (quadrat sampling, water quality testing, and ethological observation)"
+  ],
+  "make_my_day_science": [
+    "Demonstrate an understanding of how science influences daily life and consumer choices",
+    "Apply scientific principles and problem-solving techniques to STEM challenges",
+    "Assess consumer items using scientific principles and data analysis",
+    "Explore botanical science through practical cultivation",
+    "Investigate the biology, evolution, and care of pets",
+    "Examine the properties and applications of materials ranging from metals to nanotechnology",
+    "Explore concepts of evolution and genetics",
+    "Interpret weather data and maps",
+    "Investigate the science behind transportation safety and engine mechanics",
+    "Gain insight into Indigenous scientific knowledge and practices",
+    "Apply the engineering design process to create solutions or analyze inventions"
+  ],
+  "animation": [
+    "Apply traditional hand-drawn techniques as a foundation for digital animation",
+    "Master foundational principles of animation and industry-standard terminology",
+    "Execute the full production cycle: storyboarding, pre-production, production, and post-production",
+    "Create animations that communicate specific ideas, perspectives, and meanings to target audiences",
+    "Experiment with and utilize Stop Motion Studio software",
+    "Demonstrate technical competence in stop motion techniques and aesthetic decision-making",
+    "Develop and maintain a creative folio documenting planning, testing, and evaluation",
+    "Apply Media Arts terminology to analyze visual language, conventions, and practices",
+    "Complete a structured examination demonstrating understanding of media artworks"
+  ],
+  "art": [
+    "Experiment with diverse art materials (relief-printing, drawing, mixed media, and painting)",
+    "Analyze and interpret the aesthetics, styles, and processes of professional artists",
+    "Understand the personal and cultural influences shaping art-making practices",
+    "Manipulate Art Elements and Principles to communicate ideas and engage viewers",
+    "Create artworks inspired by myths and legends using painting and mixed media",
+    "Master technical skills required for colour reduction lino printing",
+    "Document the creative process, including planning, reflection, and technical development",
+    "Apply Visual Arts terminology to analyze unseen artworks and demonstrate understanding of visual language"
+  ],
+  "ceramics": [
+    "Refine technical skills in ceramic construction and finishing",
+    "Explore the function and role of ceramic art in modern society",
+    "Develop craftsmanship, individual expression, and a personal artistic style",
+    "Analyze contemporary ceramic artists and their historical/cultural evolution",
+    "Critique the elements and principles of art as applied to ceramic media",
+    "Master core handbuilding techniques: slab, coil, and pinch methods",
+    "Apply underglazing and surface design techniques",
+    "Design and construct functional ceramic forms (e.g., planters) inspired by personal interests",
+    "Study facial anatomy, proportions, and shape for figurative sculpture",
+    "Use symbolism and expression to create genre-themed masks",
+    "Apply Visual Arts terminology during written analysis and in-class examinations"
+  ],
+  "media": [
+    "Analyze the impact of 21st-century media on the representation and meaning of self and others",
+    "Examine the construction and characteristics of film narratives",
+    "Evaluate political, social, and institutional contexts of media production",
+    "Utilize the \"Name, Describe, Explain, Effect\" structure for media analysis",
+    "Research, plan, script, produce, and distribute a video podcast or essay on a contemporary media issue",
+    "Investigate audience behaviors and media consumption patterns",
+    "Develop and pitch a promotional campaign based on a client brief",
+    "Execute the full Media Production Process (development, pre-production, production, and post-production)",
+    "Collaborate on production tasks to refine ideas and final products",
+    "Apply Media Arts terminology to analyze unseen media artworks and demonstrate understanding of visual conventions"
+  ],
+  "sculpture": [
+    "Develop research skills to understand the creative possibilities of sculpture",
+    "Design and construct three-dimensional artworks using various materials and methods",
+    "Document the planning, design, and evaluation of sculptural processes",
+    "Demonstrate problem-solving and critical thinking through experimental media",
+    "Analyze a three-dimensional artwork in-depth via a gallery excursion",
+    "Apply interpretive lenses to examine artists' intentions, materials, and technologies",
+    "Explore the human figure through wire sculpture and proportional gestural drawing",
+    "Investigate the artistic practices of Alberto Giacometti",
+    "Execute the casting process using alginate and plaster of Paris",
+    "Explore personal identity, cultural connections, and symbolism through sculptural forms",
+    "Apply Visual Arts terminology to analyze unseen artworks and demonstrate understanding of visual conventions"
+  ],
+  "sustainable_design": [
+    "Examine the economic, environmental, and social impacts of design choices",
+    "Analyze the life cycle of materials and ethical production methods",
+    "Evaluate the sustainability of commercial products and personal projects",
+    "Address global sustainability challenges through design solutions",
+    "Combine traditional techniques (sewing/textiles) with modern processes (laser cutting/digital design)",
+    "Implement circular design practices throughout the creative process",
+    "Investigate the impacts of the fast fashion industry and create awareness campaigns",
+    "Upcycle clothing using textile-based graphics inspired by specific cultures or artists",
+    "Master Adobe Illustrator and laser-cutting software to design functional products",
+    "Develop problem-solving, technical, and safety skills through product design",
+    "Apply Visual Arts terminology to analyze unseen artworks and design practices"
+  ],
+  "vic_comm": [
+    "Explore design fields: Messages, Objects, Environments, and Interactive Experiences",
+    "Solve real-world problems using human-centred research and circular design practices",
+    "Master 2D drawing skills, including plans, elevations, and orthogonal drawings at scale",
+    "Develop spatial awareness by creating 3D Paraline and perspective drawings",
+    "Apply rendering techniques to enhance design form and surface textures",
+    "Utilize the \"double-diamond\" design process and Adobe Creative Suite for prototyping",
+    "Analyze Design Elements, Principles, and Gestalt Principles",
+    "Develop technical proficiency in Adobe Illustrator and Photoshop",
+    "Research social issues (e.g., displacement) to design compact homes or shelters",
+    "Investigate the ethics of single-use plastics and design reusable alternatives",
+    "Document the design process through annotated drawings addressing specific criteria",
+    "Apply Visual Arts terminology to analyze unseen designs and visual practices"
+  ]
+};
+
+function getChecklistSourceKey(elective) {
+  if (!elective) return '';
+  if (ELECTIVE_CHECKLIST_DATA[elective.id]) return elective.id;
+  const language = ['French', 'German', 'Spanish'].find(lang =>
+    elective.name === lang || elective.name?.startsWith(`${lang} `) || elective.name?.startsWith(`${lang} —`)
+  );
+  return language ? language.toLowerCase() : elective.id;
+}
+
+function makeChecklistItem(label, key, highlight = false) {
+  return { label, key, highlight };
+}
+
+function getElectiveChecklist(elective) {
+  const sourceKey = getChecklistSourceKey(elective);
+  const items = ELECTIVE_CHECKLIST_DATA[sourceKey] || [];
+  const midpoint = Math.ceil(items.length / 2);
+  return {
+    missing: items.length === 0,
+    semester1: [
+      ...items.slice(0, midpoint).map((label, i) => makeChecklistItem(label, `s1-${i}`)),
+      makeChecklistItem('Revise Semester 1', 'revise-semester-1', true),
+    ],
+    semester2: [
+      ...items.slice(midpoint).map((label, i) => makeChecklistItem(label, `s2-${i}`)),
+      makeChecklistItem('Revise Semester 2', 'revise-semester-2', true),
+    ],
+  };
+}
+
 
 /* ═══════════════════════════════════════════════════════════════
    ALGORITHM DATA — 10-CATEGORY POINTSBOARD SYSTEM
@@ -4569,14 +4989,17 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
     onChecklistChange({ ...checklistState, [key]: !checklistState[key] });
   };
 
-  const toggleChecklistItem = (electiveId, itemIndex) => {
-    const key = `${electiveId}-${itemIndex}`;
+  const checklistItemKey = (elective, itemKey) => `checklist-${elective.id}-${itemKey}`;
+
+  const toggleChecklistItem = (elective, itemKey) => {
+    const key = checklistItemKey(elective, itemKey);
     onChecklistChange({ ...checklistState, [key]: !checklistState[key] });
   };
 
-  const getProgress = (electiveId) => {
-    const total = PLACEHOLDER_CHECKLIST.length;
-    const done = PLACEHOLDER_CHECKLIST.filter((_, i) => checklistState[`${electiveId}-${i}`]).length;
+  const getProgress = (elective, checklist) => {
+    const allItems = [...checklist.semester1, ...checklist.semester2];
+    const total = allItems.length;
+    const done = allItems.filter(item => checklistState[checklistItemKey(elective, item.key)]).length;
     return { done, total, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
   };
 
@@ -4819,7 +5242,8 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
 
             <div className="checklist-grid">
               {suggestions.map(elective => {
-                const { done, total, pct } = getProgress(elective.id);
+                const checklist = getElectiveChecklist(elective);
+                const { pct } = getProgress(elective, checklist);
                 const color = CAT_COLORS[elective.category] || 'var(--primary)';
                 return (
                   <div className="checklist-elective-card" key={elective.id}>
@@ -4831,24 +5255,34 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
                       <div className="checklist-elective-bar-fill" style={{ width:`${pct}%`, background: color }} />
                     </div>
                     <div className="checklist-elective-body">
+                      {checklist.missing && (
+                        <div className="checklist-missing-note">{CURRICULUM_MISSING_NOTE}</div>
+                      )}
                       <div className="checklist-semester">📘 Semester 1</div>
-                      {PLACEHOLDER_CHECKLIST.slice(0,3).map((item, i) => {
-                        const checked = !!checklistState[`${elective.id}-${i}`];
+                      {checklist.semester1.map(item => {
+                        const checked = !!checklistState[checklistItemKey(elective, item.key)];
                         return (
-                          <div key={i} className={`checklist-item-v2${checked?' done':''}`} onClick={() => toggleChecklistItem(elective.id, i)}>
+                          <div
+                            key={item.key}
+                            className={`checklist-item-v2${checked?' done':''}${item.highlight?' highlight':''}`}
+                            onClick={() => toggleChecklistItem(elective, item.key)}
+                          >
                             <div className={`checklist-cb${checked?' checked':''}`}>{checked && <Icon name="check" size={10} />}</div>
-                            <span className="checklist-label">{item}</span>
+                            <span className="checklist-label">{item.label}</span>
                           </div>
                         );
                       })}
                       <div className="checklist-semester" style={{ marginTop:'.55rem' }}>📗 Semester 2</div>
-                      {PLACEHOLDER_CHECKLIST.slice(3).map((item, i) => {
-                        const idx = i + 3;
-                        const checked = !!checklistState[`${elective.id}-${idx}`];
+                      {checklist.semester2.map(item => {
+                        const checked = !!checklistState[checklistItemKey(elective, item.key)];
                         return (
-                          <div key={idx} className={`checklist-item-v2${checked?' done':''}`} onClick={() => toggleChecklistItem(elective.id, idx)}>
+                          <div
+                            key={item.key}
+                            className={`checklist-item-v2${checked?' done':''}${item.highlight?' highlight':''}`}
+                            onClick={() => toggleChecklistItem(elective, item.key)}
+                          >
                             <div className={`checklist-cb${checked?' checked':''}`}>{checked && <Icon name="check" size={10} />}</div>
-                            <span className="checklist-label">{item}</span>
+                            <span className="checklist-label">{item.label}</span>
                           </div>
                         );
                       })}
