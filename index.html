@@ -4249,7 +4249,11 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                     <div className="essential-title">{group.title}</div>
                     {(() => {
                       const current = suggestions.filter(s => group.ids.includes(s.id));
-                      if (current.length <= 1) return null;
+                      const currentIds = new Set(current.map(e => e.id));
+                      const optionIds = current.length > 1
+                        ? group.ids.filter(id => !currentIds.has(id))
+                        : group.ids;
+                      if (current.length <= 1 || optionIds.length === 0) return null;
                       const chosen = essentialRemoveChoice[group.key] || current[0]?.id;
                       return (
                         <div style={{ marginBottom:'.45rem' }}>
@@ -4266,7 +4270,20 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                       );
                     })()}
                     <div className="essential-options">
-                      {group.ids.map(id => {
+                      {(() => {
+                        const current = suggestions.filter(s => group.ids.includes(s.id));
+                        const currentIds = new Set(current.map(e => e.id));
+                        const optionIds = current.length > 1
+                          ? group.ids.filter(id => !currentIds.has(id))
+                          : group.ids;
+                        if (optionIds.length === 0) {
+                          return (
+                            <span style={{ fontSize:'.75rem', color:'var(--text-muted)', lineHeight:1.4 }}>
+                              All choices in this required group are already in your plan.
+                            </span>
+                          );
+                        }
+                        return optionIds.map(id => {
                         const e = ALL_ELECTIVES.find(x => x.id === id);
                         const active = suggestions.some(s => s.id === id);
                         return e && (
@@ -4275,7 +4292,8 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                             {e.name}
                           </button>
                         );
-                      })}
+                        });
+                      })()}
                     </div>
                   </div>
                 ))}
