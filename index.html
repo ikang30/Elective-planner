@@ -1130,6 +1130,172 @@ const ALL_ELECTIVES = [
     universities: ['University of Melbourne','UNSW Sydney','MIT (USA)','ETH Zurich (Switzerland)'] },
 ];
 
+const CAREER_UNI_PATHWAYS = {
+  make_my_day_science: {
+    universities: ['University of Melbourne', 'University of Toronto'],
+    careers: ['Science Communicator', 'Research Assistant'],
+  },
+  biology: {
+    universities: ['Johns Hopkins University', 'Karolinska Institute'],
+    careers: ['Biologist', 'Healthcare Scientist'],
+  },
+  chemistry: {
+    universities: ['MIT', 'Imperial College London'],
+    careers: ['Chemical Engineer', 'Pharmacologist'],
+  },
+  physics: {
+    universities: ['ETH Zurich', 'Stanford University'],
+    careers: ['Physicist', 'Data Scientist'],
+  },
+  environmental_science: {
+    universities: ['Australian National University (ANU)', 'University of Queensland (UQ)'],
+    careers: ['Environmental Consultant', 'Conservation Scientist'],
+  },
+  history: {
+    universities: ['University of Oxford', 'University of Cambridge'],
+    careers: ['Historian', 'Archivist'],
+  },
+  geography: {
+    universities: ['University College London (UCL)', 'University of Edinburgh'],
+    careers: ['Urban Planner', 'Cartographer'],
+  },
+  commerce_business_legal: {
+    universities: ['Harvard University', 'University of Sydney'],
+    careers: ['Corporate Lawyer', 'Business Analyst'],
+  },
+  commerce_economics_finance: {
+    universities: ['London School of Economics (LSE)', 'Princeton University'],
+    careers: ['Economist', 'Investment Banker'],
+  },
+  global_conflict: {
+    universities: ['Sciences Po', "King's College London"],
+    careers: ['Diplomat', 'International Relations Analyst'],
+  },
+  pe_for_life: {
+    universities: ['Loughborough University', 'Deakin University'],
+    careers: ['Physical Education Teacher', 'Sports Coach'],
+  },
+  outdoor_ed: {
+    universities: ['James Cook University', 'University of Western Australia (UWA)'],
+    careers: ['Outdoor Education Instructor', 'Park Ranger'],
+  },
+  human_movement: {
+    universities: ['University of Queensland (UQ)', 'University of Sydney'],
+    careers: ['Physiotherapist', 'Kinesiologist'],
+  },
+  sculpture: {
+    universities: ['Royal College of Art', 'RMIT University'],
+    careers: ['Sculptor', '3D Modeler'],
+  },
+  vic_comm: {
+    universities: ['University of Technology Sydney (UTS)', 'Royal College of Art'],
+    careers: ['Graphic Designer', 'Art Director'],
+  },
+  art: {
+    universities: ['Yale University', 'Royal College of Art'],
+    careers: ['Fine Artist', 'Gallery Curator'],
+  },
+  ceramics: {
+    universities: ['Royal College of Art', 'RMIT University'],
+    careers: ['Ceramicist', 'Industrial Designer'],
+  },
+  media: {
+    universities: ['New York University (NYU)', 'University of Amsterdam'],
+    careers: ['Media Planner', 'Broadcast Journalist'],
+  },
+  sustainable_design: {
+    universities: ['RMIT University', 'ETH Zurich'],
+    careers: ['Sustainable Architect', 'Environmental Designer'],
+  },
+  animation: {
+    universities: ['RMIT University', 'University of Technology Sydney (UTS)'],
+    careers: ['Animator', 'Storyboard Artist'],
+  },
+  music_performance: {
+    universities: ['Berklee College of Music', 'University of Melbourne'],
+    careers: ['Professional Musician', 'Music Director'],
+  },
+  music_technology: {
+    universities: ['Berklee College of Music', 'New York University (NYU)'],
+    careers: ['Audio Engineer', 'Sound Designer'],
+  },
+  theatre: {
+    universities: ['New York University (NYU)', 'Yale University'],
+    careers: ['Actor', 'Stage Manager'],
+  },
+  food_tech: {
+    universities: ['RMIT University', 'Monash University'],
+    careers: ['Food Technologist', 'Quality Assurance Manager'],
+  },
+  health: {
+    universities: ['Karolinska Institute', 'Johns Hopkins University'],
+    careers: ['Public Health Educator', 'Health Administrator'],
+  },
+  french: {
+    universities: ['Sciences Po', 'University of Oxford'],
+    careers: ['Translator', 'Foreign Service Officer'],
+  },
+  german: {
+    universities: ['University of Cambridge', 'University of Amsterdam'],
+    careers: ['Interpreter', 'International Trade Specialist'],
+  },
+  spanish: {
+    universities: ['University of Sydney', 'Columbia University'],
+    careers: ['Localization Specialist', 'Spanish Teacher'],
+  },
+  information_systems: {
+    universities: ['UNSW Sydney', 'University of Toronto'],
+    careers: ['Systems Analyst', 'IT Manager'],
+  },
+  information_technology: {
+    universities: ['MIT', 'Stanford University'],
+    careers: ['Software Developer', 'Cybersecurity Analyst'],
+  },
+  intro_engineering: {
+    universities: ['Imperial College London', 'MIT'],
+    careers: ['Civil Engineer', 'Mechanical Engineer'],
+  },
+  literature: {
+    universities: ['University of Edinburgh', 'University of Oxford'],
+    careers: ['Author', 'Editorial Assistant'],
+  },
+  creative_writing: {
+    universities: ['Columbia University', 'New York University (NYU)'],
+    careers: ['Novelist', 'Copywriter'],
+  },
+  english_writing: {
+    universities: ['University of Cambridge', 'University College London (UCL)'],
+    careers: ['Linguist', 'ESL Teacher'],
+  },
+};
+
+const getLanguagePathway = (language) => CAREER_UNI_PATHWAYS[String(language || '').toLowerCase()] || {
+  universities: [],
+  careers: [],
+};
+
+function getCareerUniPathway(elective) {
+  if (!elective) return { universities: [], careers: [] };
+  const direct = CAREER_UNI_PATHWAYS[elective.id];
+  if (direct) return direct;
+  const language = ['French', 'German', 'Spanish'].find(lang =>
+    elective.name === lang || elective.name?.startsWith(`${lang} `) || elective.name?.startsWith(`${lang} —`)
+  );
+  if (language) return getLanguagePathway(language);
+  return {
+    universities: elective.universities || [],
+    careers: elective.careers || [],
+  };
+}
+
+ALL_ELECTIVES.forEach(elective => {
+  const pathway = CAREER_UNI_PATHWAYS[elective.id];
+  if (pathway) {
+    elective.universities = pathway.universities;
+    elective.careers = pathway.careers;
+  }
+});
+
 const ALL_PROGRAM_SUBJECTS = [
   'English','Mathematics','Science','Humanities',
   ...ALL_ELECTIVES.map(e => e.name),
@@ -3767,14 +3933,15 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     const newSugs = [...suggestions];
     const newDisplaced = { ...langDisplaced };
     available.forEach(({ idx, s }, unit) => {
+      const langPathway = getLanguagePathway(lang);
       newDisplaced[idx] = s;
       newSugs[idx] = {
         id: `lang_${idx}`,
         name: `${lang} — Unit ${unit + 1}`,
         category: 'language', badge: 'badge-language',
         description: `Year 10 ${lang} continuation — Unit ${unit + 1}. Building on Year 9 ${lang} vocabulary, grammar and conversational skills.`,
-        careers: ['Interpreter / Translator', 'Diplomat', 'International Business', 'Tourism Professional'],
-        universities: [],
+        careers: langPathway.careers,
+        universities: langPathway.universities,
       };
     });
     setLangDisplaced(newDisplaced);
@@ -4548,16 +4715,15 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
                 <div className="map-col-title">Universities</div>
               </div>
               {suggestions.map(elective => {
-                const preferredUnis = submittedData?.studentData?.universities || [];
-                const linked = elective.universities || [];
-                const matched = linked.filter(u => preferredUnis.some(p => u.includes(p.split(' ')[0]) || p.includes(u.split(' ')[0])));
-                const displayUnis = matched.length > 0 ? matched : linked.slice(0, 2);
+                const pathway = getCareerUniPathway(elective);
+                const displayCareers = pathway.careers.slice(0, 2);
+                const displayUnis = pathway.universities.slice(0, 2);
                 return (
                   <div className="map-row" key={elective.id}>
                     <div className={`map-node elective-node ${elective.badge}`}>{elective.name}</div>
                     <div className="map-arrow-cell">→</div>
                     <div className="map-multi">
-                      {(elective.careers||[]).slice(0,2).map((c,i) => <div key={i} className="map-node career-node">{c}</div>)}
+                      {displayCareers.map((c,i) => <div key={i} className="map-node career-node">{c}</div>)}
                     </div>
                     <div className="map-arrow-cell">→</div>
                     <div className="map-multi">
