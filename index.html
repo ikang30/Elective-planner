@@ -443,6 +443,72 @@
     }
     .filter-chip:hover { border-color: var(--primary-light); color: var(--primary); }
     .filter-chip.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .program-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .75rem; align-items: center; margin-bottom: .9rem; }
+    .program-summary { font-size: .8rem; font-weight: 700; color: var(--text-muted); }
+    .program-year-toggle {
+      border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted);
+      border-radius: 9px; padding: .45rem .85rem; font-size: .8rem; font-weight: 700;
+      display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; transition: all .15s;
+    }
+    .program-year-toggle:hover { border-color: var(--primary-light); color: var(--primary); }
+    .program-year-toggle.active { background: #eef2ff; color: var(--primary); border-color: var(--primary-light); }
+    .program-pinned-strip {
+      background: linear-gradient(135deg, #f8fafc, #eef2ff);
+      border: 1px solid var(--border); border-radius: 12px; padding: .95rem 1rem;
+      margin-bottom: 1rem; box-shadow: var(--shadow);
+    }
+    .program-pinned-title {
+      font-size: .72rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+      color: var(--text-muted); margin-bottom: .55rem;
+    }
+    .program-pinned-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .program-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+    .program-card {
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px;
+      box-shadow: var(--shadow); padding: 1rem; display: flex; flex-direction: column;
+      gap: .65rem; min-height: 245px; transition: transform .15s, box-shadow .15s, border-color .15s, opacity .15s;
+    }
+    .program-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .program-card.ended { background: #f8fafc; opacity: .66; filter: grayscale(.45); }
+    .program-card.attending {
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
+      border-color: #f59e0b; box-shadow: 0 10px 34px rgba(245,158,11,.24);
+      opacity: 1; filter: none;
+    }
+    .program-card-top { display: flex; justify-content: space-between; gap: .65rem; align-items: flex-start; }
+    .program-subject-tag {
+      display: inline-flex; align-items: center; gap: .25rem; padding: .22rem .58rem;
+      border-radius: 999px; background: #eef2ff; color: var(--primary);
+      font-size: .7rem; font-weight: 800; line-height: 1.2;
+    }
+    .program-status {
+      flex-shrink: 0; padding: .2rem .55rem; border-radius: 999px;
+      font-size: .68rem; font-weight: 800; line-height: 1.2;
+    }
+    .program-status.open { background: #dcfce7; color: #166534; }
+    .program-status.ended { background: #e2e8f0; color: #475569; }
+    .program-status.attending { background: #f59e0b; color: #fff; }
+    .program-title { font-size: .98rem; font-weight: 850; line-height: 1.25; color: var(--text); }
+    .program-meta { display: flex; flex-wrap: wrap; gap: .4rem; font-size: .75rem; color: var(--text-muted); }
+    .program-meta span {
+      background: var(--surface2); border: 1px solid var(--border); border-radius: 7px;
+      padding: .22rem .45rem;
+    }
+    .program-card.attending .program-meta span { background: rgba(255,255,255,.58); border-color: #fde68a; }
+    .program-desc { font-size: .82rem; color: var(--text-muted); line-height: 1.5; }
+    .program-actions { margin-top: auto; display: flex; align-items: center; justify-content: space-between; gap: .7rem; flex-wrap: wrap; }
+    .program-attend-btn {
+      border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted);
+      border-radius: 8px; padding: .42rem .7rem; font-size: .78rem; font-weight: 800;
+      cursor: pointer; display: inline-flex; align-items: center; gap: .35rem; transition: all .15s;
+    }
+    .program-attend-btn:hover { border-color: #f59e0b; color: #92400e; background: #fffbeb; }
+    .program-attend-btn.active { border-color: #f59e0b; background: #f59e0b; color: #fff; }
+    .program-link {
+      color: var(--primary); font-size: .78rem; font-weight: 800;
+      display: inline-flex; align-items: center; gap: .3rem; text-decoration: none;
+    }
+    .program-link:hover { text-decoration: underline; }
     .empty-programs {
       text-align: center; padding: 3rem 1.5rem; background: var(--surface);
       border: 1px dashed var(--border); border-radius: var(--radius);
@@ -450,6 +516,10 @@
     .empty-programs-emoji { font-size: 2.5rem; margin-bottom: .75rem; }
     .empty-programs-text { font-size: .95rem; font-weight: 600; color: var(--text-muted); }
     .empty-programs-sub { font-size: .83rem; color: var(--text-muted); margin-top: .3rem; }
+    @media (max-width: 780px) {
+      .program-grid { grid-template-columns: 1fr; }
+      .program-card { min-height: unset; }
+    }
 
     /* ═══ CAREER MAP ═══ */
     .career-map {
@@ -1063,6 +1133,1673 @@ const ALL_ELECTIVES = [
 const ALL_PROGRAM_SUBJECTS = [
   'English','Mathematics','Science','Humanities',
   ...ALL_ELECTIVES.map(e => e.name),
+];
+
+const OUTSIDE_PROGRAMS = [
+  {
+    "subject": "English",
+    "title": "The Queen's Commonwealth Writing Competition",
+    "years": "Years 9-12",
+    "description": "Students write an original piece on a designated theme, sharpening their expressive communication and giving them a globally recognized writing credential.",
+    "viableDate": "Annually, entries typically close April 30.",
+    "link": "https://www.royalcwsociety.org/",
+    "id": "program_1",
+    "endDate": "2026-04-30",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "English",
+    "title": "What Matters? Writing Competition",
+    "years": "Years 9-12",
+    "description": "This national event asks students to write about an issue they care deeply about, building critical thinking skills and adding a strong, persuasive piece to their academic portfolio.",
+    "viableDate": "Annually, submissions typically close May 15.",
+    "link": "https://www.whitlam.org/what-matters",
+    "id": "program_2",
+    "endDate": "2026-05-15",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "English",
+    "title": "Dorothea Mackellar Poetry Awards",
+    "years": "Years 9-12",
+    "description": "Students from mainstream or home schools can submit up to three original poems, fostering creative expression and adding a recognized literary award to their resume.",
+    "viableDate": "Entries are open from March 1 to June 30, 2026.",
+    "link": "https://dorothea.com.au/",
+    "id": "program_3",
+    "endDate": "2026-06-30",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "English",
+    "title": "John Marsden & Hachette Australia Prize",
+    "years": "Years 9-12",
+    "description": "Secondary school-aged students submit works of fiction, creative nonfiction, or poetry, offering a chance for publication and mentorship that looks incredible on university applications.",
+    "viableDate": "Annually, usually closes around mid-year.",
+    "link": "https://expressmedia.org.au/",
+    "id": "program_4",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "English",
+    "title": "Somerset National Poetry Prize",
+    "years": "Years 9-12",
+    "description": "Students compete in Junior or Senior categories by submitting original poetry, helping them refine their writing skills and gain national literary recognition.",
+    "viableDate": "Entries close December 4, 2026.",
+    "link": "https://www.storyfest.com.au/poetry-prize",
+    "id": "program_5",
+    "endDate": "2026-12-04",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "English",
+    "title": "AWC Furious Fiction",
+    "years": "Year 11-12 / Ages 17+",
+    "description": "Students 17 and older write a 500-word flash fiction story based on a prompt, testing their ability to work under extreme pressure and creatively problem-solve.",
+    "viableDate": "Opens June 5, 2026, and closes exactly 55 hours later.",
+    "link": "https://www.writerscentre.com.au/furious-fiction/",
+    "id": "program_6",
+    "endDate": "2026-06-05",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "English",
+    "title": "Heywire Youth Innovation Grants",
+    "years": "Years 10-12",
+    "description": "Young people submit project ideas to address issues in their local communities, proving strong leadership, social awareness, and grant-writing capabilities.",
+    "viableDate": "Full applications are open from April 1 to April 30, 2026.",
+    "link": "https://frrr.org.au/",
+    "id": "program_7",
+    "endDate": "2026-04-30",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Mathematics",
+    "title": "Australian Mathematics Competition",
+    "years": "Years 9-12",
+    "description": "Students from years 6 to 12 complete a paper-based problem-solving exam, demonstrating their analytical talent on a massive national scale.",
+    "viableDate": "August 6, 2026.",
+    "link": "https://www.amt.edu.au/",
+    "id": "program_8",
+    "endDate": "2026-08-06",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Mathematics",
+    "title": "Melbourne University School Mathematics Competition",
+    "years": "Years 9-12",
+    "description": "Students from years 7 to 12 tackle a two-to-three-hour paper-based exam, marking them as top-tier math talent for advanced university pathways.",
+    "viableDate": "May 6, 2026.",
+    "link": "https://mathscomp.ms.unimelb.edu.au/",
+    "id": "program_9",
+    "endDate": "2026-05-06",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Mathematics",
+    "title": "ICAS Mathematics",
+    "years": "Years 9-12",
+    "description": "Students are assessed on logic, algebra, and geometry under strict timed conditions, providing a benchmarked certificate that proves their quantitative skills internationally.",
+    "viableDate": "Registration closes August 19, 2026, and the sitting period is September 7 to September 15, 2026.",
+    "link": "https://www.icasassessments.com/",
+    "id": "program_10",
+    "endDate": "2026-09-15",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Mathematics",
+    "title": "Australian Intermediate Mathematics Olympiad - AIMO",
+    "years": "Years 9-10",
+    "description": "A grueling four-hour exam that stretches problem-solving abilities to the limit, marking the student as top-tier math talent for advanced pathways.",
+    "viableDate": "Annually, registrations usually close in September.",
+    "link": "https://amt.edu.au/aimo",
+    "id": "program_11",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Mathematics",
+    "title": "International Mathematical Modeling Challenge - IM²C",
+    "years": "Years 9-12",
+    "description": "Teams of students use math to solve complex, real-world problems over consecutive days, heavily boosting their collaborative skills and academic prestige.",
+    "viableDate": "Annually, March.",
+    "link": "https://www.immchallenge.org.au/",
+    "id": "program_12",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Science",
+    "title": "National Youth Science Forum - NYSF Year 12 Program",
+    "years": "Year 11",
+    "description": "Year 11 students stay at university campuses like ANU or UQ to engage with researchers and industry partners, heavily boosting their STEM career pathways and university competitiveness.",
+    "viableDate": "Registrations close June 24, 2026, for the January 2027 sessions.",
+    "link": "https://www.nysf.edu.au/",
+    "id": "program_13",
+    "endDate": "2026-06-24",
+    "yearLevels": [
+      11
+    ]
+  },
+  {
+    "subject": "Science",
+    "title": "National Youth STEM Summit",
+    "years": "Years 9-12",
+    "description": "Students gather in Canberra to participate in intensive science and tech forums, networking with professionals and building a deep understanding of STEM applications.",
+    "viableDate": "September 12 to September 14, 2026.",
+    "link": "https://www.nysf.edu.au/",
+    "id": "program_14",
+    "endDate": "2026-09-14",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Science",
+    "title": "ICAS Science",
+    "years": "Years 9-12",
+    "description": "This competition tests students' logical reasoning and scientific problem-solving skills under timed conditions, serving as a strong global benchmark for university applications.",
+    "viableDate": "Registration closes August 19, 2026, and the sitting period is September 14 to September 22, 2026.",
+    "link": "https://www.icasassessments.com/",
+    "id": "program_15",
+    "endDate": "2026-09-22",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Science",
+    "title": "Science Talent Search Victoria",
+    "years": "Years 9-12",
+    "description": "Students dive into their own scientific passions by creating experimental research or working models, strongly validating their practical and hands-on STEM capabilities.",
+    "viableDate": "Annually, March to May.",
+    "link": "https://stav.org.au/",
+    "id": "program_16",
+    "endDate": "2026-05-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Science",
+    "title": "Australian Science Olympiads",
+    "years": "Years 10-12",
+    "description": "These highly competitive exams across subjects like Physics and Biology identify the best students for international teams, offering elite academic proof of their science knowledge.",
+    "viableDate": "Annually, exams take place in late July.",
+    "link": "https://asi.edu.au/",
+    "id": "program_17",
+    "endDate": null,
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Humanities",
+    "title": "The Simpson Prize",
+    "years": "Years 9-10",
+    "description": "Year 9 and 10 students evaluate historical evidence like diary entries and photographs from WWI or WWII, showcasing their deep historical analysis and research capabilities.",
+    "viableDate": "The 2026 competition was launched around March and usually closes in early November.",
+    "link": "https://www.simpsonprize.org/",
+    "id": "program_18",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Humanities",
+    "title": "National History Challenge",
+    "years": "Years 9-12",
+    "description": "Students submit independent research entries, honing their deep investigative skills and producing work that looks phenomenal for humanities-focused applications.",
+    "viableDate": "Annually, online entries usually close in August.",
+    "link": "https://historychallenge.org.au/",
+    "id": "program_19",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Humanities",
+    "title": "Evatt Competition - UN Youth Australia",
+    "years": "Years 9-12",
+    "description": "This Model UN competition builds debating, negotiation, and public speaking skills while providing practical experience in international relations.",
+    "viableDate": "Annually, rounds usually take place from May to August.",
+    "link": "https://unyouth.org.au/event/evatt/",
+    "id": "program_20",
+    "endDate": "2026-08-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Humanities",
+    "title": "Australian Geography Competition",
+    "years": "Years 9-12",
+    "description": "A contest testing geographical knowledge and spatial understanding, giving students a chance to push their analytical limits and gain national recognition.",
+    "viableDate": "Held annually, usually over a couple of weeks in May.",
+    "link": "https://www.geographycompetition.org.au/",
+    "id": "program_21",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Humanities",
+    "title": "Australian History Competition",
+    "years": "Years 9-10",
+    "description": "A national test assessing historical knowledge and source analysis skills, giving younger high schoolers a verified academic credential in the humanities.",
+    "viableDate": "Annually, usually late May.",
+    "link": "https://australianhistorycompetition.org.au/",
+    "id": "program_22",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Literature",
+    "title": "Boroondara Literary Awards - Young Writers Category",
+    "years": "Years 9-12",
+    "description": "You submit prose or poetry to a well-known Melbourne council competition, boosting your creative confidence and adding a highly respected local award to your portfolio.",
+    "viableDate": "Annually, entries open in May and close in late July.",
+    "link": "https://www.boroondara.vic.gov.au/about-council/awards/boroondara-literary-awards",
+    "id": "program_23",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Literature",
+    "title": "Inky Awards Shadow Judging",
+    "years": "Years 9-12",
+    "description": "You get to read and critically evaluate young adult literature alongside the official judges, sharpening your analytical reading skills and proving your deep engagement with contemporary texts.",
+    "viableDate": "Annually, shadowing programs usually run from March to August.",
+    "link": "https://insideadog.com.au/",
+    "id": "program_24",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Literature",
+    "title": "Bell Shakespeare Shorts Festival",
+    "years": "Years 9-12",
+    "description": "You create a short film inspired by Shakespeare's works, blending literary analysis with digital creativity to show universities your innovative approach to classic texts.",
+    "viableDate": "Annually, submissions usually close in late October.",
+    "link": "https://www.bellshakespeare.com.au/shorts-festival",
+    "id": "program_25",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Creative Writing",
+    "title": "Future Leaders Writing Prize",
+    "years": "Years 11-12",
+    "description": "You write a piece of fiction or non-fiction aimed at inspiring leadership, giving you a chance to be published in an anthology and showcasing your mature writing voice.",
+    "viableDate": "Annually, submissions close May 1.",
+    "link": "http://www.futureleaders.com.au/awards/",
+    "id": "program_26",
+    "endDate": "2026-05-01",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Creative Writing",
+    "title": "My Brother Jack Awards",
+    "years": "Years 9-12",
+    "description": "Local Melbourne students submit original stories or poems to the Glen Eira council, letting you flex your imaginative muscles and gain recognition in a famous local literary contest.",
+    "viableDate": "Annually, entries usually open in June and close in late July.",
+    "link": "https://www.gleneira.vic.gov.au/services/libraries/my-brother-jack",
+    "id": "program_27",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Creative Writing",
+    "title": "Insight Creative Writing Competition",
+    "years": "Years 9-12",
+    "description": "You write a short story based on a specific prompt, challenging your ability to think creatively on the spot and earning serious academic bragging rights (plus cash prizes).",
+    "viableDate": "Annually, submissions typically close in early August.",
+    "link": "https://www.insightpublications.com.au/",
+    "id": "program_28",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Creative Writing",
+    "title": "Manningham Youth Writing Competition",
+    "years": "Years 9-12",
+    "description": "Another great local Melbourne competition where you write a short story or poem, perfect for building up your writing portfolio and connecting with the local arts community.",
+    "viableDate": "Annually, entries usually close in August.",
+    "link": "https://www.manningham.vic.gov.au/",
+    "id": "program_29",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "The English Language",
+    "title": "Australian Computational and Linguistics Olympiad - OzCLO",
+    "years": "Years 9-12",
+    "description": "You work in teams to solve fascinating language and linguistics puzzles, heavily proving your analytical logic and deep understanding of language structures for elite university pathways.",
+    "viableDate": "Annually, registrations close in February, with the first round in March.",
+    "link": "https://www.ozclo.org.au/",
+    "id": "program_30",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "The English Language",
+    "title": "Plain English Speaking Award - PESA",
+    "years": "Years 10-12",
+    "description": "You prepare and deliver speeches testing your ability to communicate clearly and effectively, massively boosting your public speaking confidence and showcasing your mastery of spoken English.",
+    "viableDate": "Annually, Victorian state heats usually run throughout May.",
+    "link": "https://www.vcaa.vic.edu.au/studentguides/studentawards/pesa/Pages/Index.aspx",
+    "id": "program_31",
+    "endDate": null,
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "The English Language",
+    "title": "Debating Association of Victoria (DAV) Schools Competition",
+    "years": "Years 9-12",
+    "description": "You debate complex topics against other Melbourne schools, building incredibly sharp rhetorical skills and proving your ability to construct and deconstruct language on the fly.",
+    "viableDate": "Annually, registration closes in February with debates running March through August.",
+    "link": "https://www.dav.com.au/",
+    "id": "program_32",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "The English Language",
+    "title": "Rostrum Voice of Youth",
+    "years": "Years 9-12",
+    "description": "A national public speaking competition where you deliver prepared and short-notice speeches, helping you conquer performance anxiety and adding a prestigious communication award to your resume.",
+    "viableDate": "Annually, entries usually close in April, with heats in May.",
+    "link": "https://www.rostrum.com.au/rvoy/",
+    "id": "program_33",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "History",
+    "title": "Premier's Spirit of Anzac Prize",
+    "years": "Years 9-12",
+    "description": "Victorian students explore the Anzac legacy through an essay or creative project, offering the chance to win an overseas study tour and proving your exceptional historical empathy and research skills.",
+    "viableDate": "Annually, applications usually open in March and close in May.",
+    "link": "https://www.vic.gov.au/premiers-spirit-anzac-prize",
+    "id": "program_34",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "History",
+    "title": "HTAV Historical Fiction Competition",
+    "years": "Years 9-10",
+    "description": "You write a historically accurate fictional story, blending rigorous historical research with creative writing to show a unique, well-rounded grasp of the past.",
+    "viableDate": "Annually, entries typically close in late July.",
+    "link": "https://www.htav.asn.au/",
+    "id": "program_35",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "History",
+    "title": "John Button School Prize",
+    "years": "Years 10-12",
+    "description": "You write an essay on a subject concerning Australia's future, politics, or history, marking you as a deep thinker on societal issues for top-tier humanities programs.",
+    "viableDate": "Annually, submissions usually close in June.",
+    "link": "https://arts.unimelb.edu.au/school-of-social-and-political-sciences/about/the-john-button-fund/john-button-school-prize",
+    "id": "program_36",
+    "endDate": null,
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "History",
+    "title": "National History Challenge",
+    "years": "Years 9-12",
+    "description": "(Mentioned this one earlier, but it is the absolute best fit for History!) You submit independent research entries based on a specific historical theme, honing your deep investigative skills.",
+    "viableDate": "Annually, online entries usually close in August.",
+    "link": "https://historychallenge.org.au/",
+    "id": "program_37",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Geography",
+    "title": "Australian Geography Competition",
+    "years": "Years 9-12",
+    "description": "You tackle a multiple-choice contest that tests your geographical knowledge and skills, rewarding you with serious academic recognition and pushing your interest in geography.",
+    "viableDate": "The entry deadline is March 20, 2026, and the competition runs from April 29 to May 13, 2026.",
+    "link": "https://geographycompetition.org.au/",
+    "id": "program_38",
+    "endDate": "2026-05-13",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Geography",
+    "title": "Geography's Big Week Out",
+    "years": "Year 11",
+    "description": "Top scorers from the Australian Geography Competition get chosen to join this intense geography camp, massively boosting fieldwork skills and acting as the ultimate resume standout.",
+    "viableDate": "Runs from September 27 to October 1, 2026.",
+    "link": "https://geographycompetition.org.au/",
+    "id": "program_39",
+    "endDate": "2026-10-01",
+    "yearLevels": [
+      11
+    ]
+  },
+  {
+    "subject": "Geography",
+    "title": "International Geography Olympiad",
+    "years": "Years 11-12",
+    "description": "You represent Australia globally against the best of the best, solidifying your status as an elite geography student.",
+    "viableDate": "Scheduled for August 10 to August 17, 2026.",
+    "link": "https://geographycompetition.org.au/",
+    "id": "program_40",
+    "endDate": "2026-08-17",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Commerce Business & Legal",
+    "title": "Plan Your Own Enterprise (PYOE) Competition",
+    "years": "Years 9-12",
+    "description": "You create a real-world business plan individually or in a team, giving you hands-on experience in market analysis and strategy while building essential entrepreneurial skills.",
+    "viableDate": "Entries can be submitted anytime but strictly close on September 7, 2026.",
+    "link": "https://bea.asn.au/pyoe/",
+    "id": "program_41",
+    "endDate": "2026-09-07",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Commerce Business & Legal",
+    "title": "Bond University National High School Mooting Competition",
+    "years": "Years 11-12",
+    "description": "You argue a fictional civil trial case before law professors, seriously developing your legal research and advocacy skills for a future in law.",
+    "viableDate": "Annually, usually runs around May (e.g., late May).",
+    "link": "https://bond.edu.au",
+    "id": "program_42",
+    "endDate": null,
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Commerce Business & Legal",
+    "title": "The Harvard Crimson Global Case Competition",
+    "years": "Years 9-12",
+    "description": "You solve complex business cases on a global stage, proving your elite commercial thinking and problem-solving abilities to top universities.",
+    "viableDate": "Annually, dates vary but applications typically open early in the year.",
+    "link": "https://www.crimsoneducation.org",
+    "id": "program_43",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Commerce Economics & Finance",
+    "title": "ASX Schools Sharemarket Game",
+    "years": "Years 9-12",
+    "description": "You trade a virtual $50,000 portfolio on the live market, teaching you real-world investing strategies and adding hardcore financial literacy to your academic profile.",
+    "viableDate": "Game 1 runs from March 12 to May 21, 2026 (applications close April 20, 2026), and Game 2 runs from August 13 to October 22, 2026.",
+    "link": "https://www.asx.com.au/investors/investment-tools-and-resources/sharemarket-game",
+    "id": "program_44",
+    "endDate": "2026-05-21",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Commerce Economics & Finance",
+    "title": "RBA Economics Competition",
+    "years": "Years 11-12",
+    "description": "You write an essay on a challenging economic issue chosen by the Reserve Bank, demonstrating elite analytical skills that top finance degrees look for.",
+    "viableDate": "Annually, submissions are usually due around August.",
+    "link": "https://www.rba.gov.au",
+    "id": "program_45",
+    "endDate": null,
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Commerce Economics & Finance",
+    "title": "QUT BlueShift Business Case Competition",
+    "years": "Years 11-12",
+    "description": "You work in a team to solve a real corporate business problem, drastically improving your financial strategy skills and presentation confidence.",
+    "viableDate": "Annually, usually takes place in May.",
+    "link": "https://www.qut.edu.au",
+    "id": "program_46",
+    "endDate": null,
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Global Conflict & Crisis",
+    "title": "UN Youth Evatt Competition",
+    "years": "Years 9-12",
+    "description": "You engage in a fierce Model UN debate focusing on global security and conflict, leveling up your diplomacy and negotiation skills for international relations pathways.",
+    "viableDate": "Annually, preliminary rounds typically happen from May to August.",
+    "link": "https://unyouth.org.au/event/evatt/",
+    "id": "program_47",
+    "endDate": "2026-08-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Global Conflict & Crisis",
+    "title": "UN Youth Voice Competition",
+    "years": "Years 9-10",
+    "description": "You pitch innovative solutions to global crises, building incredible public speaking confidence and a deep awareness of international conflict.",
+    "viableDate": "Annually, usually held in Terms 3 and 4 (roughly August to November).",
+    "link": "https://unyouth.org.au/event/voice/",
+    "id": "program_48",
+    "endDate": "2026-11-30",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Global Conflict & Crisis",
+    "title": "Amnesty International Youth Advisory Group",
+    "years": "Years 9-12",
+    "description": "You actively campaign on real human rights crises, showing universities your dedication to global justice and practical activism.",
+    "viableDate": "Intake periods vary; look out for applications opening early in the year.",
+    "link": "https://www.amnesty.org.au",
+    "id": "program_49",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Make My Day Science",
+    "title": "Think Science! Competition",
+    "years": "Years 9-10",
+    "description": "Students run a scientific investigation and present their findings in a 4-5 minute video, building practical inquiry skills and practicing how to communicate real scientific evidence clearly.",
+    "viableDate": "Entries are due by July 3, 2026.",
+    "link": "https://www.ansto.gov.au/education/think-science-competition",
+    "id": "program_50",
+    "endDate": "2026-07-03",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Make My Day Science",
+    "title": "Big Science Competition",
+    "years": "Years 9-10",
+    "description": "A 50-minute online test that challenges critical thinking and problem-solving through real-life, contemporary science scenarios, offering a benchmarked international certificate.",
+    "viableDate": "The sitting period runs from May 4 to May 15, 2026.",
+    "link": "https://asi.edu.au/program/big-science-competition/",
+    "id": "program_51",
+    "endDate": "2026-05-15",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Make My Day Science",
+    "title": "Science and Engineering Challenge - Melbourne/Deakin University",
+    "years": "Years 9-10",
+    "description": "Teams compete in hands-on activities like designing earthquake-proof towers or providing electricity to a city, heavily igniting passion for STEM and pushing collaborative problem-solving.",
+    "viableDate": "The Melbourne Burwood Campus event runs June 16 to June 17, 2026.",
+    "link": "https://www.deakin.edu.au/faculty-of-science-engineering-and-built-environment/outreach/challenge",
+    "id": "program_52",
+    "endDate": "2026-06-17",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Make My Day Science",
+    "title": "Global Design Challenge",
+    "years": "Years 9-10",
+    "description": "Delivered by local Victorian STEM centres like KIOSC, students collaborate internationally using speculative design to solve real-world problems like clean energy, massively boosting global competency and practical STEM application.",
+    "viableDate": "Programs run throughout Terms 2, 3, and 4 in 2026.",
+    "link": "https://www.study.vic.gov.au/en/global-learning-and-engagement/student-programs/global-design-challenge",
+    "id": "program_53",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Environmental Science",
+    "title": "Australian Science Olympiad - Earth and Environmental Science",
+    "years": "Years 10-12",
+    "description": "An incredibly challenging online exam that tests advanced environmental knowledge, serving as an elite academic credential for future university applications.",
+    "viableDate": "Registrations close July 21, 2026, and the exam is on July 29, 2026.",
+    "link": "https://asi.edu.au/",
+    "id": "program_54",
+    "endDate": "2026-07-21",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Environmental Science",
+    "title": "The Earth Prize",
+    "years": "Years 9-12",
+    "description": "This massive global competition tasks teams with developing innovative projects to address critical environmental issues, empowering youth to create actionable solutions while competing for major grant funding.",
+    "viableDate": "Registrations close January 10, 2026, and submissions are due February 28, 2026.",
+    "link": "https://www.theearthprize.org/2026",
+    "id": "program_55",
+    "endDate": "2026-01-10",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Environmental Science",
+    "title": "The Young Scientist Competition of Victoria",
+    "years": "Years 10-12",
+    "description": "Local Victorian students present original ideas, physical installations, or prototypes addressing real-world sustainability issues, providing a highly recognized state-level platform to prove their innovation skills.",
+    "viableDate": "Submissions open June 1, 2026, and close July 26, 2026.",
+    "link": "https://youngscientist.org.au/",
+    "id": "program_56",
+    "endDate": "2026-06-01",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Environmental Science",
+    "title": "Soil Week Australia Schools Competition",
+    "years": "Years 9-12",
+    "description": "Students conduct research or creative projects investigating soil health and its connection to broader ecosystems, proving their solid grasp of vital environmental systems.",
+    "viableDate": "Details for the 2026 competition were posted in March; exact entry deadlines usually fall mid-year (annually).",
+    "link": "https://www.sasta.asn.au/blog/2026/03/05/soil_week_australia_schools_competition",
+    "id": "program_57",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Physics",
+    "title": "Australian Science Olympiad - Physics",
+    "years": "Years 10-12",
+    "description": "A grueling two-hour exam that benchmarks your physics capability on a national scale, helping to identify the absolute top-tier students for international selection.",
+    "viableDate": "Registrations close July 21, 2026, and the exam is on July 27, 2026.",
+    "link": "https://asi.edu.au/",
+    "id": "program_58",
+    "endDate": "2026-07-21",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Physics",
+    "title": "International Young Physicists' Tournament (IYPT) Australia",
+    "years": "Years 9-12",
+    "description": "Teams intensely research and debate complex physics problems in \"Physics Fights,\" massively boosting collaborative research, scientific communication, and analytical thinking.",
+    "viableDate": "Held annually, usually around mid-year (keep an eye out for updated team selection dates).",
+    "link": "https://www.iyptaustralia.org/",
+    "id": "program_59",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Biology",
+    "title": "Australian Science Olympiad - Biology",
+    "years": "Years 10-12",
+    "description": "A rigorous national exam testing deep biological knowledge, offering elite academic proof of your science capabilities for competitive pathways.",
+    "viableDate": "Registrations close July 21, 2026, and the exam is on July 28, 2026.",
+    "link": "https://asi.edu.au/",
+    "id": "program_60",
+    "endDate": "2026-07-21",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Biology",
+    "title": "International Biology Olympiad - IBO",
+    "years": "Years 11-12",
+    "description": "An elite global competition where top national students compete internationally, representing the pinnacle of high school biology achievement.",
+    "viableDate": "The 2026 international event runs from July 12 to July 19, 2026.",
+    "link": "https://en.wikipedia.org/wiki/International_Biology_Olympiad",
+    "id": "program_61",
+    "endDate": "2026-07-19",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Chemistry",
+    "title": "Australian Science Olympiad - Chemistry",
+    "years": "Years 10-12",
+    "description": "A grueling national exam benchmarking chemistry knowledge to select top-tier students for international competition, proving elite STEM capabilities.",
+    "viableDate": "Registrations close July 21, 2026, and the exam is on July 30, 2026.",
+    "link": "https://asi.edu.au/program/australian-science-olympiads/",
+    "id": "program_62",
+    "endDate": "2026-07-21",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Chemistry",
+    "title": "Junior Science Olympiad - Chemistry",
+    "years": "Years 9-10",
+    "description": "A staged enrichment exam for highly motivated younger high schoolers, evaluating their fundamental chemistry logic for future advanced pathways.",
+    "viableDate": "Registrations close prior to the exam dates on June 10 and June 12, 2026.",
+    "link": "https://asi.edu.au/program/junior-science-olympiad/",
+    "id": "program_63",
+    "endDate": "2026-06-12",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Chemistry",
+    "title": "International Chemistry Quiz - ICQ",
+    "years": "Years 9-12",
+    "description": "A dynamic, thought-provoking quiz by the Royal Australian Chemical Institute that goes beyond standard syllabus content, proving a deep analytical interest in chemical sciences.",
+    "viableDate": "Registrations for Round 2 (Australia) close July 17, 2026, with the quiz sitting between August 3 and August 7, 2026.",
+    "link": "https://www.raci.org.au/education-outreach/school-competitions/icq",
+    "id": "program_64",
+    "endDate": "2026-08-07",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "PE for Life",
+    "title": "Australian Sports Camps (ASC) School Holiday Programs",
+    "years": "Years 9-10",
+    "description": "You participate in immersive 2- or 3-day coaching camps across sports like basketball, AFL, or soccer, building lifelong physical activity habits and teamwork skills.",
+    "viableDate": "Winter camps run during the school holidays, such as July 8 to July 10, 2026.",
+    "link": "https://australiansportscamps.com.au",
+    "id": "program_65",
+    "endDate": "2026-07-10",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "PE for Life",
+    "title": "Deakin University Exercise and Sport Science Practicum",
+    "years": "Years 11-12",
+    "description": "Engaging with Deakin's elite sport science facilities during open days or outreach programs gives you hands-on insight into physical health and performance pathways.",
+    "viableDate": "Annually, university open days typically run in August.",
+    "link": "https://www.deakin.edu.au/course/bachelor-exercise-and-sport-science",
+    "id": "program_66",
+    "endDate": null,
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "PE for Life",
+    "title": "Sporting Schools Program Initiatives",
+    "years": "Years 9-10",
+    "description": "High schoolers can assist or participate in free school-based programs to build confidence and capability to be active for life, adding community leadership to your resume.",
+    "viableDate": "Grant applications close June 5, 2026.",
+    "link": "https://www.ausport.gov.au/schools",
+    "id": "program_67",
+    "endDate": "2026-06-05",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Human Movement",
+    "title": "Victoria University Sport and Movement Science Outreach",
+    "years": "Years 10-12",
+    "description": "By attending VU workshops, you get exposure to $68 million high-tech exercise physiology and biomechanics labs, heavily boosting your understanding of human movement science.",
+    "viableDate": "Programs run periodically; Open Days are usually held in August.",
+    "link": "https://www.vu.edu.au/about-vu/teaching-colleges-schools/college-of-sport-health-engineering/sport-movement-science-program",
+    "id": "program_68",
+    "endDate": null,
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Human Movement",
+    "title": "AIS Athlete Education Experience",
+    "years": "Years 10-12",
+    "description": "While full scholarships are for elite athletes, you can engage with Australian Institute of Sport educational resources and tours to understand the rigorous biomechanics behind peak physical performance.",
+    "viableDate": "Scholarship applications close March 31 annually, but tours and education modules are year-round.",
+    "link": "https://www.ausport.gov.au/ais",
+    "id": "program_69",
+    "endDate": "2026-03-31",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Outdoor Ed",
+    "title": "The Duke of Edinburgh's International Award",
+    "years": "Years 9-12",
+    "description": "A globally recognized youth development program where you complete volunteering, physical, skills, and expedition requirements, acting as one of the most prestigious non-academic resume builders.",
+    "viableDate": "Rolling admissions; information sessions run throughout the year.",
+    "link": "https://dukeofed.com.au/",
+    "id": "program_70",
+    "endDate": "2026-12-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Outdoor Ed",
+    "title": "Outward Bound Australia - Junior Adventure",
+    "years": "Years 9-10 / Ages 12-15",
+    "description": "A 5-day outdoor expedition involving navigation, bushcraft, and high ropes, heavily developing independence, resilience, and environmental stewardship.",
+    "viableDate": "Upcoming camps run September 28 to October 2, 2026.",
+    "link": "https://www.outwardbound.org.au/choose-your-adventure/school-holiday-adventures/junior-adventure-act/",
+    "id": "program_71",
+    "endDate": "2026-10-02",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Outdoor Ed",
+    "title": "Outward Bound Australia - Expedition VIC",
+    "years": "Years 10-12 / Ages 15-24",
+    "description": "An intense 10-day adventure involving hiking, paddling, and a solo campout, thoroughly testing your leadership and survival skills for elite character development.",
+    "viableDate": "Runs from September 21 to September 30, 2026.",
+    "link": "https://www.outwardbound.org.au/choose-your-adventure/school-holiday-adventures/expedition-vic/",
+    "id": "program_72",
+    "endDate": "2026-09-30",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Sculpture",
+    "title": "Artz Blitz Exhibition",
+    "years": "Years 9-12 / Ages 13-17 Youth Category",
+    "description": "Competing in this 24-hour creative challenge pushes your time-management and sculptural problem-solving skills under extreme pressure, giving you a uniquely intense arts credential for your portfolio.",
+    "viableDate": "Annually, registration instructions are emailed to participants around early May (e.g., May 6, 2026), with the competition running shortly after.",
+    "link": "https://www.kingstonarts.com.au/whats-on/artz-blitz-2026",
+    "id": "program_73",
+    "endDate": "2026-05-06",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Sculpture",
+    "title": "MACS Creative Arts Exhibition - Zart Art Sculpture & 3D Art Award",
+    "years": "Years 9-12",
+    "description": "Submitting a 3D artwork to this highly curated Catholic schools exhibition validates your advanced structural creativity and gives you prestigious recognition from industry judges like the National Gallery of Victoria.",
+    "viableDate": "Annually, with the 2026 exhibition award winners announced in late March.",
+    "link": "https://www.macs.vic.edu.au/News-Events/2026/march/creative-arts-exhibition-awards",
+    "id": "program_74",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Visual Communication",
+    "title": "Top Designs",
+    "years": "Years 11-12",
+    "description": "Getting your VCE Visual Communication Design folio selected for this Melbourne Museum exhibition marks you as one of the absolute best student designers in the state, making your university application practically bulletproof.",
+    "viableDate": "Annually, the 2026 exhibition runs from April 11 to July 26.",
+    "link": "https://www.vcaa.vic.edu.au/news-and-events/events-and-awards/season-excellence/top-designs",
+    "id": "program_75",
+    "endDate": "2026-07-26",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Visual Communication",
+    "title": "Australian Good Design Awards - Next Gen",
+    "years": "Years 9-12",
+    "description": "Entering a real-world design project for free into this elite international program benchmarks your visual communication skills against top global standards, severely boosting your professional resume.",
+    "viableDate": "The 2026 submission deadline is April 24, 2026.",
+    "link": "https://m.graphiccompetitions.com/multiple-disciplines/2026-australian-good-design-awards/",
+    "id": "program_76",
+    "endDate": "2026-04-24",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Visual Communication",
+    "title": "DESIGN THE WORLD YOU WANT Student Ideas Competition",
+    "years": "Years 9-12",
+    "description": "You get to conceptually redesign Melbourne's Victoria Harbour, massively strengthening your visual presentation and spatial communication skills on an international stage.",
+    "viableDate": "The submission deadline is April 10, 2026.",
+    "link": "https://bustler.net/competitions/10415/design-the-world-you-want-student-ideas-competition",
+    "id": "program_77",
+    "endDate": "2026-04-10",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Art",
+    "title": "Top Arts",
+    "years": "Years 11-12",
+    "description": "Having your VCE Art Making and Exhibiting or Art Creative Practice work displayed at the NGV proves to top universities that you possess elite artistic maturity, conceptual depth, and technical mastery.",
+    "viableDate": "The 2026 exhibition highlights works completed by students in the previous year (2025).",
+    "link": "https://www.ngv.vic.gov.au/exhibition/top-arts-2026/",
+    "id": "program_78",
+    "endDate": null,
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Art",
+    "title": "Youth Art Futures Competition",
+    "years": "Years 9-12 / Ages 12-18 Category",
+    "description": "This Colac Otway Shire exhibition lets you publicly showcase your art and compete for community awards, building essential exhibition experience and confidence in your creative voice.",
+    "viableDate": "Annually, the competition and online exhibition typically run early in the year.",
+    "link": "https://www.colacotway.vic.gov.au/Community-services/Youth-Services/2026-Youth-Art-Futures-Competition-Online-Exhibition",
+    "id": "program_79",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Art",
+    "title": "John Leslie Art Prize",
+    "years": "Years 9-12 / Open",
+    "description": "Entering this major Gippsland painting prize exposes your work to serious professional critique and positions you as a highly ambitious emerging artist ready for the real-world art market.",
+    "viableDate": "Entries open March 5, 2026, and close July 17, 2026.",
+    "link": "https://artsphere.me/Art-Prizes-in-Victoria-Australia-2026-Guide-Deadlines-Entry-Fees-Prize-Money-for~33110",
+    "id": "program_80",
+    "endDate": "2026-07-17",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Ceramics",
+    "title": "Korowa Ceramic Art Prize",
+    "years": "Years 9-12",
+    "description": "Competing for a dedicated secondary student ceramics prize in Melbourne validates your specialized 3D medium skills and provides a professional gallery setting to display your functional or sculptural forms.",
+    "viableDate": "Annually, the 2026 exhibition runs from May 1 to May 3.",
+    "link": "https://www.korowa.vic.edu.au/the-korowa-ceramic-art-prize",
+    "id": "program_81",
+    "endDate": "2026-05-03",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Ceramics",
+    "title": "SURFACE Award - North Coast Ceramics",
+    "years": "Years 9-12 / Student Prize",
+    "description": "Entering this national competition lets you vie for a student-specific woodfiring experience, deeply enriching your hands-on technical abilities and proving your dedication to the craft.",
+    "viableDate": "Entries close December 8, 2025, for the early 2026 exhibition.",
+    "link": "https://www.northcoastceramics.com/surface-award",
+    "id": "program_82",
+    "endDate": "2025-12-08",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Ceramics",
+    "title": "North Queensland Ceramic Awards",
+    "years": "Years 9-12 / Open",
+    "description": "Submitting your pottery alongside established Australian artists in this major biennial award pushes you to elevate your technique and demonstrates fearless creative ambition to art schools.",
+    "viableDate": "The entry form deadline is July 7, 2026.",
+    "link": "https://www.townsville.qld.gov.au/nqca",
+    "id": "program_83",
+    "endDate": "2026-07-07",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Media",
+    "title": "FlickerUp Youth Competition",
+    "years": "Years 9-12",
+    "description": "You create a short film under 35 minutes for this national youth competition, competing for a slot in an Academy Award and BAFTA-qualifying festival that massively elevates your filmmaking resume.",
+    "viableDate": "Entries close November 23, 2025, for the January 2026 festival.",
+    "link": "https://flickerfest.com.au/entries/",
+    "id": "program_84",
+    "endDate": "2025-11-23",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Media",
+    "title": "BUFTA - Bond University Film & Television Awards",
+    "years": "Years 11-12",
+    "description": "You direct and produce a short film to win a full university scholarship, rigorously testing your cinematic storytelling and technical production skills under pressure.",
+    "viableDate": "The Hopes & Dreams Video Deadline is October 5, 2026.",
+    "link": "https://bond.edu.au/bufta",
+    "id": "program_85",
+    "endDate": "2026-10-05",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Media",
+    "title": "ATOM Awards",
+    "years": "Years 9-12",
+    "description": "You submit a short media project like a 1-Minute Film, proving your ability to communicate engaging stories in a highly respected national industry competition.",
+    "viableDate": "Annually, entries typically close around mid-year.",
+    "link": "https://atomawards.org/",
+    "id": "program_86",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Sustainable Design",
+    "title": "Global Design Challenge - KIOSC",
+    "years": "Years 9-10",
+    "description": "You collaborate with international students using speculative design to solve real-world problems like sustainable housing, powerfully boosting your STEM literacy and global design competency.",
+    "viableDate": "Programs run throughout 2026, typically aligned with Victorian school terms.",
+    "link": "https://www.study.vic.gov.au/en/global-learning-and-engagement/student-programs/global-design-challenge",
+    "id": "program_87",
+    "endDate": "2026-12-31",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Sustainable Design",
+    "title": "Sustainable Stirling Student Design Competition",
+    "years": "Years 9-12",
+    "description": "You develop and physically model a cutting-edge sustainable urban infill design for a real suburban block, gaining profound insights into city planning and environmentally conscious architecture.",
+    "viableDate": "The 2026 competition details are updated around April, with entries typically closing in early 2026 (e.g. March).",
+    "link": "https://www.stirling.wa.gov.au/",
+    "id": "program_88",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Animation",
+    "title": "MIAF Australian Student Showcase",
+    "years": "Years 9-12",
+    "description": "You create an original animated film to be screened at the Melbourne International Animation Festival, giving you unparalleled big-screen exposure and networking opportunities with industry pros.",
+    "viableDate": "The festival runs from May 17 to May 24, 2026, so submissions usually close earlier in the year.",
+    "link": "https://miaf.net/",
+    "id": "program_89",
+    "endDate": "2026-05-24",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Animation",
+    "title": "Lutruwita Animation Festival Student Competition",
+    "years": "Years 9-12",
+    "description": "You craft an animated short on any device, developing crucial digital animation skills while competing for a spot in a legit cinema screening.",
+    "viableDate": "Entries close September 9, 2026.",
+    "link": "https://lutaf.org/",
+    "id": "program_90",
+    "endDate": "2026-09-09",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Music Performance Craft",
+    "title": "Strike A Chord",
+    "years": "Years 9-12",
+    "description": "You form a chamber music ensemble of three to eight players and submit a classical performance, radically improving your collaborative musicianship and competing for a live final at the Melbourne Recital Centre.",
+    "viableDate": "Entries are open from May 1 to May 28, 2026.",
+    "link": "https://musicaviva.com.au/strikeachord",
+    "id": "program_91",
+    "endDate": "2026-05-28",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Music Performance Craft",
+    "title": "Boroondara Eisteddfod",
+    "years": "Years 9-12",
+    "description": "You perform a solo or ensemble piece in a highly competitive Melbourne setting, building intense performance resilience and receiving expert adjudication.",
+    "viableDate": "Heats run from May 16 to May 31, 2026, with finals in June.",
+    "link": "https://www.boroondara.vic.gov.au/boroondara-arts/whats/2026-boroondara-eisteddfod",
+    "id": "program_92",
+    "endDate": "2026-05-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Music Performance Craft",
+    "title": "Melbourne Recital Centre Baroque Competition",
+    "years": "Years 9-12",
+    "description": "You perform a piece from the Baroque period in a prestigious venue, demonstrating your elite technical mastery of historical music to top-tier judges.",
+    "viableDate": "The competition performance is on May 30, 2026.",
+    "link": "https://www.melbournerecital.com.au/",
+    "id": "program_93",
+    "endDate": "2026-05-30",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Music Performance Craft",
+    "title": "Australian Youth Classical Music Competition - Regional Section",
+    "years": "Years 9-12",
+    "description": "You audition before a panel of expert musicians to perform at a final concert, thoroughly testing your solo classical performance chops under extreme pressure.",
+    "viableDate": "Annually, auditions usually occur mid-year.",
+    "link": "https://www.aycmc.org.au/",
+    "id": "program_94",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Music Technology",
+    "title": "ACMF National Songwriting Competition",
+    "years": "Years 9-12",
+    "description": "You submit original music tracks, developing your digital audio production and songwriting skills while competing for serious prize money and industry recognition.",
+    "viableDate": "Entries close at midnight on September 21, 2026.",
+    "link": "https://acmf.com.au/national-songwriting-competition/",
+    "id": "program_95",
+    "endDate": "2026-09-21",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Music Technology",
+    "title": "Triple J Unearthed High",
+    "years": "Years 9-12",
+    "description": "You upload an original track to a national radio platform, pushing your music production capabilities and potentially kickstarting a professional music career.",
+    "viableDate": "Annually, submissions typically close around late July.",
+    "link": "https://www.abc.net.au/triplejunearthed/",
+    "id": "program_96",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Theatre",
+    "title": "Victorian State Schools Spectacular",
+    "years": "Years 9-12",
+    "description": "You collaborate with students across the state in a massive arena production, radically building your performance endurance and teamwork skills on a professional-level stage.",
+    "viableDate": "Rehearsals run throughout the year, culminating in September performances.",
+    "link": "https://www.vic.gov.au/victorian-state-schools-spectacular",
+    "id": "program_97",
+    "endDate": "2026-12-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Theatre",
+    "title": "Melbourne Theatre Company (MTC) Youth Scholarship Course",
+    "years": "Year 11",
+    "description": "You participate in an intensive, fully-funded drama program, drastically sharpening your acting technique and giving you an elite credential for performing arts applications.",
+    "viableDate": "Annually, applications usually close around late Term 3.",
+    "link": "https://www.mtc.com.au/discover-more/education/youth-scholarship-course/",
+    "id": "program_98",
+    "endDate": null,
+    "yearLevels": [
+      11
+    ]
+  },
+  {
+    "subject": "Food Tech",
+    "title": "ACF Secondary Schools Culinary Challenge",
+    "years": "Years 10-12",
+    "description": "You prepare and display a main course under strict time limits, building intense kitchen discipline and proving your practical hospitality talents to industry professionals.",
+    "viableDate": "The Victoria regional competition is on June 26, 2026, with the national final in September 2026.",
+    "link": "https://www.austculinary.com.au/2024-secondary-schools-culinary-challenge/",
+    "id": "program_99",
+    "endDate": "2026-06-26",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Food Tech",
+    "title": "Nestlé Golden Chef's Hat Award",
+    "years": "Years 11-12 / Ages 16+",
+    "description": "You compete in a highly respected national culinary cook-off, significantly boosting your industry networking and giving you a major edge for future culinary apprenticeships.",
+    "viableDate": "Entries close on May 15, 2026.",
+    "link": "https://www.austculinary.com.au/competitions/",
+    "id": "program_100",
+    "endDate": "2026-05-15",
+    "yearLevels": [
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Health",
+    "title": "HOSA Australia Competitive Events",
+    "years": "Years 9-12",
+    "description": "You tackle health science knowledge exams and skills challenges at an international leadership conference, serving as incredible academic proof for future medical or healthcare pathways.",
+    "viableDate": "Submissions for the 2026 International Leadership Conference close on May 15, 2026.",
+    "link": "https://hosa.org/",
+    "id": "program_101",
+    "endDate": "2026-05-15",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Health",
+    "title": "Australian Brain Bee Challenge",
+    "years": "Year 10",
+    "description": "You learn about the brain and its functions in a neuroscience competition, expanding your advanced biological knowledge and standing out to top science universities.",
+    "viableDate": "Annually, Round 1 usually takes place in March.",
+    "link": "https://www.ans.org.au/abbc",
+    "id": "program_102",
+    "endDate": null,
+    "yearLevels": [
+      10
+    ]
+  },
+  {
+    "subject": "Information Systems",
+    "title": "Young ICT Explorers",
+    "years": "Years 9-12",
+    "description": "You design and present a digital technology project to solve a real-world problem, strongly validating your innovative systems thinking and technical documentation skills.",
+    "viableDate": "Project submissions are due by July 31, 2026.",
+    "link": "https://www.youngictexplorers.net.au/",
+    "id": "program_103",
+    "endDate": "2026-07-31",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Information Systems",
+    "title": "Bebras Computational Thinking Challenge",
+    "years": "Years 9-12",
+    "description": "You solve complex logic puzzles without needing prior coding knowledge, providing a solid international benchmark of your raw algorithmic thinking abilities.",
+    "viableDate": "Annually, the challenge typically runs for a couple of weeks in May.",
+    "link": "https://www.csiro.au/en/education/Programs/Digital-Careers/Bebras",
+    "id": "program_104",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Information Technology",
+    "title": "Australian Schools Cyber Challenge - ASCC",
+    "years": "Years 9-12",
+    "description": "You work in teams to defend against simulated real-world cyber threats like phishing and network breaches, gaining hands-on cybersecurity skills highly valued by the tech industry.",
+    "viableDate": "Team registrations close on April 22, 2026.",
+    "link": "https://studyworkgrow.com/swg-experiences/australian-schools-cyber-challenge/",
+    "id": "program_105",
+    "endDate": "2026-04-22",
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Information Technology",
+    "title": "Grok Cyber Comp",
+    "years": "Years 9-12",
+    "description": "You complete a fast-paced 45-minute interactive activity covering online security risks, testing your digital awareness and adding a solid IT participation certificate to your portfolio.",
+    "viableDate": "Runs twice a year, usually for two weeks in June and November.",
+    "link": "https://grokacademy.org/cyber-comp/",
+    "id": "program_106",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Information Technology",
+    "title": "PECAN+ CTF",
+    "years": "Years 10-12",
+    "description": "You compete in a \"Capture The Flag\" event to solve exciting cybersecurity challenges, proving your elite coding and problem-solving skills on a national stage.",
+    "viableDate": "The 2026 competition day takes place on August 24.",
+    "link": "https://www.ecu.edu.au/newsroom/articles/campus-and-community/battle-ready-ecu-hosts-national-cyber-security-competition",
+    "id": "program_107",
+    "endDate": "2026-08-24",
+    "yearLevels": [
+      10,
+      11,
+      12
+    ]
+  },
+  {
+    "subject": "Introduction to Engineering",
+    "title": "Science and Engineering Challenge",
+    "years": "Years 9-10",
+    "description": "You team up to tackle practical problems like building earthquake-proof towers, heavily igniting your passion for STEM and proving your hands-on engineering capabilities.",
+    "viableDate": "Events run regionally throughout the year, with national finals typically later in the year.",
+    "link": "https://www.newcastle.edu.au/faculty/engineering-and-built-environment/science-and-engineering-challenge",
+    "id": "program_108",
+    "endDate": "2026-12-31",
+    "yearLevels": [
+      9,
+      10
+    ]
+  },
+  {
+    "subject": "Introduction to Engineering",
+    "title": "Australian Science and Engineering Fair - AUSSEF",
+    "years": "Years 9-12",
+    "description": "You complete and submit a substantial, independent STEM research project, giving you the ultimate academic credential and a chance to represent Australia internationally.",
+    "viableDate": "Entries for the 2026 fair will open in June.",
+    "link": "https://aussef.com.au/",
+    "id": "program_109",
+    "endDate": null,
+    "yearLevels": [
+      9,
+      10,
+      11,
+      12
+    ]
+  }
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2624,11 +4361,28 @@ const CAT_COLORS = {
 
 function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklistState, onChecklistChange, enhancements, onEnhancementSwap, onEnhancementUnswap }) {
   const [subjectFilter, setSubjectFilter] = useState('All');
+  const [programYearOnly, setProgramYearOnly] = useState(false);
   const [enhSwapSlot, setEnhSwapSlot] = useState('');
   const [enhSwapSubject, setEnhSwapSubject] = useState('');
 
   const isUnlocked = !!submittedData;
   const suggestions = submittedData?.suggestions || [];
+  const programSubjects = [...new Set(OUTSIDE_PROGRAMS.map(p => p.subject))];
+  const pinnedProgramSubjects = [...new Set([
+    'English',
+    'Mathematics',
+    ...suggestions.map(s => s?.name).filter(Boolean),
+  ])];
+
+  const programAttendKey = (programId) => `program-attend-${programId}`;
+  const isProgramEnded = (program) => {
+    if (!program.endDate) return false;
+    return new Date(`${program.endDate}T23:59:59`) < new Date();
+  };
+  const toggleProgramAttendance = (programId) => {
+    const key = programAttendKey(programId);
+    onChecklistChange({ ...checklistState, [key]: !checklistState[key] });
+  };
 
   const toggleChecklistItem = (electiveId, itemIndex) => {
     const key = `${electiveId}-${itemIndex}`;
@@ -2656,24 +4410,125 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
       </div>
 
       {/* SECTION A — Outside Programs */}
-      {activeTab === 'programs' && (
-        <>
-          <div className="section-label">Filter by subject</div>
-          <div className="filter-chips">
-            <button className={`filter-chip${subjectFilter==='All'?' active':''}`} onClick={() => setSubjectFilter('All')}>All Subjects</button>
-            {ALL_PROGRAM_SUBJECTS.map(s => (
-              <button key={s} className={`filter-chip${subjectFilter===s?' active':''}`} onClick={() => setSubjectFilter(s)}>{s}</button>
-            ))}
-          </div>
-          <div className="empty-programs">
-            <div className="empty-programs-emoji">📬</div>
-            <div className="empty-programs-text">
-              {subjectFilter === 'All' ? 'Programs coming soon for all subjects!' : `Programs for ${subjectFilter} — coming soon!`}
+      {activeTab === 'programs' && (() => {
+        const enrichedPrograms = OUTSIDE_PROGRAMS.map(program => {
+          const attended = !!checklistState[programAttendKey(program.id)];
+          const pinned = pinnedProgramSubjects.includes(program.subject);
+          const ended = isProgramEnded(program);
+          return { ...program, attended, pinned, ended };
+        });
+        const attendedCount = enrichedPrograms.filter(p => p.attended).length;
+        const visiblePrograms = enrichedPrograms
+          .filter(program => {
+            const subjectMatches = subjectFilter === 'All' || program.subject === subjectFilter;
+            const yearMatches = !programYearOnly || program.yearLevels.length === 0 || program.yearLevels.includes(10);
+            return program.attended || (subjectMatches && yearMatches);
+          })
+          .sort((a, b) =>
+            Number(b.attended) - Number(a.attended) ||
+            Number(b.pinned) - Number(a.pinned) ||
+            Number(a.ended) - Number(b.ended) ||
+            a.subject.localeCompare(b.subject) ||
+            a.title.localeCompare(b.title)
+          );
+        const endedVisible = visiblePrograms.filter(p => p.ended && !p.attended).length;
+        const pinnedAvailable = pinnedProgramSubjects.filter(subject =>
+          programSubjects.includes(subject)
+        );
+
+        return (
+          <>
+            <div className="program-toolbar">
+              <div>
+                <div className="section-label" style={{ marginBottom:'.25rem' }}>Outside opportunities</div>
+                <div className="program-summary">
+                  {visiblePrograms.length} shown · {attendedCount} attending · {endedVisible} ended
+                </div>
+              </div>
+              <button
+                className={`program-year-toggle${programYearOnly ? ' active' : ''}`}
+                onClick={() => setProgramYearOnly(v => !v)}
+              >
+                <Icon name="filter" size={14} />
+                {programYearOnly ? 'Showing Year 10 only' : 'Show Year 10 only'}
+              </button>
             </div>
-            <div className="empty-programs-sub">Check back soon — programs will be added here!</div>
-          </div>
-        </>
-      )}
+
+            <div className="program-pinned-strip">
+              <div className="program-pinned-title">Pinned from English, Maths and your locked elective plan</div>
+              <div className="program-pinned-chips">
+                <button className={`filter-chip${subjectFilter==='All'?' active':''}`} onClick={() => setSubjectFilter('All')}>All</button>
+                {pinnedAvailable.map(subject => (
+                  <button
+                    key={subject}
+                    className={`filter-chip${subjectFilter===subject?' active':''}`}
+                    onClick={() => setSubjectFilter(subject)}
+                  >
+                    {subject}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="section-label">Filter by subject</div>
+            <div className="filter-chips">
+              <button className={`filter-chip${subjectFilter==='All'?' active':''}`} onClick={() => setSubjectFilter('All')}>All Subjects</button>
+              {programSubjects.map(subject => (
+                <button
+                  key={subject}
+                  className={`filter-chip${subjectFilter===subject?' active':''}`}
+                  onClick={() => setSubjectFilter(subject)}
+                >
+                  {subject}
+                </button>
+              ))}
+            </div>
+
+            {visiblePrograms.length === 0 ? (
+              <div className="empty-programs">
+                <div className="empty-programs-emoji">📬</div>
+                <div className="empty-programs-text">No matching programs for this filter yet.</div>
+                <div className="empty-programs-sub">Try all subjects or turn off the Year 10-only filter.</div>
+              </div>
+            ) : (
+              <div className="program-grid">
+                {visiblePrograms.map(program => {
+                  const statusClass = program.attended ? 'attending' : program.ended ? 'ended' : 'open';
+                  const statusText = program.attended ? 'Attending' : program.ended ? 'Ended' : program.endDate ? 'Open' : 'Date TBC';
+                  return (
+                    <div key={program.id} className={`program-card${program.ended ? ' ended' : ''}${program.attended ? ' attending' : ''}`}>
+                      <div className="program-card-top">
+                        <span className="program-subject-tag">{program.pinned && <Icon name="star" size={11} />}{program.subject}</span>
+                        <span className={`program-status ${statusClass}`}>{statusText}</span>
+                      </div>
+                      <div className="program-title">{program.title}</div>
+                      <div className="program-meta">
+                        <span>{program.years}</span>
+                        <span>{program.viableDate}</span>
+                      </div>
+                      <div className="program-desc">{program.description}</div>
+                      <div className="program-actions">
+                        <button
+                          className={`program-attend-btn${program.attended ? ' active' : ''}`}
+                          onClick={() => toggleProgramAttendance(program.id)}
+                        >
+                          <Icon name={program.attended ? 'check-circle' : 'circle'} size={14} />
+                          {program.attended ? 'I am attending' : 'Mark attending'}
+                        </button>
+                        {program.link && (
+                          <a className="program-link" href={program.link} target="_blank" rel="noopener noreferrer">
+                            Open <Icon name="external-link" size={13} />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        );
+      })()}
 
       {/* SECTION B — Career & Uni Map */}
       {activeTab === 'map' && (
