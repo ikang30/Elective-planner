@@ -1289,9 +1289,9 @@ function runAlgorithm(studentData) {
     }
   }
 
-  // Step 6: Y9 elective grade >90 → +1 to that elective's category
+  // Step 6: Y9 elective grade 90+ → +1 to that elective's category
   for (const { id: y9Id, grade } of year9Electives) {
-    if (Number(grade) > 90) {
+    if (Number(grade) >= 90) {
       const y10Id = Y9_TO_Y10[y9Id];
       const cat = ELECTIVE_CAT_MAP[y10Id];
       if (cat && cat in pts) pts[cat] += 1;
@@ -1310,14 +1310,52 @@ function runAlgorithm(studentData) {
 }
 
 function buildYear10Selection(pts, studentData = {}) {
-  const { grades = {}, careerCategory = '', desiredElectives = [] } = studentData;
+  const { grades = {}, careerCategory = '', desiredElectives = [], universities = [], year9Electives = [] } = studentData;
   const selected = [];
   const usedIds = new Set();
-
-  const addE = (id) => {
+  const actualCatCount = {};
+  const algoCatCount = {};
+  const peUniversity = universities.some(u => (UNI_SUBJECT_MAP[u] || []).includes('pe'));
+  const peCraving = desiredElectives.some(id => PE_IDS.includes(id) || id === 'outdoor_ed') || peUniversity;
+  const peCap = peCraving ? 2 : 1;
+  const isActualMinor = (e) => ['visual_arts','performing_arts','health','ict'].includes(e.category);
+  const desiredMinor = desiredElectives.some(id => {
     const e = ALL_ELECTIVES.find(x => x.id === id);
-    if (e && !usedIds.has(id)) { selected.push(e); usedIds.add(id); return true; }
-    return false;
+    return e && isActualMinor(e);
+  });
+  const y9Minor = year9Electives.some(r => {
+    const e = ALL_ELECTIVES.find(x => x.id === Y9_TO_Y10[r.id]);
+    return e && isActualMinor(e);
+  });
+  const careerMinor = ['Visual Arts','Performing Arts','Technology & Engineering','Design & Media'].includes(careerCategory);
+  const uniMinor = universities.some(u => (UNI_SUBJECT_MAP[u] || []).some(c => ['visual_arts','performing_arts','ict'].includes(c)));
+  const minorCraving = desiredMinor || y9Minor || careerMinor || uniMinor;
+  const minorCap = minorCraving ? 4 : 2;
+  const sciGradeHigh = Number(grades['Science'] || 0) >= 90;
+  const categoryCap = (e) => {
+    const algoCat = ELECTIVE_CAT_MAP[e.id] || 'humanities';
+    if (PE_IDS.includes(e.id)) return peCap;
+    if (algoCat === 'science') return sciGradeHigh ? 3 : 2;
+    if (isActualMinor(e)) return minorCap;
+    return Infinity;
+  };
+
+  const addE = (id, force = false) => {
+    const e = ALL_ELECTIVES.find(x => x.id === id);
+    if (!e || usedIds.has(id)) return false;
+    const algoCat = ELECTIVE_CAT_MAP[id] || 'humanities';
+    if (!force) {
+      if ((algoCatCount[algoCat] || 0) >= categoryCap(e)) return false;
+      if (PE_IDS.includes(id) && (actualCatCount.pe || 0) >= peCap) return false;
+      if (isActualMinor(e)) {
+        const currentMinor = selected.filter(isActualMinor).length;
+        if (currentMinor >= minorCap) return false;
+      }
+    }
+    selected.push(e); usedIds.add(id);
+    actualCatCount[e.category] = (actualCatCount[e.category] || 0) + 1;
+    algoCatCount[algoCat] = (algoCatCount[algoCat] || 0) + 1;
+    return true;
   };
 
   // ── 1. History vs Geography ───────────────────────────────────
@@ -1333,7 +1371,7 @@ function buildYear10Selection(pts, studentData = {}) {
   else if (careerCategory === 'Environment & Agriculture' || geoScore > histScore)
                                         histGeoChoice = 'geography';
   else                                  histGeoChoice = 'history';
-  addE(histGeoChoice);
+  addE(histGeoChoice, true);
 
   // ── 2. PE for Life vs Human Movement ─────────────────────────
   // Human Movement only for medicine/healthcare career or PE teaching context
@@ -1347,7 +1385,7 @@ function buildYear10Selection(pts, studentData = {}) {
   else if (careerCategory === 'Education & Social Work' && pts.science >= 2)
                                                   peChoice = 'human_movement';
   else                                            peChoice = 'pe_for_life';
-  addE(peChoice);
+  addE(peChoice, true);
 
   // ── 3. Science elective choice ───────────────────────────────
   const desiredSci = desiredElectives.find(id => SCIENCE_IDS.includes(id));
@@ -1365,12 +1403,9 @@ function buildYear10Selection(pts, studentData = {}) {
   } else {
     sciChoice = 'biology';
   }
-  addE(sciChoice);
+  addE(sciChoice, true);
 
   // ── 4–8. Remaining 5 from category pointsboard (maths excluded) ──
-  const sciGrade = Number(grades['Science'] || 0);
-  const sciGradeHigh = sciGrade > 90;
-
   // Build available electives per category (excluding already used)
   const availByCat = {};
   for (const e of ALL_ELECTIVES) {
@@ -1402,16 +1437,17 @@ function buildYear10Selection(pts, studentData = {}) {
     if (avail.length === 0) continue;
     const maxFromCat = isFirstCat ? (cat === 'science' && sciGradeHigh ? 3 : 2) : 1;
     isFirstCat = false;
-    for (let i = 0; i < Math.min(avail.length, maxFromCat) && remaining > 0; i++) {
-      addE(avail[i]);
-      remaining--;
+    let addedFromCat = 0;
+    for (const id of avail) {
+      if (remaining <= 0 || addedFromCat >= maxFromCat) break;
+      if (addE(id)) { remaining--; addedFromCat++; }
     }
   }
 
-  // Fill any remaining slots with whatever is left
+  // Fill any remaining slots while still respecting PE/minor/category caps
   for (const e of ALL_ELECTIVES) {
     if (selected.length >= 8) break;
-    if (!usedIds.has(e.id)) addE(e.id);
+    addE(e.id);
   }
 
   return selected.slice(0, 8);
@@ -1483,9 +1519,15 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
   const handleFpSendCode = async () => {
     if (!fpEmail) return;
     setFpLoading(true); setError('');
-    const { error } = await db.auth.signInWithOtp({ email: fpEmail, options: { shouldCreateUser: false } });
+    const { error } = await db.auth.signInWithOtp({
+      email: fpEmail,
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: window.location.origin,
+      },
+    });
     if (error) setError(error.message);
-    else { setFpStep('enter_code'); setFpCode(''); setSuccess('A verification code has been sent to your email. Enter it below.'); }
+    else { setFpStep('enter_code'); setFpCode(''); setSuccess('Check your email. If the email shows a code, enter it below; if it shows a login link, open it and then set your new password here.'); }
     setFpLoading(false);
   };
 
@@ -1539,7 +1581,7 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
             {fpStep === 'enter_email' && (
               <>
                 <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  Enter your email and we will send you a secure password reset link.
+                  Enter your email and we will send the verification email for password reset.
                 </p>
                 <div className="auth-field">
                   <label className="auth-label">Email</label>
@@ -1547,7 +1589,7 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
                     value={fpEmail} onChange={e => setFpEmail(e.target.value)} autoFocus />
                 </div>
                 <button className="auth-btn" onClick={handleFpSendCode} disabled={fpLoading}>
-                  {fpLoading ? 'Sending…' : 'Send Reset Email'}
+                  {fpLoading ? 'Sending…' : 'Send Verification Email'}
                 </button>
               </>
             )}
@@ -1749,6 +1791,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const [lockError, setLockError] = useState('');
   const [swapHistory, setSwapHistory] = useState([]);
   const [manualMode, setManualMode] = useState(false);
+  const [essentialRemoveChoice, setEssentialRemoveChoice] = useState({});
 
   // ── Bug fix: sync local state when DB data loads after a refresh ──
   useEffect(() => {
@@ -1872,7 +1915,12 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const handleReplaceEssential = async (type, id) => {
     if (isLocked || !id || suggestions.some(e => e.id === id)) return;
     const ids = type === 'humanities' ? HUMANITIES_IDS : type === 'science' ? SCIENCE_IDS : PE_IDS;
-    const idx = suggestions.findIndex(e => ids.includes(e.id));
+    const currentInGroup = suggestions.filter(e => ids.includes(e.id));
+    const chosenRemoveId = essentialRemoveChoice[type];
+    const removeId = currentInGroup.some(e => e.id === chosenRemoveId)
+      ? chosenRemoveId
+      : currentInGroup[0]?.id;
+    const idx = suggestions.findIndex(e => e.id === removeId);
     if (idx < 0) return;
     const replacement = ALL_ELECTIVES.find(e => e.id === id);
     if (!replacement) return;
@@ -1883,6 +1931,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setSuggestions(newSuggestions);
     setSuggestionPool(newPool);
     setSwapHistory(prev => [{ index: idx, original, replacement }, ...prev].slice(0, 8));
+    setEssentialRemoveChoice(prev => ({ ...prev, [type]: undefined }));
     setLockError('');
     await savePlan({ studentData: submittedData?.studentData, suggestions: newSuggestions, pool: newPool, isLocked: false });
   };
@@ -1926,7 +1975,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const handleRestartConfirmed = async () => {
     setSubmitted(false); setSuggestions([]); setSuggestionPool([]);
     setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
-    setSwapHistory([]); setManualMode(false);
+    setSwapHistory([]); setManualMode(false); setEssentialRemoveChoice({});
     setLangDisplaced({});
     setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
     setCareer(''); setLanguage(''); setUniversities([]);
@@ -2286,6 +2335,24 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                 ].map(group => (
                   <div key={group.key}>
                     <div className="essential-title">{group.title}</div>
+                    {(() => {
+                      const current = suggestions.filter(s => group.ids.includes(s.id));
+                      if (current.length <= 1) return null;
+                      const chosen = essentialRemoveChoice[group.key] || current[0]?.id;
+                      return (
+                        <div style={{ marginBottom:'.45rem' }}>
+                          <div style={{ fontSize:'.72rem', color:'var(--text-muted)', marginBottom:'.25rem' }}>Replace this one:</div>
+                          <div className="essential-options">
+                            {current.map(e => (
+                              <button key={e.id} className={`essential-chip${chosen === e.id ? ' active' : ''}`}
+                                onClick={() => setEssentialRemoveChoice(prev => ({ ...prev, [group.key]: e.id }))}>
+                                {e.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
                     <div className="essential-options">
                       {group.ids.map(id => {
                         const e = ALL_ELECTIVES.find(x => x.id === id);
