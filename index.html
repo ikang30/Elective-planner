@@ -509,6 +509,100 @@
     .nav-settings-btn { width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid var(--border); background: transparent; cursor: pointer; display: grid; place-items: center; color: var(--text-muted); transition: all .15s; }
     .nav-settings-btn:hover { border-color: var(--primary); color: var(--primary); background: rgba(99,102,241,.06); }
 
+    /* ═══ GUEST BANNER ═══ */
+    .guest-banner { background: #fffbeb; border-bottom: 1.5px solid #fde68a; padding: .5rem 2rem; font-size: .82rem; color: #92400e; display: flex; align-items: center; gap: .5rem; }
+
+    /* ═══ EXPLORE DROPDOWN NAV ═══ */
+    .nav-dropdown-wrap { position: relative; }
+    .nav-dropdown-menu {
+      position: absolute; top: calc(100% + 8px); left: 0; min-width: 210px;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.12); z-index: 200; overflow: hidden;
+      animation: fadeIn .15s ease;
+    }
+    .nav-dropdown-item {
+      width: 100%; padding: .65rem 1rem; border: none; background: transparent;
+      font-size: .88rem; font-weight: 500; color: var(--text); cursor: pointer;
+      text-align: left; display: flex; align-items: center; gap: .6rem; transition: background .12s;
+    }
+    .nav-dropdown-item:hover { background: var(--surface2); }
+    .nav-dropdown-item.active { color: var(--primary); font-weight: 700; }
+
+    /* ═══ PROGRESS CHECKLIST REDESIGN ═══ */
+    .checklist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
+    .checklist-elective-card { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--border); }
+    .checklist-elective-header { padding: .8rem 1.1rem; display: flex; align-items: center; justify-content: space-between; }
+    .checklist-elective-name { font-size: .95rem; font-weight: 700; color: #fff; }
+    .checklist-elective-pct { font-size: .8rem; font-weight: 700; color: rgba(255,255,255,.85); }
+    .checklist-elective-bar { height: 4px; background: rgba(255,255,255,.3); }
+    .checklist-elective-bar-fill { height: 100%; background: #fff; transition: width .4s ease; }
+    .checklist-elective-body { padding: .85rem 1rem; background: var(--surface); }
+    .checklist-semester { font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--text-muted); margin: .55rem 0 .4rem; }
+    .checklist-item-v2 { display: flex; align-items: center; gap: .55rem; padding: .42rem .6rem; border-radius: 8px; cursor: pointer; transition: background .12s; user-select: none; }
+    .checklist-item-v2:hover { background: var(--surface2); }
+    .checklist-item-v2.done .checklist-label { text-decoration: line-through; opacity: .55; }
+    .checklist-cb { width: 18px; height: 18px; border-radius: 5px; border: 2px solid var(--border); flex-shrink: 0; display: grid; place-items: center; transition: all .15s; }
+    .checklist-cb.checked { border-color: var(--success); background: var(--success); }
+    .checklist-complete-badge { display: inline-flex; align-items: center; gap: .35rem; font-size: .76rem; font-weight: 700; color: var(--success); margin-top: .5rem; }
+    @media (max-width: 780px) { .checklist-grid { grid-template-columns: 1fr; } }
+
+    /* ═══ MINDMAP / PAGE 3 ═══ */
+    .mindmap-page { flex: 1; padding: 2.5rem 2rem; max-width: 1120px; margin: 0 auto; width: 100%; }
+    .mindmap-center-label {
+      text-align: center; background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: #fff; border-radius: 999px; display: inline-block;
+      padding: .7rem 2rem; font-size: 1.1rem; font-weight: 800;
+      margin: 0 auto 2rem; letter-spacing: -.02em; box-shadow: 0 4px 16px rgba(99,102,241,.35);
+    }
+    .mindmap-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .mindmap-cat-card {
+      border-radius: var(--radius); border: 2px solid transparent; overflow: hidden;
+      cursor: pointer; transition: box-shadow .18s, transform .18s; box-shadow: var(--shadow);
+    }
+    .mindmap-cat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .mindmap-cat-header { padding: .85rem 1.1rem; display: flex; align-items: center; justify-content: space-between; }
+    .mindmap-cat-title { font-size: .97rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: .5rem; }
+    .mindmap-cat-arrow { font-size: .8rem; color: rgba(255,255,255,.8); transition: transform .2s; }
+    .mindmap-cat-arrow.open { transform: rotate(90deg); }
+    .mindmap-subjects-wrap { background: var(--surface); padding: .85rem 1.1rem; border-top: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: .5rem; }
+    .mindmap-subject-chip { padding: .32rem .8rem; border-radius: 999px; border: 1.5px solid var(--border); font-size: .82rem; font-weight: 500; color: var(--text); background: var(--surface2); }
+    .mindmap-subject-chip.enhanced { border-color: var(--success); background: #ecfdf5; color: #065f46; font-weight: 700; }
+    .mindmap-subject-chip.note { border-color: #fde68a; background: #fffbeb; color: #92400e; font-style: italic; }
+    .mindmap-enhanced-note { font-size: .75rem; color: #065f46; background: #dcfce7; border: 1px solid #bbf7d0; border-radius: 8px; padding: .45rem .75rem; margin-top: .6rem; width: 100%; line-height: 1.45; }
+    @media (max-width: 780px) { .mindmap-grid { grid-template-columns: 1fr; } }
+
+    /* ═══ PENGUIN MASCOT ═══ */
+    .penguin-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; align-items: flex-end; gap: .5rem; }
+    .speech-bubble {
+      background: #fff; border: 2px solid var(--primary); border-radius: 14px;
+      padding: .75rem 1rem; max-width: 220px; font-size: .82rem; line-height: 1.5;
+      box-shadow: 0 4px 16px rgba(99,102,241,.18); position: relative; color: var(--text);
+    }
+    .speech-bubble::after {
+      content: ''; position: absolute; bottom: -10px; right: 18px;
+      border-left: 8px solid transparent; border-right: 8px solid transparent;
+      border-top: 10px solid var(--primary);
+    }
+    .speech-bubble::before {
+      content: ''; position: absolute; bottom: -7px; right: 19px;
+      border-left: 7px solid transparent; border-right: 7px solid transparent;
+      border-top: 9px solid #fff; z-index: 1;
+    }
+    .penguin-char { position: relative; width: 56px; height: 68px; cursor: pointer; animation: penguin-bob 1.8s ease-in-out infinite; }
+    @keyframes penguin-bob { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-7px) rotate(2deg)} }
+    .penguin-body { position: absolute; width: 56px; height: 62px; background: #1e293b; border-radius: 50% 50% 42% 42% / 55% 55% 45% 45%; }
+    .penguin-belly { position: absolute; width: 32px; height: 40px; background: #f1f5f9; border-radius: 50%; top: 13px; left: 12px; }
+    .penguin-eye { position: absolute; width: 9px; height: 9px; background: #fff; border-radius: 50%; top: 15px; }
+    .penguin-eye.l { left: 10px; } .penguin-eye.r { right: 10px; }
+    .penguin-pupil { position: absolute; width: 4px; height: 4px; background: #1e293b; border-radius: 50%; top: 2.5px; left: 2.5px; }
+    .penguin-beak { position: absolute; top: 24px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 7px solid #f59e0b; }
+    .penguin-wing { position: absolute; width: 14px; height: 26px; background: #1e293b; border-radius: 40%; top: 12px; }
+    .penguin-wing.l { left: -11px; border-radius: 40% 10% 10% 40%; }
+    .penguin-wing.r { right: -11px; border-radius: 10% 40% 40% 10%; }
+    .penguin-foot { position: absolute; width: 17px; height: 8px; background: #f59e0b; border-radius: 0 0 9px 9px; bottom: -7px; }
+    .penguin-foot.l { left: 5px; } .penguin-foot.r { right: 5px; }
+    .penguin-dismiss { position: absolute; top: -8px; right: -8px; width: 20px; height: 20px; border-radius: 50%; background: var(--danger); color: #fff; border: none; font-size: .65rem; cursor: pointer; display: grid; place-items: center; z-index: 1; }
+
     @media (max-width: 780px) {
       .form-two-col { grid-template-columns: 1fr; }
       .suggestions-grid { grid-template-columns: 1fr; }
@@ -1369,13 +1463,19 @@ function RequirementBar({ label, filled, total, color }) {
 /* ═══════════════════════════════════════════════════════════════
    AUTH SCREEN
 ═══════════════════════════════════════════════════════════════ */
-function AuthScreen() {
+function AuthScreen({ onGuest }) {
   const [tab, setTab] = useState('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  // forgot password flow: 'idle' | 'enter_email' | 'enter_code' | 'new_password'
+  const [fpStep, setFpStep] = useState('idle');
+  const [fpEmail, setFpEmail] = useState('');
+  const [fpCode, setFpCode] = useState('');
+  const [fpNewPw, setFpNewPw] = useState('');
+  const [fpLoading, setFpLoading] = useState(false);
 
   const clear = () => { setError(''); setSuccess(''); };
 
@@ -1392,6 +1492,33 @@ function AuthScreen() {
     if (error) setError(error.message);
     else setSuccess('Account created! Check your email to confirm, then log in.');
     setLoading(false);
+  };
+
+  const handleFpSendCode = async () => {
+    if (!fpEmail) return;
+    setFpLoading(true); setError('');
+    const { error } = await db.auth.signInWithOtp({ email: fpEmail, options: { shouldCreateUser: false } });
+    if (error) setError(error.message);
+    else { setFpStep('enter_code'); setSuccess('Check your email for a verification code!'); }
+    setFpLoading(false);
+  };
+
+  const handleFpVerifyCode = async () => {
+    if (!fpCode) return;
+    setFpLoading(true); setError('');
+    const { error } = await db.auth.verifyOtp({ email: fpEmail, token: fpCode, type: 'email' });
+    if (error) setError('Invalid code — please try again.');
+    else { setFpStep('new_password'); setSuccess(''); }
+    setFpLoading(false);
+  };
+
+  const handleFpSetPassword = async () => {
+    if (!fpNewPw || fpNewPw.length < 6) { setError('Password must be at least 6 characters.'); return; }
+    setFpLoading(true); setError('');
+    const { error } = await db.auth.updateUser({ password: fpNewPw });
+    if (error) setError(error.message);
+    else { setSuccess('Password updated! You are now logged in.'); setFpStep('idle'); }
+    setFpLoading(false);
   };
 
   return (
@@ -1416,29 +1543,104 @@ function AuthScreen() {
         {error && <div className="auth-error">{error}</div>}
         {success && <div className="auth-success">{success}</div>}
 
-        <form onSubmit={tab === 'login' ? handleLogin : handleSignUp}>
-          <div className="auth-field">
-            <label className="auth-label">Email</label>
-            <input className="auth-input" type="email" placeholder="you@example.com"
-              value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+        {/* ── Forgot password flow ── */}
+        {fpStep !== 'idle' ? (
+          <div>
+            {fpStep === 'enter_email' && (
+              <>
+                <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
+                  Enter your email and we will send you a verification code.
+                </p>
+                <div className="auth-field">
+                  <label className="auth-label">Email</label>
+                  <input className="auth-input" type="email" placeholder="you@example.com"
+                    value={fpEmail} onChange={e => setFpEmail(e.target.value)} autoFocus />
+                </div>
+                <button className="auth-btn" onClick={handleFpSendCode} disabled={fpLoading}>
+                  {fpLoading ? 'Sending…' : 'Send Code'}
+                </button>
+              </>
+            )}
+            {fpStep === 'enter_code' && (
+              <>
+                <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
+                  Enter the verification code we sent to <strong>{fpEmail}</strong>.
+                </p>
+                <div className="auth-field">
+                  <label className="auth-label">Verification Code</label>
+                  <input className="auth-input" type="text" placeholder="Enter code…"
+                    value={fpCode} onChange={e => setFpCode(e.target.value)} autoFocus />
+                </div>
+                <button className="auth-btn" onClick={handleFpVerifyCode} disabled={fpLoading}>
+                  {fpLoading ? 'Verifying…' : 'Verify Code'}
+                </button>
+              </>
+            )}
+            {fpStep === 'new_password' && (
+              <>
+                <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
+                  You are verified! Set your new password below.
+                </p>
+                <div className="auth-field">
+                  <label className="auth-label">New Password</label>
+                  <input className="auth-input" type="password" placeholder="Min. 6 characters"
+                    value={fpNewPw} onChange={e => setFpNewPw(e.target.value)} autoFocus minLength={6} />
+                </div>
+                <button className="auth-btn" onClick={handleFpSetPassword} disabled={fpLoading}>
+                  {fpLoading ? 'Saving…' : 'Set New Password'}
+                </button>
+              </>
+            )}
+            <div className="auth-divider">
+              <button style={{ background:'none', border:'none', color:'var(--primary)', fontWeight:600, cursor:'pointer', fontSize:'.85rem' }}
+                onClick={() => { setFpStep('idle'); setError(''); setSuccess(''); }}>
+                ← Back to login
+              </button>
+            </div>
           </div>
-          <div className="auth-field">
-            <label className="auth-label">Password</label>
-            <input className="auth-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'}
-              value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
-          </div>
-          <button className="auth-btn" type="submit" disabled={loading}>
-            {loading ? 'Please wait…' : tab === 'login' ? 'Log In' : 'Create Account'}
-          </button>
-        </form>
+        ) : (
+          <>
+            <form onSubmit={tab === 'login' ? handleLogin : handleSignUp}>
+              <div className="auth-field">
+                <label className="auth-label">Email</label>
+                <input className="auth-input" type="email" placeholder="you@example.com"
+                  value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+              </div>
+              <div className="auth-field">
+                <label className="auth-label">Password</label>
+                <input className="auth-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'}
+                  value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+                {tab === 'login' && (
+                  <button type="button" style={{ background:'none', border:'none', color:'var(--primary)', fontSize:'.78rem', cursor:'pointer', marginTop:'.25rem', textAlign:'left' }}
+                    onClick={() => { setFpStep('enter_email'); setFpEmail(email); setError(''); setSuccess(''); }}>
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <button className="auth-btn" type="submit" disabled={loading}>
+                {loading ? 'Please wait…' : tab === 'login' ? 'Log In' : 'Create Account'}
+              </button>
+            </form>
 
-        <div className="auth-divider">
-          {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
-          <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', fontSize: 'inherit' }}
-            onClick={() => { setTab(tab === 'login' ? 'signup' : 'login'); clear(); }}>
-            {tab === 'login' ? 'Sign up' : 'Log in'}
-          </button>
-        </div>
+            <div className="auth-divider">
+              {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
+              <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', fontSize: 'inherit' }}
+                onClick={() => { setTab(tab === 'login' ? 'signup' : 'login'); clear(); }}>
+                {tab === 'login' ? 'Sign up' : 'Log in'}
+              </button>
+            </div>
+
+            <div className="auth-divider">or</div>
+            <button className="auth-btn" type="button"
+              style={{ background:'var(--surface2)', color:'var(--text)', border:'1.5px solid var(--border)' }}
+              onClick={onGuest}>
+              Continue as Guest 👤
+            </button>
+            <p style={{ textAlign:'center', fontSize:'.74rem', color:'var(--text-muted)', marginTop:'.5rem', lineHeight:1.4 }}>
+              Guest data is not saved and clears when you close the tab.
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
@@ -1527,7 +1729,8 @@ function SettingsPanel({ user, profile, onSave, onClose }) {
 /* ═══════════════════════════════════════════════════════════════
    PAGE 1 — ELECTIVE SUGGESTION TOOL
 ═══════════════════════════════════════════════════════════════ */
-function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
+function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
+  const saveToGuest = (data) => sessionStorage.setItem('elect_guest_data', JSON.stringify({ sd: data, cs: {} }));
   const [grades, setGrades] = useState(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
   const [career, setCareer] = useState('');
   const [language, setLanguage] = useState('');
@@ -1601,7 +1804,7 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
     const data = { studentData: newStudentData, suggestions: top8, pool, isLocked: false };
     setSuggestions(top8); setSuggestionPool(pool); setIsLocked(false); setSubmitted(true);
     onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
   };
 
   const handleDismiss = useCallback((electiveId) => {
@@ -1628,7 +1831,7 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
         await dbSaveElectiveResults(user.id, updData); onSaveIndicator();
       }
     }, 300);
-  }, [suggestions, suggestionPool, dismissed, isLocked, user]);
+  }, [suggestions, suggestionPool, dismissed, isLocked, user, submittedData]);
 
   const handleLockIn = async () => {
     const missing = [];
@@ -1643,7 +1846,7 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
     setIsLocked(true); setShowRestartConfirm(false);
     const data = { studentData: submittedData?.studentData, suggestions, pool: suggestionPool, isLocked: true };
     onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
   };
 
   const handleRestartConfirmed = async () => {
@@ -1679,37 +1882,52 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
   })();
 
   const langSlotCount = suggestions.filter(s => s?.id?.startsWith('lang_')).length;
+  const hasLanguage = langSlotCount > 0;
 
-  const handleLanguageSwapSlot = async (idx) => {
+  const handleAddLanguage = async () => {
     const lang = submittedData?.studentData?.language;
-    if (!lang || isLocked || langSlotCount >= 2) return;
-    const displaced = suggestions[idx];
-    if (displaced?.id?.startsWith('lang_')) return; // already language
-    const langCard = {
-      id: `lang_${idx}`,
-      name: `${lang} Continuation`,
-      category: 'language', badge: 'badge-language',
-      description: `Year 10 continuation of Year 9 ${lang} — building on vocabulary, grammar, and conversational skills developed last year.`,
-      careers: ['Interpreter / Translator', 'Diplomat', 'International Business', 'Tourism Professional'],
-      universities: [],
-    };
-    const next = suggestions.map((s, i) => i === idx ? langCard : s);
-    setLangDisplaced(prev => ({ ...prev, [idx]: displaced }));
-    setSuggestions(next);
-    const data = { studentData: submittedData?.studentData, suggestions: next, pool: suggestionPool, isLocked };
+    if (!lang || isLocked) return;
+    // Find last 2 non-compulsory, non-language slots (those are the weakest matches)
+    const available = [];
+    for (let i = suggestions.length - 1; i >= 0 && available.length < 2; i--) {
+      const s = suggestions[i];
+      if (!compulsoryIds.has(s.id) && !s.id?.startsWith('lang_')) available.unshift({ idx: i, s });
+    }
+    if (available.length < 2) return;
+    const newSugs = [...suggestions];
+    const newDisplaced = { ...langDisplaced };
+    available.forEach(({ idx, s }, unit) => {
+      newDisplaced[idx] = s;
+      newSugs[idx] = {
+        id: `lang_${idx}`,
+        name: `${lang} — Unit ${unit + 1}`,
+        category: 'language', badge: 'badge-language',
+        description: `Year 10 ${lang} continuation — Unit ${unit + 1}. Building on Year 9 ${lang} vocabulary, grammar and conversational skills.`,
+        careers: ['Interpreter / Translator', 'Diplomat', 'International Business', 'Tourism Professional'],
+        universities: [],
+      };
+    });
+    setLangDisplaced(newDisplaced);
+    setSuggestions(newSugs);
+    const data = { studentData: submittedData?.studentData, suggestions: newSugs, pool: suggestionPool, isLocked };
     onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
   };
 
-  const handleLanguageSwapUndo = async (idx) => {
-    const original = langDisplaced[idx];
-    if (!original) return; // loaded from DB — original unknown, can't restore
-    const next = suggestions.map((s, i) => i === idx ? original : s);
-    setLangDisplaced(prev => { const n = { ...prev }; delete n[idx]; return n; });
-    setSuggestions(next);
-    const data = { studentData: submittedData?.studentData, suggestions: next, pool: suggestionPool, isLocked };
+  const handleRemoveLanguage = async () => {
+    const newSugs = [...suggestions];
+    let anyRestored = false;
+    Object.entries(langDisplaced).forEach(([idx, original]) => {
+      if (original && newSugs[Number(idx)]?.id?.startsWith('lang_')) {
+        newSugs[Number(idx)] = original; anyRestored = true;
+      }
+    });
+    if (!anyRestored) return;
+    setLangDisplaced({});
+    setSuggestions(newSugs);
+    const data = { studentData: submittedData?.studentData, suggestions: newSugs, pool: suggestionPool, isLocked };
     onSubmit(data);
-    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); }
+    if (user) { await dbSaveElectiveResults(user.id, data); onSaveIndicator(); } else if (isGuest) { saveToGuest(data); onSaveIndicator(); }
   };
 
   const humCount = suggestions.filter(e => HUMANITIES_IDS.includes(e.id)).length;
@@ -1932,12 +2150,14 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
           </div>
 
           {isLocked ? (
-            <div className="locked-banner"><Icon name="lock" size={16} /> Your elective choices are locked in — good luck in Year 10!</div>
+            <div className="locked-banner">
+              🎉 Congrats! Your Year 10 electives are locked in — you&apos;re all set! Some features just unlocked too — go check them out on the other pages! Good luck! 🐧
+            </div>
           ) : (
             <div className="info-banner">
               <Icon name="info" size={15} />
-              Not happy with a suggestion? Hit <strong style={{ margin:'0 .3rem' }}>Swap</strong> to replace it.
-              When you're happy, click <strong style={{ margin:'0 .3rem' }}>Lock In</strong>.
+              Not happy with a suggestion? Hit <strong style={{ margin:'0 .3rem' }}>Swap</strong> to replace it with the next best match.
+              When you&apos;re happy with all 8, click <strong style={{ margin:'0 .3rem' }}>Lock In</strong>. ✨
             </div>
           )}
 
@@ -1965,7 +2185,6 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
           </div>
             );
           })()}
-          </div>
 
           {submittedData?.studentData?.language && (
             <div className="language-note">
@@ -1973,22 +2192,29 @@ function Page1({ user, submittedData, onSubmit, onSaveIndicator }) {
               <div style={{ flex: 1 }}>
                 <div className="language-note-title">
                   {submittedData.studentData.language} Continuation Available
-                  {langSlotCount > 0 && (
+                  {hasLanguage && (
                     <span className="lang-swapped-badge" style={{ marginLeft: '.65rem' }}>
-                      {langSlotCount}/2 slots replaced ✓
+                      2 units added ✓
                     </span>
                   )}
                 </div>
                 <div className="language-note-text">
-                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9, you can replace
-                  up to <strong>2 elective slots</strong> with language continuation units.
-                  {!isLocked && langSlotCount < 2 && (
-                    <> We suggest slots <strong>7 & 8</strong> — they match your profile the least.
-                    Use the 🌐 button on any card to swap it (compulsory slots are protected).</>
+                  Because you studied <strong>{submittedData.studentData.language}</strong> in Year 9, you can add it as a Year 10 continuation.
+                  Languages take <strong>2 units</strong> — this will replace 2 elective slots in your selection (your two weakest matches).
+                  {!isLocked && !hasLanguage && (
+                    <> Compulsory slots (Geo/History, Science, PE) are protected.</>
                   )}
-                  {isLocked && langSlotCount === 0 && " Unlock by restarting if you'd like to make this change."}
-                  {langSlotCount === 2 && ' Both language slots are now set. Speak to your coordinator to confirm enrolment.'}
+                  {isLocked && !hasLanguage && " Restart if you’d like to make this change."}
+                  {hasLanguage && ' Speak to your coordinator to confirm language enrolment.'}
                 </div>
+                {!isLocked && (
+                  <div style={{ marginTop: '.75rem', display:'flex', gap:'.5rem', flexWrap:'wrap' }}>
+                    {!hasLanguage
+                      ? <button className="btn-lang-swap" onClick={handleAddLanguage}>🌐 Add {submittedData.studentData.language} (2 units)</button>
+                      : <button className="btn-lang-undo" onClick={handleRemoveLanguage}>↩ Remove Language</button>
+                    }
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -2132,18 +2358,7 @@ function SuggestionCard({
         <span className="sug-unit-badge"><Icon name="layers" size={12} /> 1 unit</span>
 
         <div style={{ display: 'flex', gap: '.35rem', alignItems: 'center', flexWrap: 'wrap', marginLeft: 'auto' }}>
-          {/* Language swap / undo */}
-          {canSwapLang && (
-            <button className="card-lang-swap" onClick={onLangSwap}>
-              🌐 {language}
-            </button>
-          )}
-          {canUndoLang && (
-            <button className="card-lang-undo" onClick={onLangUndo}>
-              ↩ {displacedName ? `Restore ${displacedName}` : 'Undo language'}
-            </button>
-          )}
-          {isCompulsory && language && !locked && !isLangCard && (
+          {isCompulsory && !locked && !isLangCard && (
             <span className="card-required-tag">🔒 Required slot</span>
           )}
 
@@ -2163,8 +2378,13 @@ function SuggestionCard({
 /* ═══════════════════════════════════════════════════════════════
    PAGE 2 — EXPLORE & TRACK
 ═══════════════════════════════════════════════════════════════ */
-function Page2({ user, submittedData, checklistState, onChecklistChange }) {
-  const [activeTab, setActiveTab] = useState('programs');
+const CAT_COLORS = {
+  english_faculty:'#3b82f6', humanities:'#f59e0b', science:'#10b981',
+  pe:'#ef4444', visual_arts:'#8b5cf6', performing_arts:'#f43f5e',
+  health:'#ec4899', ict:'#14b8a6', language:'#f97316',
+};
+
+function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklistState, onChecklistChange }) {
   const [subjectFilter, setSubjectFilter] = useState('All');
 
   const isUnlocked = !!submittedData;
@@ -2181,24 +2401,21 @@ function Page2({ user, submittedData, checklistState, onChecklistChange }) {
     return { done, total, pct: total > 0 ? Math.round((done / total) * 100) : 0 };
   };
 
+  const titles = { programs:'Outside Programs', map:'Career & Uni Map', progress:'Progress Checklist' };
+  const subtitles = {
+    programs:'Discover external opportunities linked to your electives.',
+    map:'See how your electives connect to real careers and universities.',
+    progress:'Track your milestones — keep it up! 💪',
+  };
+
   return (
     <div className="page">
       <div className="page-header">
-        <div className="page-title">Explore & Track</div>
-        <div className="page-subtitle">Discover external opportunities and monitor your elective progress.</div>
+        <div className="page-title">{titles[activeTab] || 'Explore & Track'}</div>
+        <div className="page-subtitle">{subtitles[activeTab] || ''}</div>
       </div>
 
-      <div className="tabs">
-        <button className={`tab-btn${activeTab==='programs'?' active':''}`} onClick={() => setActiveTab('programs')}><Icon name="globe" size={14} /> Outside Programs</button>
-        <button className={`tab-btn${activeTab==='map'?' active':''}`} onClick={() => setActiveTab('map')}>
-          <Icon name="map" size={14} /> Career & Uni Map {!isUnlocked && <span className="nav-badge">🔒</span>}
-        </button>
-        <button className={`tab-btn${activeTab==='progress'?' active':''}`} onClick={() => setActiveTab('progress')}>
-          <Icon name="check-square" size={14} /> Progress Checklist {!isUnlocked && <span className="nav-badge">🔒</span>}
-        </button>
-      </div>
-
-      {/* SECTION A */}
+      {/* SECTION A — Outside Programs */}
       {activeTab === 'programs' && (
         <>
           <div className="section-label">Filter by subject</div>
@@ -2211,24 +2428,24 @@ function Page2({ user, submittedData, checklistState, onChecklistChange }) {
           <div className="empty-programs">
             <div className="empty-programs-emoji">📬</div>
             <div className="empty-programs-text">
-              {subjectFilter === 'All' ? 'Programs coming soon for all subjects!' : `Programs for ${subjectFilter}`}
+              {subjectFilter === 'All' ? 'Programs coming soon for all subjects!' : `Programs for ${subjectFilter} — coming soon!`}
             </div>
-            <div className="empty-programs-sub">I'll let you know when I find any!</div>
+            <div className="empty-programs-sub">Check back soon — programs will be added here!</div>
           </div>
         </>
       )}
 
-      {/* SECTION B */}
+      {/* SECTION B — Career & Uni Map */}
       {activeTab === 'map' && (
         !isUnlocked ? (
           <div className="card"><div className="locked-overlay">
             <div className="locked-icon">🗺️</div>
             <div className="locked-title">Complete your elective profile first</div>
-            <div className="locked-sub">Go to the Elective Planner, fill in your details, and generate your suggestions — then this map will show your personalised career and university pathways.</div>
+            <div className="locked-sub">Go to the Elective Planner, fill in your details and lock in your suggestions — then your personalised career and university pathways will appear here! 🗺️</div>
           </div></div>
         ) : (
           <>
-            <div className="info-banner"><Icon name="info" size={15} /> Each of your 8 suggested electives maps to career pathways and universities.</div>
+            <div className="info-banner"><Icon name="info" size={15} /> Each of your electives maps to career pathways and universities — here are your personalised connections!</div>
             <div className="career-map">
               <div className="map-header-row">
                 <div className="map-col-title">Elective</div><div></div>
@@ -2259,47 +2476,209 @@ function Page2({ user, submittedData, checklistState, onChecklistChange }) {
         )
       )}
 
-      {/* SECTION C */}
+      {/* SECTION C — Progress Checklist (redesigned) */}
       {activeTab === 'progress' && (
         !isUnlocked ? (
           <div className="card"><div className="locked-overlay">
             <div className="locked-icon">📋</div>
             <div className="locked-title">Complete your elective profile first</div>
-            <div className="locked-sub">Once you submit your elective preferences, your progress checklist will appear here.</div>
+            <div className="locked-sub">Once you lock in your electives, your progress checklist will appear here so you can track milestones! 🎯</div>
           </div></div>
         ) : (
           <>
-            <div className="info-banner"><Icon name="info" size={15} /> Tick off milestones as you go. Progress saves automatically to your account.</div>
-            {suggestions.map(elective => {
-              const { pct } = getProgress(elective.id);
-              return (
-                <div className="progress-subject" key={elective.id}>
-                  <div className="card">
-                    <div className="progress-subject-header">
-                      <div className="progress-subject-name">{elective.name}</div>
-                      <div className="progress-pct">{pct}%</div>
+            <div className="info-banner"><Icon name="info" size={15} /> Tick off milestones as you go — progress saves automatically! Keep it up! 💪</div>
+            <div className="checklist-grid">
+              {suggestions.map(elective => {
+                const { done, total, pct } = getProgress(elective.id);
+                const color = CAT_COLORS[elective.category] || 'var(--primary)';
+                return (
+                  <div className="checklist-elective-card" key={elective.id}>
+                    <div className="checklist-elective-header" style={{ background: color }}>
+                      <div className="checklist-elective-name">{elective.name}</div>
+                      <div className="checklist-elective-pct">{pct}%</div>
                     </div>
-                    <div className="progress-bar-track"><div className="progress-bar-fill" style={{ width:`${pct}%` }} /></div>
-                    <div className="checklist-items">
-                      {PLACEHOLDER_CHECKLIST.map((item, i) => {
-                        const key = `${elective.id}-${i}`;
-                        const checked = !!checklistState[key];
+                    <div className="checklist-elective-bar">
+                      <div className="checklist-elective-bar-fill" style={{ width:`${pct}%`, background: color }} />
+                    </div>
+                    <div className="checklist-elective-body">
+                      <div className="checklist-semester">📘 Semester 1</div>
+                      {PLACEHOLDER_CHECKLIST.slice(0,3).map((item, i) => {
+                        const checked = !!checklistState[`${elective.id}-${i}`];
                         return (
-                          <div key={i} className={`checklist-item${checked?' done':''}`} onClick={() => toggleChecklistItem(elective.id, i)}>
-                            <div className={`checklist-checkbox${checked?' checked':''}`}>{checked && <Icon name="check" size={11} />}</div>
-                            {/* PLACEHOLDER: Replace with real curriculum milestones */}
+                          <div key={i} className={`checklist-item-v2${checked?' done':''}`} onClick={() => toggleChecklistItem(elective.id, i)}>
+                            <div className={`checklist-cb${checked?' checked':''}`}>{checked && <Icon name="check" size={10} />}</div>
                             <span className="checklist-label">{item}</span>
                           </div>
                         );
                       })}
+                      <div className="checklist-semester" style={{ marginTop:'.55rem' }}>📗 Semester 2</div>
+                      {PLACEHOLDER_CHECKLIST.slice(3).map((item, i) => {
+                        const idx = i + 3;
+                        const checked = !!checklistState[`${elective.id}-${idx}`];
+                        return (
+                          <div key={idx} className={`checklist-item-v2${checked?' done':''}`} onClick={() => toggleChecklistItem(elective.id, idx)}>
+                            <div className={`checklist-cb${checked?' checked':''}`}>{checked && <Icon name="check" size={10} />}</div>
+                            <span className="checklist-label">{item}</span>
+                          </div>
+                        );
+                      })}
+                      {pct === 100 && (
+                        <div className="checklist-complete-badge"><Icon name="award" size={14} /> All done — great work! 🎉</div>
+                      )}
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </>
         )
       )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PAGE 3 — YEAR 11 ROADMAP / MINDMAP
+═══════════════════════════════════════════════════════════════ */
+const YEAR11_CATS = [
+  { id:'english', name:'English', emoji:'📚', color:'#3b82f6', subjects:[
+    { name:'English', note:'Compulsory for most VCE pathways' },
+    { name:'English as an Additional Language (EAL)', note:'Situational — speak to your coordinator' },
+    { name:'Literature' },
+  ]},
+  { id:'health', name:'Health', emoji:'💊', color:'#ec4899', subjects:[
+    { name:'Food Studies' }, { name:'Health & Human Development' },
+  ]},
+  { id:'humanities', name:'Humanities', emoji:'🌍', color:'#f59e0b', subjects:[
+    { name:'Accounting' }, { name:'Business Management' }, { name:'Economics' },
+    { name:'Geography' }, { name:'Politics' }, { name:'Modern History' },
+    { name:'Legal Studies' }, { name:'Philosophy' }, { name:'Sociology' },
+  ]},
+  { id:'ict', name:'ICT', emoji:'💻', color:'#10b981', subjects:[
+    { name:'Applied Computing' },
+  ]},
+  { id:'language', name:'Language', emoji:'🗣️', color:'#f97316', subjects:[
+    { name:'Spanish (continuation)' }, { name:'French (continuation)' }, { name:'German (continuation)' },
+  ]},
+  { id:'mathematics', name:'Mathematics', emoji:'📐', color:'#8b5cf6', subjects:[
+    { name:'Foundation Mathematics' }, { name:'General Mathematics' },
+    { name:'Mathematical Methods', enhancementKey:'Mathematical Methods' },
+    { name:'Specialist Mathematics', note:'Requires Mathematical Methods Unit 1/2 completed or handled simultaneously', enhancementKey:'Specialist Mathematics' },
+  ]},
+  { id:'performing_arts', name:'Performing Arts', emoji:'🎭', color:'#f43f5e', subjects:[
+    { name:'Music' }, { name:'Theatre Studies' },
+  ]},
+  { id:'pe', name:'Physical Education', emoji:'🏃', color:'#ef4444', subjects:[
+    { name:'Outdoor Education' }, { name:'Physical Education' },
+  ]},
+  { id:'science', name:'Science', emoji:'🔬', color:'#14b8a6', subjects:[
+    { name:'Biology', enhancementKey:'Biology' }, { name:'Chemistry', enhancementKey:'Chemistry' },
+    { name:'Physics', enhancementKey:'Physics' }, { name:'Psychology' },
+  ]},
+  { id:'visual_arts', name:'Visual Arts', emoji:'🎨', color:'#7c3aed', subjects:[
+    { name:'Art Creative Practice' }, { name:'Media' }, { name:'Visual Communication Design' },
+  ]},
+];
+
+const ENHANCEMENT_OPTIONS = ['Mathematical Methods','Biology','Chemistry','Physics','English'];
+
+function Page3({ submittedData }) {
+  const [expandedCat, setExpandedCat] = useState(null);
+  const [enhancements, setEnhancements] = useState([]);
+
+  const toggleEnh = (sub) => setEnhancements(prev =>
+    prev.includes(sub) ? prev.filter(e => e !== sub) : [...prev, sub]
+  );
+
+  return (
+    <div className="mindmap-page">
+      <div className="page-header">
+        <div className="page-title">Year 11 Preview 🔭</div>
+        <div className="page-subtitle">Explore what Year 11 VCE looks like — click any subject area to see what&apos;s inside.</div>
+      </div>
+
+      {/* Enhancement input */}
+      <div className="card" style={{ marginBottom:'1.5rem' }}>
+        <div className="card-title">
+          <span className="icon-wrap" style={{ background:'#d1fae5' }}><Icon name="star" size={14} /></span>
+          Are you completing any enhancement (Unit 1/2 VCE) subjects in Year 10?
+          <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.4rem' }}>(optional)</span>
+        </div>
+        <div className="multi-chip-grid" style={{ marginTop:'.6rem' }}>
+          {ENHANCEMENT_OPTIONS.map(sub => (
+            <button type="button" key={sub}
+              className={`multi-chip${enhancements.includes(sub)?' selected':''}`}
+              onClick={() => toggleEnh(sub)}>
+              {sub}
+            </button>
+          ))}
+        </div>
+        {enhancements.length > 0 && (
+          <div style={{ marginTop:'.85rem', fontSize:'.83rem', color:'#065f46', background:'#ecfdf5', border:'1px solid #bbf7d0', borderRadius:'9px', padding:'.6rem .9rem', lineHeight:1.55 }}>
+            ✅ Enhancement subjects selected! These are highlighted green in the mindmap below. When entering Year 11, speak with your coordinators — if your grades are strong enough, you may be able to take the Unit 3/4 version of these subjects.
+          </div>
+        )}
+      </div>
+
+      {/* Centre label */}
+      <div style={{ textAlign:'center', marginBottom:'1.5rem' }}>
+        <div className="mindmap-center-label">Year 11 VCE</div>
+        <p style={{ fontSize:'.88rem', color:'var(--text-muted)', marginTop:'.5rem', lineHeight:1.6 }}>
+          Students choose <strong>5 units</strong> of electives. <strong>English is compulsory</strong> and does not count toward your 5 elective units.
+          <br />Click any subject area below to explore the electives inside.
+        </p>
+      </div>
+
+      {/* Mindmap grid */}
+      <div className="mindmap-grid">
+        {YEAR11_CATS.map(cat => {
+          const isOpen = expandedCat === cat.id;
+          // Check if any subject in this cat has an active enhancement
+          const hasEnhancedSubject = cat.subjects.some(s => s.enhancementKey && enhancements.includes(s.enhancementKey));
+          return (
+            <div key={cat.id} className="mindmap-cat-card"
+              style={{ borderColor: hasEnhancedSubject ? '#86efac' : 'var(--border)' }}
+              onClick={() => setExpandedCat(isOpen ? null : cat.id)}>
+              <div className="mindmap-cat-header" style={{ background: cat.color }}>
+                <div className="mindmap-cat-title">
+                  <span>{cat.emoji}</span> {cat.name}
+                  {hasEnhancedSubject && <span style={{ fontSize:'.72rem', background:'rgba(255,255,255,.25)', padding:'.1rem .45rem', borderRadius:'999px', marginLeft:'.4rem' }}>✓ Enhancement</span>}
+                </div>
+                <span className={`mindmap-cat-arrow${isOpen?' open':''}`}>▶</span>
+              </div>
+              {isOpen && (
+                <div className="mindmap-subjects-wrap">
+                  {cat.subjects.map((s, i) => {
+                    const isEnhanced = s.enhancementKey && enhancements.includes(s.enhancementKey);
+                    return (
+                      <div key={i} style={{ width:'100%' }}>
+                        <span className={`mindmap-subject-chip${isEnhanced?' enhanced':''}${s.note && !isEnhanced?' note':''}`}>
+                          {s.name}
+                          {isEnhanced && ' ✓'}
+                        </span>
+                        {s.note && (
+                          <div style={{ fontSize:'.73rem', color:'var(--text-muted)', marginTop:'.2rem', marginBottom:'.25rem', paddingLeft:'.25rem' }}>
+                            ℹ️ {s.note}
+                          </div>
+                        )}
+                        {isEnhanced && (
+                          <div className="mindmap-enhanced-note">
+                            🎓 Because you&apos;re taking <strong>{s.enhancementKey}</strong> as an enhancement in Year 10, you may be able to take the Unit 3/4 version in Year 11! Speak with your coordinator when entering Year 11 to confirm — your grades will need to be strong enough.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ marginTop:'2rem', padding:'1.25rem', background:'var(--surface2)', borderRadius:'var(--radius)', fontSize:'.85rem', color:'var(--text-muted)', lineHeight:1.65 }}>
+        📌 <strong>Remember:</strong> This is a preview only. Final subject availability, prerequisites and timetabling are confirmed by your school when you enter Year 11. Always speak with your subject coordinators for official guidance.
+      </div>
     </div>
   );
 }
@@ -2309,12 +2688,18 @@ function Page2({ user, submittedData, checklistState, onChecklistChange }) {
 ═══════════════════════════════════════════════════════════════ */
 function App() {
   const [session, setSession] = useState(undefined); // undefined = loading
+  const [isGuest, setIsGuest] = useState(false);
   const [activePage, setActivePage] = useState('page1');
+  const [page2Tab, setPage2Tab] = useState('programs');
+  const [showExploreDropdown, setShowExploreDropdown] = useState(false);
   const [submittedData, setSubmittedData] = useState(null);
   const [checklistState, setChecklistState] = useState({});
   const [saveFlash, setSaveFlash] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [userProfile, setUserProfile] = useState({ username: '', avatar_data: null });
+  const [penguinDismissed, setPenguinDismissed] = useState(
+    () => !!sessionStorage.getItem('elect_penguin_dismissed')
+  );
 
   // Debounce ref for checklist saves
   const checklistSaveTimer = useRef(null);
@@ -2370,6 +2755,16 @@ function App() {
     setTimeout(() => setSaveFlash(false), 2000);
   };
 
+  const handleGuest = () => {
+    setIsGuest(true);
+    const saved = sessionStorage.getItem('elect_guest_data');
+    if (saved) try { const d = JSON.parse(saved); setSubmittedData(d.sd||null); setChecklistState(d.cs||{}); } catch {}
+  };
+
+  const guestSaveData = (sd, cs) => {
+    sessionStorage.setItem('elect_guest_data', JSON.stringify({ sd, cs }));
+  };
+
   // Checklist changes: update state immediately, debounce save to Supabase
   const handleChecklistChange = useCallback((newState) => {
     setChecklistState(newState);
@@ -2379,11 +2774,13 @@ function App() {
         await dbSaveChecklist(session.user.id, newState);
         showSaveIndicator();
       }, 1200);
+    } else if (isGuest) {
+      guestSaveData(submittedData, newState);
     }
-  }, [session]);
+  }, [session, isGuest, submittedData]);
 
   // Loading state while checking session
-  if (session === undefined) {
+  if (session === undefined && !isGuest) {
     return (
       <div className="loading-screen">
         <div className="spinner" />
@@ -2392,15 +2789,36 @@ function App() {
     );
   }
 
-  // Not logged in
-  if (!session) return <AuthScreen />;
+  // Not logged in and not guest
+  if (!session && !isGuest) return <AuthScreen onGuest={handleGuest} />;
 
-  const user = session.user;
-  const initials = user.email?.slice(0, 2).toUpperCase() || '??';
+  const user = session?.user || null;
+  const initials = user?.email?.slice(0, 2).toUpperCase() || '👤';
+
+  const penguinMsg = (() => {
+    if (activePage === 'page1') {
+      if (!submittedData) return "Hi! I'm Pingu 🐧 Fill in the form and I'll help find your perfect Year 10 electives!";
+      if (submittedData.isLocked) return "🎉 Amazing! You're all locked in! Go check out Explore & Track and Year 11 Preview — they just unlocked!";
+      return "Here are your suggestions! Not happy with one? Hit Swap! When you're ready, click Lock In ✨";
+    }
+    if (activePage === 'page2') return "Welcome to Explore & Track! Check out your career paths, uni options and progress here! 🗺️";
+    if (activePage === 'page3') return "This is your Year 11 preview! Click any subject area to see what's inside! 📚";
+    return '';
+  })();
+
+  const handleSetSubmittedData = (data) => {
+    setSubmittedData(data);
+    if (isGuest) guestSaveData(data, checklistState);
+  };
 
   return (
-    <div className="app-shell">
-      {showSettings && (
+    <div className="app-shell" onClick={() => showExploreDropdown && setShowExploreDropdown(false)}>
+      {isGuest && (
+        <div className="guest-banner">
+          👤 <strong>Guest Mode</strong> — your data will not be saved after you close this tab.
+        </div>
+      )}
+      {showSettings && user && (
         <SettingsPanel
           user={user}
           profile={userProfile}
@@ -2425,46 +2843,109 @@ function App() {
             <Icon name="zap" size={14} /> Elective Planner
             <span style={{ marginLeft:'.3rem', fontSize:'.74rem', color: activePage==='page1'?'rgba(255,255,255,.65)':'var(--text-muted)' }}>Year 10</span>
           </button>
-          <button className={`nav-link${activePage==='page2'?' active':''}`} onClick={() => setActivePage('page2')}>
-            <Icon name="compass" size={14} /> Explore & Track
-            {!submittedData && <span className="nav-badge">2 locked</span>}
+
+          {/* Explore & Track dropdown */}
+          <div className="nav-dropdown-wrap" onClick={e => e.stopPropagation()}>
+            <button className={`nav-link${activePage==='page2'?' active':''}`}
+              onClick={() => setShowExploreDropdown(p => !p)}>
+              <Icon name="compass" size={14} /> Explore &amp; Track ▾
+              {!submittedData && <span className="nav-badge">2 locked</span>}
+            </button>
+            {showExploreDropdown && (
+              <div className="nav-dropdown-menu">
+                {[
+                  { id:'programs', icon:'globe', label:'Outside Programs' },
+                  { id:'map',      icon:'map',   label:'Career & Uni Map' },
+                  { id:'progress', icon:'check-square', label:'Progress Checklist' },
+                ].map(item => (
+                  <button key={item.id} className={`nav-dropdown-item${page2Tab===item.id && activePage==='page2'?' active':''}`}
+                    onClick={() => { setPage2Tab(item.id); setActivePage('page2'); setShowExploreDropdown(false); }}>
+                    <Icon name={item.icon} size={14} /> {item.label}
+                    {(item.id === 'map' || item.id === 'progress') && !submittedData && <span className="nav-badge" style={{ marginLeft:'auto' }}>🔒</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <button className={`nav-link${activePage==='page3'?' active':''}`} onClick={() => setActivePage('page3')}>
+            <Icon name="compass" size={14} /> Year 11 Preview 🔭
           </button>
         </div>
 
         {/* Future year levels */}
         <div style={{ display:'flex', gap:'.2rem' }}>
-          {['Y9','Y11','Y12'].map(y => <button key={y} className="nav-link coming-soon" title={`${y} — coming soon`}>{y}</button>)}
+          {['Y9','Y12'].map(y => <button key={y} className="nav-link coming-soon" title={`${y} — coming soon`}>{y}</button>)}
         </div>
 
         {/* User badge */}
         <div className="nav-user">
           {saveFlash && <span className="save-indicator"><Icon name="check" size={13} /> Saved</span>}
-          <div className="nav-avatar" style={{ overflow:'hidden' }}>
-            {userProfile.avatar_data
-              ? <img src={userProfile.avatar_data} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} />
-              : initials}
-          </div>
-          <span className="nav-email">{userProfile.username || user.email}</span>
-          <button className="nav-settings-btn" title="Settings" onClick={() => setShowSettings(true)}><Icon name="settings" size={15} /></button>
-          <button className="nav-logout" onClick={handleLogout}><Icon name="log-out" size={13} /> Log out</button>
+          {user ? (
+            <>
+              <div className="nav-avatar" style={{ overflow:'hidden' }}>
+                {userProfile.avatar_data
+                  ? <img src={userProfile.avatar_data} alt="avatar" style={{ width:'100%', height:'100%', objectFit:'cover', borderRadius:'50%' }} />
+                  : initials}
+              </div>
+              <span className="nav-email">{userProfile.username || user.email}</span>
+              <button className="nav-settings-btn" title="Settings" onClick={() => setShowSettings(true)}><Icon name="settings" size={15} /></button>
+              <button className="nav-logout" onClick={handleLogout}><Icon name="log-out" size={13} /> Log out</button>
+            </>
+          ) : (
+            <>
+              <span className="nav-avatar">👤</span>
+              <span className="nav-email">Guest</span>
+              <button className="nav-logout" onClick={() => { setIsGuest(false); sessionStorage.clear(); }}>
+                <Icon name="log-out" size={13} /> Exit
+              </button>
+            </>
+          )}
         </div>
       </nav>
+
+      {/* Penguin guide */}
+      {!penguinDismissed && (
+        <div className="penguin-wrap">
+          <div className="speech-bubble">{penguinMsg}</div>
+          <div className="penguin-char">
+            <div className="penguin-body">
+              <div className="penguin-belly" />
+              <div className="penguin-eye l"><div className="penguin-pupil" /></div>
+              <div className="penguin-eye r"><div className="penguin-pupil" /></div>
+              <div className="penguin-beak" />
+              <div className="penguin-wing l" />
+              <div className="penguin-wing r" />
+              <div className="penguin-foot l" />
+              <div className="penguin-foot r" />
+            </div>
+            <button className="penguin-dismiss" onClick={() => { setPenguinDismissed(true); sessionStorage.setItem('elect_penguin_dismissed','1'); }}>✕</button>
+          </div>
+        </div>
+      )}
 
       {activePage === 'page1' && (
         <Page1
           user={user}
+          isGuest={isGuest}
           submittedData={submittedData}
-          onSubmit={setSubmittedData}
+          onSubmit={handleSetSubmittedData}
           onSaveIndicator={showSaveIndicator}
         />
       )}
       {activePage === 'page2' && (
         <Page2
           user={user}
+          isGuest={isGuest}
+          activeTab={page2Tab}
+          onTabChange={setPage2Tab}
           submittedData={submittedData}
           checklistState={checklistState}
           onChecklistChange={handleChecklistChange}
         />
+      )}
+      {activePage === 'page3' && (
+        <Page3 submittedData={submittedData} />
       )}
     </div>
   );
