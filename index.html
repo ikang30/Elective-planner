@@ -3705,6 +3705,50 @@ const ELECTIVE_CAT_MAP = {
   intro_engineering:'engineering',
 };
 
+const STEM_ALGO_CATEGORIES = new Set(['maths', 'science', 'ict', 'engineering']);
+const STEM_ENHANCEMENT_SUBJECTS = new Set([
+  'Mathematical Methods',
+  'Applied Computing',
+  'Biology',
+  'Chemistry',
+  'Physics',
+  'Psychology',
+]);
+
+function getFreeElectiveStemStats(suggestions = []) {
+  const requiredUsed = { humanities: false, science: false, pe: false };
+  const freeElectives = [];
+
+  (suggestions || []).forEach(elective => {
+    if (!requiredUsed.humanities && HUMANITIES_IDS.includes(elective?.id)) {
+      requiredUsed.humanities = true;
+      return;
+    }
+    if (!requiredUsed.science && SCIENCE_IDS.includes(elective?.id)) {
+      requiredUsed.science = true;
+      return;
+    }
+    if (!requiredUsed.pe && PE_IDS.includes(elective?.id)) {
+      requiredUsed.pe = true;
+      return;
+    }
+    freeElectives.push(elective);
+  });
+
+  const stemCount = freeElectives.filter(elective => {
+    if (isEnhancementElective(elective)) {
+      return STEM_ENHANCEMENT_SUBJECTS.has(getEnhancementSubjectName(elective));
+    }
+    return STEM_ALGO_CATEGORIES.has(ELECTIVE_CAT_MAP[elective?.id] || elective?.category);
+  }).length;
+
+  return {
+    freeCount: freeElectives.length,
+    stemCount,
+    nonStemCount: freeElectives.length - stemCount,
+  };
+}
+
 /* Skill → categories that get +1.0 if that skill is top-rated */
 const SKILL_CAT_MAP_ALGO = {
   verbal:    ['english'],
@@ -5993,7 +6037,12 @@ function App() {
   const penguinMsg = (() => {
     if (activePage === 'page1') {
       if (!submittedData) return "Hi! I'm Pingu. Quick warning: my algorithm is just a rough helper, not professional advice. Fill this in, then review everything carefully!";
-      if (submittedData.isLocked) return "🎉 Amazing! You're all locked in! Go check out Explore & Track and Year 11 Preview — they just unlocked!";
+      if (submittedData.isLocked) {
+        const { stemCount, nonStemCount } = getFreeElectiveStemStats(submittedData.suggestions || []);
+        if (stemCount >= 4) return "You have selected many STEM elective subjects. Great choice, but just make sure you are happy with it!";
+        if (nonStemCount >= 3) return "You have selected very few STEM elective subjects. Great choice, but make sure you are happy with it!";
+        return "🎉 Amazing! You're all locked in! Go check out Explore & Track and Year 11 Preview — they just unlocked!";
+      }
       return "Suggestions are here, but please don't trust them blindly. Swap, use manual choices, and only lock in once the final 8 actually feel right.";
     }
     if (activePage === 'page2') return "Welcome to Explore & Track! Check out your career paths, uni options and progress here! 🗺️";
