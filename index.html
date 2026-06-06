@@ -1484,18 +1484,22 @@ function isEnhancementElective(elective) {
 }
 
 function getEnhancementSubjectName(elective) {
-  return String(elective?.name || '').replace(/\s*\(Enhancement\)\s*$/, '');
+  return elective?._enhSubject || String(elective?.name || '').replace(/\s*\(Enhancement(?:\s+Unit\s+\d+)?\)\s*$/, '');
 }
 
-function makeEnhancementElective(enhancementName, original) {
+function makeEnhancementElective(enhancementName, original, unit = 1, groupId = null) {
+  const safeName = enhancementName.replace(/\W+/g,'_').toLowerCase();
   return {
-    id: `enh_${enhancementName.replace(/\W+/g,'_').toLowerCase()}`,
-    name: `${enhancementName} (Enhancement)`,
+    id: `enh_${safeName}_unit_${unit}`,
+    name: `${enhancementName} (Enhancement Unit ${unit})`,
     category: 'enhancement',
     badge: 'badge-enhancement',
-    description: `Year 11 VCE ${enhancementName} studied in Year 10 as an acceleration/enhancement subject.`,
+    description: `Year 11 VCE ${enhancementName} Unit ${unit} studied in Year 10 as an acceleration/enhancement subject.`,
     careers: [],
     universities: [],
+    _enhSubject: enhancementName,
+    _enhGroupId: groupId || `enh_${safeName}_${Date.now()}`,
+    _enhUnit: unit,
     _enhOriginalId: original?.id,
   };
 }
@@ -1507,6 +1511,7 @@ const EXCLUDED_ENHANCEMENT_SUBJECTS = new Set([
   'French (continuation)',
   'German (continuation)',
   'Specialist Mathematics',
+  'Mathematical Methods',
   'Foundation Mathematics',
   'General Mathematics',
 ]);
@@ -3825,7 +3830,6 @@ const CAREER_ELECTIVE_BOOSTS = {
 
 const STEM_ALGO_CATEGORIES = new Set(['maths', 'science', 'ict', 'engineering']);
 const STEM_ENHANCEMENT_SUBJECTS = new Set([
-  'Mathematical Methods',
   'Applied Computing',
   'Biology',
   'Chemistry',
@@ -3872,7 +3876,6 @@ function getElectiveAlgoCategory(elective) {
   if (isEnhancementElective(elective)) {
     const subject = getEnhancementSubjectName(elective);
     if (['Biology','Chemistry','Physics','Psychology'].includes(subject)) return 'science';
-    if (subject === 'Mathematical Methods') return 'maths';
     if (subject === 'Applied Computing') return 'ict';
     if (['Accounting','Business Management','Economics','Legal Studies'].includes(subject)) return 'law_economics';
     if (['Music','Theatre Studies'].includes(subject)) return 'performing_arts';
@@ -4586,6 +4589,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const [manualMode, setManualMode] = useState(false);
   const [essentialRemoveChoice, setEssentialRemoveChoice] = useState({});
   const [enhancementSlot, setEnhancementSlot] = useState('');
+  const [enhancementSlot2, setEnhancementSlot2] = useState('');
   const [enhancementSubject, setEnhancementSubject] = useState('');
 
   // ── Bug fix: sync local state when DB data loads after a refresh ──
@@ -4784,7 +4788,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setSubmitted(false); setSuggestions([]); setSuggestionPool([]);
     setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
     setSwapHistory([]); setManualMode(false); setEssentialRemoveChoice({});
-    setEnhancementSlot(''); setEnhancementSubject('');
+    setEnhancementSlot(''); setEnhancementSlot2(''); setEnhancementSubject('');
     setLangDisplaced({});
     setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
     setCareer(''); setLanguage(''); setUniversities([]);
@@ -4865,16 +4869,22 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   };
 
   const handleApplyEnhancement = async () => {
-    if (enhancementSlot === '' || !enhancementSubject) return;
-    if (suggestions.filter(isEnhancementElective).length >= 2) return;
+    if (enhancementSlot === '' || enhancementSlot2 === '' || enhancementSlot === enhancementSlot2 || !enhancementSubject) return;
+    if (suggestions.some(isEnhancementElective)) return;
     if (suggestions.some(e => isEnhancementElective(e) && getEnhancementSubjectName(e) === enhancementSubject)) return;
-    const idx = Number(enhancementSlot);
-    const original = suggestions[idx];
-    if (!original || isEnhancementElective(original) || compulsoryIds.has(original.id)) return;
+    const idx1 = Number(enhancementSlot);
+    const idx2 = Number(enhancementSlot2);
+    const original1 = suggestions[idx1];
+    const original2 = suggestions[idx2];
+    if (!original1 || !original2 || isEnhancementElective(original1) || isEnhancementElective(original2)) return;
+    if (compulsoryIds.has(original1.id) || compulsoryIds.has(original2.id)) return;
+    const groupId = `enh_${enhancementSubject.replace(/\W+/g,'_').toLowerCase()}_${Date.now()}`;
     const newSugs = [...suggestions];
-    newSugs[idx] = makeEnhancementElective(enhancementSubject, original);
+    newSugs[idx1] = makeEnhancementElective(enhancementSubject, original1, 1, groupId);
+    newSugs[idx2] = makeEnhancementElective(enhancementSubject, original2, 2, groupId);
     setSuggestions(newSugs);
     setEnhancementSlot('');
+    setEnhancementSlot2('');
     setEnhancementSubject('');
     setLockError('');
     await savePlan({ studentData: submittedData?.studentData, suggestions: newSugs, pool: suggestionPool, isLocked });
@@ -4882,10 +4892,16 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
 
   const handleRestoreEnhancement = async (idx) => {
     const current = suggestions[idx];
-    const original = current?._enhOriginalId ? ALL_ELECTIVES.find(e => e.id === current._enhOriginalId) : null;
-    if (!original) return;
+    if (!isEnhancementElective(current)) return;
     const newSugs = [...suggestions];
-    newSugs[idx] = original;
+    const groupId = current._enhGroupId;
+    newSugs.forEach((elective, i) => {
+      if (!isEnhancementElective(elective)) return;
+      const sameGroup = groupId ? elective._enhGroupId === groupId : i === idx;
+      if (!sameGroup) return;
+      const original = elective?._enhOriginalId ? ALL_ELECTIVES.find(e => e.id === elective._enhOriginalId) : null;
+      if (original) newSugs[i] = original;
+    });
     setSuggestions(newSugs);
     setLockError('');
     await savePlan({ studentData: submittedData?.studentData, suggestions: newSugs, pool: suggestionPool, isLocked });
@@ -5301,7 +5317,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
 
           {/* ── ENHANCEMENT BANNER ──
               Shown only when English > 70 AND maths or science > 85.
-              Allows one suggested/locked slot to become a Year 11 Unit 1/2 enhancement. */}
+              One Year 11 Unit 1/2 enhancement replaces two elective slots. */}
           {(() => {
             const g = submittedData?.studentData?.grades || {};
             const eng  = Number(g['English']     || 0);
@@ -5316,26 +5332,42 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
             const activeEnhancementNames = new Set(activeEnhancements.map(({ elective }) => getEnhancementSubjectName(elective)));
             const enhancementOptions = getYear11EnhancementOptions()
               .filter(subject => !activeEnhancementNames.has(subject));
-            const enhancementLimitReached = activeEnhancements.length >= 2;
+            const enhancementLimitReached = activeEnhancements.length > 0;
             const replaceableOptions = enhancementLimitReached ? [] : suggestions
               .map((elective, idx) => ({ elective, idx }))
               .filter(({ elective }) => elective && !isEnhancementElective(elective) && !compulsoryIds.has(elective.id));
+            const secondReplaceableOptions = replaceableOptions.filter(({ idx }) => String(idx) !== String(enhancementSlot));
+            const firstReplaceableOptions = replaceableOptions.filter(({ idx }) => String(idx) !== String(enhancementSlot2));
+            const canApplyEnhancement = !enhancementLimitReached && enhancementSlot !== '' && enhancementSlot2 !== '' && enhancementSlot !== enhancementSlot2 && !!enhancementSubject;
+            const restoreButtons = activeEnhancements.filter(({ elective, idx }, index, arr) => {
+              const groupId = elective._enhGroupId || `${elective.id}-${idx}`;
+              return arr.findIndex(row => (row.elective._enhGroupId || `${row.elective.id}-${row.idx}`) === groupId) === index;
+            });
             return (
               <div className="enhancement-banner">
                 <div className="enhancement-banner-icon">⭐</div>
                 <div style={{ flex: 1 }}>
                   <div className="enhancement-banner-title">Enhancement Opportunity</div>
                   <div className="enhancement-banner-text">
-                    Based on your strong grades, you might want to consider taking up to <strong>2 Year 11 Unit 1/2 enhancement subjects</strong> in Year 10.
-                    Choose from the available Year 11 Preview subjects below. Speak to your subject coordinator about acceleration and enrichment options.
+                    Based on your strong grades, you might want to consider taking <strong>1 Year 11 Unit 1/2 enhancement subject</strong> in Year 10.
+                    One enhancement subject takes both semesters, so it replaces <strong>2 elective units</strong>. Speak to your subject coordinator about acceleration and enrichment options.
                   </div>
 
                   <div className="enhancement-actions">
                     <div className="enhancement-field">
-                      <label>Elective to replace</label>
+                      <label>First elective to replace</label>
                       <select className="form-select" value={enhancementSlot} onChange={e => setEnhancementSlot(e.target.value)}>
-                        <option value="">Choose a non-essential slot...</option>
-                        {replaceableOptions.map(({ elective, idx }) => (
+                        <option value="">Choose first non-essential slot...</option>
+                        {firstReplaceableOptions.map(({ elective, idx }) => (
+                          <option key={`${elective.id}-${idx}`} value={idx}>Slot {idx + 1}: {elective.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="enhancement-field">
+                      <label>Second elective to replace</label>
+                      <select className="form-select" value={enhancementSlot2} onChange={e => setEnhancementSlot2(e.target.value)}>
+                        <option value="">Choose second non-essential slot...</option>
+                        {secondReplaceableOptions.map(({ elective, idx }) => (
                           <option key={`${elective.id}-${idx}`} value={idx}>Slot {idx + 1}: {elective.name}</option>
                         ))}
                       </select>
@@ -5350,20 +5382,20 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                     <button
                       className="btn btn-primary"
                       onClick={handleApplyEnhancement}
-                      disabled={enhancementLimitReached || enhancementSlot === '' || !enhancementSubject}
-                      style={{ whiteSpace:'nowrap', opacity: enhancementLimitReached || enhancementSlot === '' || !enhancementSubject ? .55 : 1 }}
+                      disabled={!canApplyEnhancement}
+                      style={{ whiteSpace:'nowrap', opacity: !canApplyEnhancement ? .55 : 1 }}
                     >
-                      <Icon name="repeat" size={14} /> Replace
+                      <Icon name="repeat" size={14} /> Replace 2 slots
                     </button>
                   </div>
 
                   {enhancementLimitReached ? (
                     <div className="enhancement-note">
-                      You already have the maximum of 2 enhancement subjects in your elective slots. Restore one first if you want to choose a different enhancement.
+                      You already have the maximum of 1 enhancement subject in your elective slots. Restore it first if you want to choose a different enhancement.
                     </div>
-                  ) : replaceableOptions.length === 0 && (
+                  ) : replaceableOptions.length < 2 && (
                     <div className="enhancement-note">
-                      There are no safe non-essential slots to replace right now. Keep at least one Geo/History, Science and PE subject in the plan before using an enhancement.
+                      There are not enough safe non-essential slots to replace right now. Keep at least one Geo/History, Science and PE subject in the plan before using an enhancement.
                     </div>
                   )}
 
@@ -5373,9 +5405,9 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
 
                   {activeEnhancements.length > 0 && (
                     <div className="enhancement-restore-row">
-                      {activeEnhancements.map(({ elective, idx }) => (
+                      {restoreButtons.map(({ elective, idx }) => (
                         <button key={`${elective.id}-${idx}`} className="enhancement-restore-btn" onClick={() => handleRestoreEnhancement(idx)}>
-                          Restore slot {idx + 1}: {elective.name}
+                          Restore enhancement: {getEnhancementSubjectName(elective)}
                         </button>
                       ))}
                     </div>
@@ -5540,6 +5572,7 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
   const [subjectFilter, setSubjectFilter] = useState('All');
   const [programYearOnly, setProgramYearOnly] = useState(false);
   const [enhSwapSlot, setEnhSwapSlot] = useState('');
+  const [enhSwapSlot2, setEnhSwapSlot2] = useState('');
   const [enhSwapSubject, setEnhSwapSubject] = useState('');
 
   const isUnlocked = !!submittedData?.isLocked;
@@ -5897,31 +5930,49 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
 
             {/* Enhancement swap panel */}
             {(() => {
-              const activeEnhs = (enhancements || []).filter(Boolean);
+              const activeEnhs = [...new Set((enhancements || []).filter(Boolean))]
+                .filter(subject => ENHANCEMENT_OPTIONS.includes(subject))
+                .slice(0, 1);
               if (activeEnhs.length === 0) return null;
               const enhancementCount = suggestions.filter(isEnhancementElective).length;
-              const enhancementLimitReached = enhancementCount >= 2;
+              const enhancementLimitReached = enhancementCount > 0;
+              const replaceableRows = enhancementLimitReached ? [] : suggestions
+                .map((s, i) => ({ elective: s, idx: i }))
+                .filter(({ elective }) => elective && !isEnhancementElective(elective) && !protectedRequirementIds.has(elective.id));
+              const firstRows = replaceableRows.filter(({ idx }) => String(idx) !== String(enhSwapSlot2));
+              const secondRows = replaceableRows.filter(({ idx }) => String(idx) !== String(enhSwapSlot));
+              const canSwapEnhancement = !enhancementLimitReached && enhSwapSlot !== '' && enhSwapSlot2 !== '' && enhSwapSlot !== enhSwapSlot2 && !!enhSwapSubject;
+              const restoreRows = suggestions
+                .map((s, i) => ({ elective: s, idx: i }))
+                .filter(({ elective }) => isEnhancementElective(elective))
+                .filter(({ elective, idx }, index, arr) => {
+                  const groupId = elective._enhGroupId || `${elective.id}-${idx}`;
+                  return arr.findIndex(row => (row.elective._enhGroupId || `${row.elective.id}-${row.idx}`) === groupId) === index;
+                });
               return (
                 <div style={{ background:'linear-gradient(135deg,#ecfdf5,#f0fdf4)', border:'1.5px solid #6ee7b7', borderRadius:'12px', padding:'1rem 1.25rem', marginBottom:'1.25rem' }}>
                   <div style={{ fontWeight:700, fontSize:'.95rem', color:'#065f46', marginBottom:'.5rem' }}>⭐ Enhancement Subject Swap</div>
                   <p style={{ fontSize:'.83rem', color:'#047857', lineHeight:1.5, marginBottom:'.75rem' }}>
-                    You have selected enhancement subject(s) on the Year 11 Preview page. You can replace up to 2 elective slots with enhancement subjects — this will update your plan across all pages.
+                    You selected an enhancement subject on the Year 11 Preview page. One Unit 1/2 enhancement takes both semesters, so it replaces 2 elective slots and updates your plan across all pages.
                   </p>
                   {enhancementLimitReached && (
                     <div style={{ fontSize:'.8rem', color:'#047857', background:'#d1fae5', border:'1px solid #6ee7b7', borderRadius:'8px', padding:'.5rem .7rem', marginBottom:'.7rem' }}>
-                      Maximum reached: you already have 2 enhancement subjects in your elective slots. Restore one first if you want to choose a different enhancement.
+                      Maximum reached: you already have 1 enhancement subject in your elective slots. Restore it first if you want to choose a different enhancement.
                     </div>
                   )}
                   <div style={{ display:'flex', gap:'.6rem', flexWrap:'wrap', alignItems:'flex-end' }}>
                     <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flex:1, minWidth:'160px' }}>
-                      <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>Elective to replace</label>
+                      <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>First elective to replace</label>
                       <select className="form-select" value={enhSwapSlot} onChange={e => setEnhSwapSlot(e.target.value)}>
-                        <option value="">Select a slot…</option>
-                        {suggestions.map((s, i) => {
-                          const protectedSlot = protectedRequirementIds.has(s.id);
-                          if (enhancementLimitReached || isEnhancementElective(s) || protectedSlot) return null;
-                          return <option key={i} value={i}>{s.name}</option>;
-                        })}
+                        <option value="">Select first slot…</option>
+                        {firstRows.map(({ elective, idx }) => <option key={idx} value={idx}>{elective.name}</option>)}
+                      </select>
+                    </div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flex:1, minWidth:'160px' }}>
+                      <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>Second elective to replace</label>
+                      <select className="form-select" value={enhSwapSlot2} onChange={e => setEnhSwapSlot2(e.target.value)}>
+                        <option value="">Select second slot…</option>
+                        {secondRows.map(({ elective, idx }) => <option key={idx} value={idx}>{elective.name}</option>)}
                       </select>
                     </div>
                     <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flex:1, minWidth:'160px' }}>
@@ -5935,24 +5986,24 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
                     </div>
                     <button
                       className="btn btn-primary"
-                      disabled={enhancementLimitReached || enhSwapSlot === '' || !enhSwapSubject}
-                      style={{ background:'#10b981', whiteSpace:'nowrap', opacity: enhancementLimitReached || enhSwapSlot === '' || !enhSwapSubject ? .55 : 1 }}
+                      disabled={!canSwapEnhancement}
+                      style={{ background:'#10b981', whiteSpace:'nowrap', opacity: !canSwapEnhancement ? .55 : 1 }}
                       onClick={() => {
-                        if (enhancementLimitReached || enhSwapSlot === '' || !enhSwapSubject) return;
-                        onEnhancementSwap(Number(enhSwapSlot), enhSwapSubject);
-                        setEnhSwapSlot(''); setEnhSwapSubject('');
+                        if (!canSwapEnhancement) return;
+                        onEnhancementSwap(Number(enhSwapSlot), Number(enhSwapSlot2), enhSwapSubject);
+                        setEnhSwapSlot(''); setEnhSwapSlot2(''); setEnhSwapSubject('');
                       }}>
-                      ↔ Swap
+                      ↔ Replace 2 slots
                     </button>
                   </div>
                   {suggestions.some(s => s.category === 'enhancement') && (
                     <div style={{ marginTop:'.75rem', display:'flex', flexWrap:'wrap', gap:'.45rem' }}>
-                      {suggestions.map((s, i) => s.category === 'enhancement' ? (
-                        <button key={i} onClick={() => onEnhancementUnswap(i)}
+                      {restoreRows.map(({ elective, idx }) => (
+                        <button key={idx} onClick={() => onEnhancementUnswap(idx)}
                           style={{ fontSize:'.78rem', padding:'.28rem .7rem', borderRadius:'99px', border:'1.5px solid #6ee7b7', background:'#d1fae5', color:'#065f46', cursor:'pointer', fontWeight:600 }}>
-                          ↩ Restore slot {i+1} ({s.name})
+                          ↩ Restore enhancement ({getEnhancementSubjectName(elective)})
                         </button>
-                      ) : null)}
+                      ))}
                     </div>
                   )}
                 </div>
@@ -6132,7 +6183,7 @@ const YEAR11_CATS = [
   ]},
   { id:'mathematics', name:'Mathematics', emoji:'📐', color:'#8b5cf6', subjects:[
     { name:'Foundation Mathematics' }, { name:'General Mathematics' },
-    { name:'Mathematical Methods', enhancementKey:'Mathematical Methods' },
+    { name:'Mathematical Methods' },
     { name:'Specialist Mathematics', note:'Requires Mathematical Methods Unit 1/2 completed or handled simultaneously', enhancementKey:'Specialist Mathematics' },
   ]},
   { id:'performing_arts', name:'Performing Arts', emoji:'🎭', color:'#f43f5e', subjects:[
@@ -6155,13 +6206,9 @@ const ENHANCEMENT_OPTIONS = getYear11EnhancementOptions();
 function Page3({ submittedData, enhancements, setEnhancements }) {
   const [expandedCat, setExpandedCat] = useState(null);
 
-  const enhancementValues = enhancements.filter(Boolean);
+  const enhancementValues = enhancements.filter(subject => ENHANCEMENT_OPTIONS.includes(subject)).slice(0, 1);
   const setEnhancement = (idx, value) => {
-    setEnhancements(prev => {
-      const next = [...prev];
-      next[idx] = value;
-      return next;
-    });
+    setEnhancements([value, '']);
   };
   const isEnhancedSubject = (subject) => enhancementValues.includes(subject.name) ||
     (subject.enhancementKey && enhancementValues.includes(subject.enhancementKey));
@@ -6181,20 +6228,16 @@ function Page3({ submittedData, enhancements, setEnhancements }) {
           Are you completing any enhancement (Unit 1/2 VCE) subjects in Year 10?
           <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.4rem' }}>(optional)</span>
         </div>
-        <div className="enhancement-select-grid">
-          {[0, 1].map(idx => (
-            <select key={idx} className="form-select" value={enhancements[idx]}
-              onChange={e => setEnhancement(idx, e.target.value)}>
-              <option value="">{idx === 0 ? 'First enhancement subject…' : 'Second enhancement subject…'}</option>
-              {ENHANCEMENT_OPTIONS
-                .filter(opt => !enhancementValues.includes(opt) || enhancements[idx] === opt)
-                .map(opt => <option key={opt} value={opt}>{opt}</option>)}
-            </select>
-          ))}
+        <div className="enhancement-select-grid" style={{ gridTemplateColumns:'1fr' }}>
+          <select className="form-select" value={enhancements[0] || ''}
+            onChange={e => setEnhancement(0, e.target.value)}>
+            <option value="">Enhancement subject…</option>
+            {ENHANCEMENT_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+          </select>
         </div>
         {enhancementValues.length > 0 && (
           <div style={{ marginTop:'.85rem', fontSize:'.83rem', color:'#065f46', background:'#ecfdf5', border:'1px solid #bbf7d0', borderRadius:'9px', padding:'.6rem .9rem', lineHeight:1.55 }}>
-            ✅ Enhancement subjects selected! These are highlighted green in the mindmap below. When entering Year 11, speak with your coordinators — if your grades are strong enough, you may be able to take the Unit 3/4 version of these subjects.
+            ✅ Enhancement subject selected! It is highlighted green in the mindmap below. When entering Year 11, speak with your coordinators — if your grades are strong enough, you may be able to take the Unit 3/4 version of this subject.
           </div>
         )}
       </div>
@@ -6444,14 +6487,18 @@ function App() {
     if (isGuest) guestSaveData(data, checklistState);
   };
 
-  const handleEnhancementSwap = async (slotIndex, enhancementName) => {
+  const handleEnhancementSwap = async (slotIndex, slotIndex2, enhancementName) => {
     if (!submittedData || !enhancementName) return;
     const newSugs = [...submittedData.suggestions];
+    if (slotIndex === slotIndex2) return;
     const original = newSugs[slotIndex];
-    if (!original || isEnhancementElective(original)) return;
-    if (newSugs.filter(isEnhancementElective).length >= 2) return;
+    const original2 = newSugs[slotIndex2];
+    if (!original || !original2 || isEnhancementElective(original) || isEnhancementElective(original2)) return;
+    if (newSugs.some(isEnhancementElective)) return;
     if (newSugs.some(e => isEnhancementElective(e) && getEnhancementSubjectName(e) === enhancementName)) return;
-    newSugs[slotIndex] = makeEnhancementElective(enhancementName, original);
+    const groupId = `enh_${enhancementName.replace(/\W+/g,'_').toLowerCase()}_${Date.now()}`;
+    newSugs[slotIndex] = makeEnhancementElective(enhancementName, original, 1, groupId);
+    newSugs[slotIndex2] = makeEnhancementElective(enhancementName, original2, 2, groupId);
     const newData = { ...submittedData, suggestions: newSugs };
     setSubmittedData(newData);
     if (user) await dbSaveElectiveResults(user.id, { studentData: newData.studentData, suggestions: newSugs, pool: newData.pool || [], isLocked: newData.isLocked });
@@ -6463,10 +6510,15 @@ function App() {
     if (!submittedData) return;
     const newSugs = [...submittedData.suggestions];
     const curr = newSugs[slotIndex];
-    const origId = curr?._enhOriginalId;
-    const original = origId ? ALL_ELECTIVES.find(e => e.id === origId) : null;
-    if (!original) return;
-    newSugs[slotIndex] = original;
+    if (!isEnhancementElective(curr)) return;
+    const groupId = curr._enhGroupId;
+    newSugs.forEach((elective, idx) => {
+      if (!isEnhancementElective(elective)) return;
+      const sameGroup = groupId ? elective._enhGroupId === groupId : idx === slotIndex;
+      if (!sameGroup) return;
+      const original = elective?._enhOriginalId ? ALL_ELECTIVES.find(e => e.id === elective._enhOriginalId) : null;
+      if (original) newSugs[idx] = original;
+    });
     const newData = { ...submittedData, suggestions: newSugs };
     setSubmittedData(newData);
     if (user) await dbSaveElectiveResults(user.id, { studentData: newData.studentData, suggestions: newSugs, pool: newData.pool || [], isLocked: newData.isLocked });
