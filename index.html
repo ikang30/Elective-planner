@@ -38,13 +38,14 @@
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
       background: var(--bg); color: var(--text); min-height: 100vh;
+      overflow-x: hidden;
     }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-    #root { min-height: 100vh; display: flex; flex-direction: column; }
-    .app-shell { display: flex; flex-direction: column; min-height: 100vh; }
+    #root { min-height: 100vh; display: flex; flex-direction: column; width: 100%; }
+    .app-shell { display: flex; flex-direction: column; min-height: 100vh; width: 100%; overflow-x: hidden; }
 
     /* ═══ AUTH SCREEN ═══ */
     .auth-bg {
@@ -157,22 +158,28 @@
       position: sticky; top: 0; z-index: 100;
       background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
-      padding: 0 2rem; display: flex; align-items: center; gap: 1.5rem; height: 64px;
+      padding: 0 clamp(.75rem, 2vw, 1.5rem); display: flex; align-items: center; gap: .75rem; height: 64px;
+      overflow: hidden;
     }
     .nav-logo {
       display: flex; align-items: center; gap: .45rem;
-      font-weight: 900; font-size: 1.3rem; color: var(--primary);
+      font-weight: 900; font-size: 1.14rem; color: var(--primary);
       text-decoration: none; flex-shrink: 0; letter-spacing: -.02em;
     }
     .nav-logo .logo-icon {
       width: 32px; height: 32px; background: var(--primary);
       border-radius: 8px; display: grid; place-items: center;
     }
-    .nav-links { display: flex; gap: .25rem; flex: 1; }
+    .nav-links {
+      display: flex; gap: .18rem; flex: 1 1 auto; min-width: 0;
+      overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+    }
+    .nav-links::-webkit-scrollbar { display: none; }
     .nav-link {
-      padding: .45rem .9rem; border-radius: 8px; font-size: .88rem; font-weight: 500;
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .42rem .58rem; border-radius: 8px; font-size: .8rem; font-weight: 600;
       cursor: pointer; border: none; background: transparent;
-      color: var(--text-muted); transition: all .18s; white-space: nowrap;
+      color: var(--text-muted); transition: all .18s; white-space: nowrap; flex: 0 0 auto;
     }
     .nav-link:hover { background: var(--surface2); color: var(--text); }
     .nav-link.active { background: var(--primary); color: #fff; }
@@ -183,10 +190,11 @@
       background: var(--accent); color: #fff;
       padding: .1rem .4rem; border-radius: 99px; vertical-align: middle;
     }
+    .future-year-links { display: flex; gap: .2rem; flex-shrink: 0; }
     /* User badge in nav */
     .nav-user {
       display: flex; align-items: center; gap: .6rem;
-      margin-left: auto; flex-shrink: 0;
+      margin-left: auto; flex: 0 0 auto; min-width: 0; max-width: 34vw;
     }
     .nav-avatar {
       width: 32px; height: 32px; border-radius: 50%;
@@ -194,7 +202,7 @@
       display: grid; place-items: center; font-size: .8rem; font-weight: 700;
       flex-shrink: 0;
     }
-    .nav-email { font-size: .82rem; color: var(--text-muted); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .nav-email { font-size: .82rem; color: var(--text-muted); max-width: min(160px, 13vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .nav-logout {
       padding: .35rem .75rem; border-radius: 7px;
       border: 1.5px solid var(--border); background: transparent;
@@ -210,6 +218,16 @@
       animation: fadeIn .3s ease;
     }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @media (max-width: 1180px) {
+      .nav-email { display: none; }
+      .nav-user { max-width: none; }
+      .nav-link { padding-inline: .5rem; }
+    }
+    @media (max-width: 980px) {
+      .future-year-links { display: none; }
+      .nav-logo { font-size: 1rem; }
+      .nav-logo .logo-icon { width: 28px; height: 28px; }
+    }
 
     /* ═══ PAGE ═══ */
     .page { flex: 1; padding: 2.5rem 2rem; max-width: 1120px; margin: 0 auto; width: 100%; }
@@ -6362,7 +6380,7 @@ function App() {
         </div>
 
         {/* Future year levels */}
-        <div style={{ display:'flex', gap:'.2rem' }}>
+        <div className="future-year-links">
           {['Y9','Y11','Y12'].map(y => <button key={y} className="nav-link coming-soon" title={`${y} — coming soon`}>{y}</button>)}
         </div>
 
