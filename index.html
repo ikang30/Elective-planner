@@ -1412,6 +1412,10 @@ function isEnhancementElective(elective) {
   return elective?.category === 'enhancement' || elective?.id?.startsWith('enh_');
 }
 
+function getEnhancementSubjectName(elective) {
+  return String(elective?.name || '').replace(/\s*\(Enhancement\)\s*$/, '');
+}
+
 function makeEnhancementElective(enhancementName, original) {
   return {
     id: `enh_${enhancementName.replace(/\W+/g,'_').toLowerCase()}`,
@@ -1425,15 +1429,21 @@ function makeEnhancementElective(enhancementName, original) {
   };
 }
 
-function getYear11EnhancementOptions(showMaths, showScience) {
-  const options = [];
-  const addCat = (catId) => {
-    const cat = YEAR11_CATS.find(c => c.id === catId);
-    if (cat) options.push(...cat.subjects.map(s => s.name));
-  };
-  if (showMaths) addCat('mathematics');
-  if (showScience) addCat('science');
-  return [...new Set(options)];
+const EXCLUDED_ENHANCEMENT_SUBJECTS = new Set([
+  'English',
+  'English as an Additional Language (EAL)',
+  'Spanish (continuation)',
+  'French (continuation)',
+  'German (continuation)',
+  'Specialist Mathematics',
+  'Foundation Mathematics',
+  'General Mathematics',
+]);
+
+function getYear11EnhancementOptions() {
+  return YEAR11_CATS
+    .flatMap(cat => cat.subjects.map(subject => subject.name))
+    .filter(name => !EXCLUDED_ENHANCEMENT_SUBJECTS.has(name));
 }
 
 ALL_ELECTIVES.forEach(elective => {
@@ -4533,6 +4543,8 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
 
   const handleApplyEnhancement = async () => {
     if (enhancementSlot === '' || !enhancementSubject) return;
+    if (suggestions.filter(isEnhancementElective).length >= 2) return;
+    if (suggestions.some(e => isEnhancementElective(e) && getEnhancementSubjectName(e) === enhancementSubject)) return;
     const idx = Number(enhancementSlot);
     const original = suggestions[idx];
     if (!original || isEnhancementElective(original) || compulsoryIds.has(original.id)) return;
@@ -4944,30 +4956,24 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
             const showMaths = eng > 70 && math > 85;
             const showSci   = eng > 70 && sci  > 85;
             if (!showMaths && !showSci) return null;
-            const sciElective = suggestions.find(e => SCIENCE_IDS.includes(e.id));
-            const sciLabel = sciElective ? sciElective.name : 'Science';
-            const enhancementOptions = getYear11EnhancementOptions(showMaths, showSci);
-            const replaceableOptions = suggestions
-              .map((elective, idx) => ({ elective, idx }))
-              .filter(({ elective }) => elective && !isEnhancementElective(elective) && !compulsoryIds.has(elective.id));
             const activeEnhancements = suggestions
               .map((elective, idx) => ({ elective, idx }))
               .filter(({ elective }) => isEnhancementElective(elective));
+            const activeEnhancementNames = new Set(activeEnhancements.map(({ elective }) => getEnhancementSubjectName(elective)));
+            const enhancementOptions = getYear11EnhancementOptions()
+              .filter(subject => !activeEnhancementNames.has(subject));
+            const enhancementLimitReached = activeEnhancements.length >= 2;
+            const replaceableOptions = enhancementLimitReached ? [] : suggestions
+              .map((elective, idx) => ({ elective, idx }))
+              .filter(({ elective }) => elective && !isEnhancementElective(elective) && !compulsoryIds.has(elective.id));
             return (
               <div className="enhancement-banner">
                 <div className="enhancement-banner-icon">⭐</div>
                 <div style={{ flex: 1 }}>
                   <div className="enhancement-banner-title">Enhancement Opportunity</div>
                   <div className="enhancement-banner-text">
-                    Based on your strong grades, you might want to consider taking{' '}
-                    {showMaths && showSci ? (
-                      <><strong>enhancement Year 11 Mathematics</strong> and <strong>enhancement Year 11 {sciLabel}</strong></>
-                    ) : showMaths ? (
-                      <strong>enhancement Year 11 Mathematics</strong>
-                    ) : (
-                      <strong>enhancement Year 11 {sciLabel}</strong>
-                    )}{' '}
-                    classes in Year 10. Speak to your subject coordinator about acceleration and enrichment options.
+                    Based on your strong grades, you might want to consider taking up to <strong>2 Year 11 Unit 1/2 enhancement subjects</strong> in Year 10.
+                    Choose from the available Year 11 Preview subjects below. Speak to your subject coordinator about acceleration and enrichment options.
                   </div>
 
                   <div className="enhancement-actions">
@@ -4990,14 +4996,18 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
                     <button
                       className="btn btn-primary"
                       onClick={handleApplyEnhancement}
-                      disabled={enhancementSlot === '' || !enhancementSubject}
-                      style={{ whiteSpace:'nowrap', opacity: enhancementSlot === '' || !enhancementSubject ? .55 : 1 }}
+                      disabled={enhancementLimitReached || enhancementSlot === '' || !enhancementSubject}
+                      style={{ whiteSpace:'nowrap', opacity: enhancementLimitReached || enhancementSlot === '' || !enhancementSubject ? .55 : 1 }}
                     >
                       <Icon name="repeat" size={14} /> Replace
                     </button>
                   </div>
 
-                  {replaceableOptions.length === 0 && (
+                  {enhancementLimitReached ? (
+                    <div className="enhancement-note">
+                      You already have the maximum of 2 enhancement subjects in your elective slots. Restore one first if you want to choose a different enhancement.
+                    </div>
+                  ) : replaceableOptions.length === 0 && (
                     <div className="enhancement-note">
                       There are no safe non-essential slots to replace right now. Keep at least one Geo/History, Science and PE subject in the plan before using an enhancement.
                     </div>
@@ -5535,12 +5545,19 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
             {(() => {
               const activeEnhs = (enhancements || []).filter(Boolean);
               if (activeEnhs.length === 0) return null;
+              const enhancementCount = suggestions.filter(isEnhancementElective).length;
+              const enhancementLimitReached = enhancementCount >= 2;
               return (
                 <div style={{ background:'linear-gradient(135deg,#ecfdf5,#f0fdf4)', border:'1.5px solid #6ee7b7', borderRadius:'12px', padding:'1rem 1.25rem', marginBottom:'1.25rem' }}>
                   <div style={{ fontWeight:700, fontSize:'.95rem', color:'#065f46', marginBottom:'.5rem' }}>⭐ Enhancement Subject Swap</div>
                   <p style={{ fontSize:'.83rem', color:'#047857', lineHeight:1.5, marginBottom:'.75rem' }}>
-                    You have selected enhancement subject(s) on the Year 11 Preview page. You can replace one of your elective slots with an enhancement subject — this will update your plan across all pages.
+                    You have selected enhancement subject(s) on the Year 11 Preview page. You can replace up to 2 elective slots with enhancement subjects — this will update your plan across all pages.
                   </p>
+                  {enhancementLimitReached && (
+                    <div style={{ fontSize:'.8rem', color:'#047857', background:'#d1fae5', border:'1px solid #6ee7b7', borderRadius:'8px', padding:'.5rem .7rem', marginBottom:'.7rem' }}>
+                      Maximum reached: you already have 2 enhancement subjects in your elective slots. Restore one first if you want to choose a different enhancement.
+                    </div>
+                  )}
                   <div style={{ display:'flex', gap:'.6rem', flexWrap:'wrap', alignItems:'flex-end' }}>
                     <div style={{ display:'flex', flexDirection:'column', gap:'.3rem', flex:1, minWidth:'160px' }}>
                       <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>Elective to replace</label>
@@ -5548,7 +5565,7 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
                         <option value="">Select a slot…</option>
                         {suggestions.map((s, i) => {
                           const protectedSlot = protectedRequirementIds.has(s.id);
-                          if (isEnhancementElective(s) || protectedSlot) return null;
+                          if (enhancementLimitReached || isEnhancementElective(s) || protectedSlot) return null;
                           return <option key={i} value={i}>{s.name}</option>;
                         })}
                       </select>
@@ -5557,12 +5574,17 @@ function Page2({ user, isGuest, activeTab, onTabChange, submittedData, checklist
                       <label style={{ fontSize:'.78rem', fontWeight:600, color:'#065f46' }}>Enhancement subject</label>
                       <select className="form-select" value={enhSwapSubject} onChange={e => setEnhSwapSubject(e.target.value)}>
                         <option value="">Select enhancement…</option>
-                        {activeEnhs.map(s => <option key={s} value={s}>{s}</option>)}
+                        {activeEnhs
+                          .filter(s => !suggestions.some(e => isEnhancementElective(e) && getEnhancementSubjectName(e) === s))
+                          .map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
                     </div>
-                    <button className="btn btn-primary" style={{ background:'#10b981', whiteSpace:'nowrap' }}
+                    <button
+                      className="btn btn-primary"
+                      disabled={enhancementLimitReached || enhSwapSlot === '' || !enhSwapSubject}
+                      style={{ background:'#10b981', whiteSpace:'nowrap', opacity: enhancementLimitReached || enhSwapSlot === '' || !enhSwapSubject ? .55 : 1 }}
                       onClick={() => {
-                        if (enhSwapSlot === '' || !enhSwapSubject) return;
+                        if (enhancementLimitReached || enhSwapSlot === '' || !enhSwapSubject) return;
                         onEnhancementSwap(Number(enhSwapSlot), enhSwapSubject);
                         setEnhSwapSlot(''); setEnhSwapSubject('');
                       }}>
@@ -5702,7 +5724,7 @@ const YEAR11_CATS = [
   ]},
 ];
 
-const ENHANCEMENT_OPTIONS = YEAR11_CATS.flatMap(cat => cat.subjects.map(s => s.name));
+const ENHANCEMENT_OPTIONS = getYear11EnhancementOptions();
 
 function Page3({ submittedData, enhancements, setEnhancements }) {
   const [expandedCat, setExpandedCat] = useState(null);
@@ -5989,6 +6011,8 @@ function App() {
     const newSugs = [...submittedData.suggestions];
     const original = newSugs[slotIndex];
     if (!original || isEnhancementElective(original)) return;
+    if (newSugs.filter(isEnhancementElective).length >= 2) return;
+    if (newSugs.some(e => isEnhancementElective(e) && getEnhancementSubjectName(e) === enhancementName)) return;
     newSugs[slotIndex] = makeEnhancementElective(enhancementName, original);
     const newData = { ...submittedData, suggestions: newSugs };
     setSubmittedData(newData);
