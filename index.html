@@ -4096,9 +4096,15 @@ function buildYear10Selection(pts, studentData = {}) {
   const usedIds = new Set();
   const actualCatCount = {};
   const algoCatCount = {};
+  const categoryOrder = ['engineering','maths','science','english','visual_arts','performing_arts','ict','pe','law_economics','humanities'];
+  const sortedAlgoCategories = [...categoryOrder].sort((a, b) => {
+    const diff = (pts[b] || 0) - (pts[a] || 0);
+    return diff !== 0 ? diff : categoryOrder.indexOf(a) - categoryOrder.indexOf(b);
+  });
   const peUniversity = universities.some(u => (UNI_SUBJECT_MAP[u] || []).includes('pe'));
   const peCraving = desiredElectives.some(id => PE_IDS.includes(id) || id === 'outdoor_ed') || peUniversity;
   const peCap = peCraving ? 2 : 1;
+  const geoHistoryCap = desiredElectives.includes('history') && desiredElectives.includes('geography') ? 2 : 1;
   const isActualMinor = (e) => ['visual_arts','performing_arts','health','ict'].includes(e.category);
   const desiredMinor = desiredElectives.some(id => {
     const e = ALL_ELECTIVES.find(x => x.id === id);
@@ -4112,13 +4118,12 @@ function buildYear10Selection(pts, studentData = {}) {
   const uniMinor = universities.some(u => (UNI_SUBJECT_MAP[u] || []).some(c => ['visual_arts','performing_arts','ict'].includes(c)));
   const minorCraving = desiredMinor || y9Minor || careerMinor || uniMinor;
   const minorCap = minorCraving ? 4 : 2;
-  const sciGradeHigh = Number(grades['Science'] || 0) >= 90;
   const categoryCap = (e) => {
     const algoCat = ELECTIVE_CAT_MAP[e.id] || 'humanities';
     if (PE_IDS.includes(e.id)) return peCap;
-    if (algoCat === 'science') return sciGradeHigh ? 3 : 2;
+    if (algoCat === 'science') return 2;
     if (isActualMinor(e)) return minorCap;
-    return Infinity;
+    return 2;
   };
 
   const addE = (id, force = false) => {
@@ -4128,6 +4133,7 @@ function buildYear10Selection(pts, studentData = {}) {
     if (!force) {
       if ((algoCatCount[algoCat] || 0) >= categoryCap(e)) return false;
       if (PE_IDS.includes(id) && (actualCatCount.pe || 0) >= peCap) return false;
+      if (HUMANITIES_IDS.includes(id) && selected.filter(s => HUMANITIES_IDS.includes(s.id)).length >= geoHistoryCap) return false;
       if (isActualMinor(e)) {
         const currentMinor = selected.filter(isActualMinor).length;
         if (currentMinor >= minorCap) return false;
@@ -4146,6 +4152,9 @@ function buildYear10Selection(pts, studentData = {}) {
       return scoreElectiveForStudent(bElective, pts, studentData) - scoreElectiveForStudent(aElective, pts, studentData);
     });
   const bestId = (ids) => rankIds(ids)[0];
+  const rankedElectivesForCat = (cat) => ALL_ELECTIVES
+    .filter(e => !usedIds.has(e.id) && (ELECTIVE_CAT_MAP[e.id] || 'humanities') === cat)
+    .sort((a, b) => scoreElectiveForStudent(b, pts, studentData) - scoreElectiveForStudent(a, pts, studentData));
 
   // ── 1. History vs Geography ───────────────────────────────────
   // Geography-leaning: high science/engineering/ict/pe side
@@ -4164,7 +4173,9 @@ function buildYear10Selection(pts, studentData = {}) {
   else if (desiredGeo && !desiredHist)  histGeoChoice = 'geography';
   else {
     const rankedHum = bestId(HUMANITIES_IDS);
-    if (rankedHum) histGeoChoice = rankedHum;
+    if (careerCategory === 'Environment & Agriculture' || y9GeoLean) histGeoChoice = 'geography';
+    else if (y9HistLean) histGeoChoice = 'history';
+    else if (rankedHum) histGeoChoice = rankedHum;
     else if (careerCategory === 'Environment & Agriculture' || y9GeoLean || geoScore + uniGeoLean > histScore + uniHistLean)
                                       histGeoChoice = 'geography';
     else if (y9HistLean || histScore + uniHistLean > geoScore + uniGeoLean)
@@ -4179,10 +4190,18 @@ function buildYear10Selection(pts, studentData = {}) {
   // (NOT chosen simply because of high grades or STEM)
   const desiredHM  = desiredElectives.includes('human_movement');
   const desiredPFL = desiredElectives.includes('pe_for_life');
+  const desiredOutdoor = desiredElectives.includes('outdoor_ed');
+  const y9SportScience = year9Electives.some(r => r.id === 'sports_science');
+  const y9Outdoor = year9Electives.some(r => r.id === 'duke_of_edinburgh');
   let peChoice;
-  if (desiredHM && !desiredPFL)                   peChoice = 'human_movement';
-  else if (desiredPFL && !desiredHM)              peChoice = 'pe_for_life';
-  else                                            peChoice = bestId(PE_IDS) || 'pe_for_life';
+  if (desiredHM && !desiredPFL && !desiredOutdoor)      peChoice = 'human_movement';
+  else if (desiredOutdoor && !desiredHM && !desiredPFL) peChoice = 'outdoor_ed';
+  else if (desiredPFL && !desiredHM && !desiredOutdoor) peChoice = 'pe_for_life';
+  else if (careerCategory === 'Medicine & Healthcare' || y9SportScience)
+                                                        peChoice = 'human_movement';
+  else if (careerCategory === 'Environment & Agriculture' || careerCategory === 'Military & Defence' || y9Outdoor)
+                                                        peChoice = 'outdoor_ed';
+  else                                                  peChoice = 'pe_for_life';
   addE(peChoice, true);
 
   // ── 3. Science elective choice ───────────────────────────────
@@ -4195,20 +4214,32 @@ function buildYear10Selection(pts, studentData = {}) {
   }
   addE(sciChoice, true);
 
-  // ── 4–8. Remaining 5 from subject-level scores ─────────────────
-  const rankedElectives = [...ALL_ELECTIVES]
-    .filter(e => !usedIds.has(e.id))
-    .sort((a, b) => scoreElectiveForStudent(b, pts, studentData) - scoreElectiveForStudent(a, pts, studentData));
-
-  for (const e of rankedElectives) {
+  // ── 4–8. Walk the final category pointsboard in order ──────────
+  // The highest category can hold up to 2 total subjects. Each category's
+  // subjects are still chosen by the user's career, university, skills,
+  // Year 9 electives, STEM preference, desired electives and grades.
+  let topViableCategoryHandled = false;
+  for (const cat of sortedAlgoCategories) {
     if (selected.length >= 8) break;
-    addE(e.id);
+    const alreadyInCat = algoCatCount[cat] || 0;
+    const candidates = rankedElectivesForCat(cat);
+    const isViableCategory = alreadyInCat > 0 || candidates.length > 0;
+    const targetForCat = !topViableCategoryHandled && isViableCategory ? 2 : 1;
+    if (isViableCategory) topViableCategoryHandled = true;
+    for (const e of candidates) {
+      if (selected.length >= 8) break;
+      if ((algoCatCount[cat] || 0) >= targetForCat) break;
+      addE(e.id);
+    }
   }
 
-  // Last-resort fill if caps were too restrictive.
-  for (const e of rankedElectives) {
+  // Last-resort fill, still ranked by personal subject score.
+  const rankedFallback = [...ALL_ELECTIVES]
+    .filter(e => !usedIds.has(e.id))
+    .sort((a, b) => scoreElectiveForStudent(b, pts, studentData) - scoreElectiveForStudent(a, pts, studentData));
+  for (const e of rankedFallback) {
     if (selected.length >= 8) break;
-    addE(e.id, true);
+    addE(e.id);
   }
 
   return selected.slice(0, 8);
