@@ -686,14 +686,17 @@
     .stem-btn { padding: .5rem 1.4rem; border-radius: 8px; border: 2px solid var(--border); background: var(--surface); font-size: .95rem; font-weight: 700; cursor: pointer; transition: all .15s; }
     .stem-btn.yes.active { border-color: var(--primary); background: var(--primary); color: #fff; }
     .stem-btn.no.active  { border-color: var(--border); background: var(--surface2); color: var(--text-muted); }
-    .priority-slider-wrap { margin-top: 1rem; }
-    .priority-slider { width: 100%; accent-color: var(--primary); cursor: pointer; }
-    .priority-label-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: .35rem; margin-top: .55rem; }
-    .priority-label {
-      text-align: center; font-size: .72rem; font-weight: 700; color: var(--text-muted);
-      padding: .35rem .25rem; border-radius: 8px; border: 1px solid transparent;
+    .priority-choice-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: .55rem; margin-top: 1rem; }
+    .priority-choice {
+      min-height: 52px; text-align: center; font-size: .78rem; font-weight: 800; color: var(--text-muted);
+      padding: .55rem .45rem; border-radius: 10px; border: 1.5px solid var(--border);
+      background: var(--surface); cursor: pointer; transition: all .15s;
+      display: flex; align-items: center; justify-content: center;
     }
-    .priority-label.active { color: var(--primary); background: #eef2ff; border-color: #c7d2fe; }
+    .priority-choice:hover { border-color: #c7d2fe; color: var(--primary); background: #f8fafc; }
+    .priority-choice.active { color: var(--primary); background: #eef2ff; border-color: #a5b4fc; box-shadow: 0 6px 18px rgba(99,102,241,.12); }
+    .priority-choice.disabled { opacity: .45; cursor: not-allowed; }
+    .priority-status { margin-top: .65rem; font-size: .8rem; color: var(--text-muted); line-height: 1.5; }
 
     /* ═══ Y9 ELECTIVES ═══ */
     .y9-row { display: grid; grid-template-columns: 1fr 150px 34px; gap: .5rem; margin-bottom: .5rem; align-items: center; }
@@ -1094,6 +1097,19 @@ const STUDENT_PRIORITY_OPTIONS = [
   { value:'good_grades', label:'Good grades' },
   { value:'balanced_workload', label:'Balanced workload' },
 ];
+const DEFAULT_STUDENT_PRIORITIES = ['balanced_workload'];
+function normalizeStudentPriorities(input) {
+  const allowed = new Set(STUDENT_PRIORITY_OPTIONS.map(opt => opt.value));
+  const raw = Array.isArray(input) ? input : (input ? [input] : []);
+  const unique = raw.filter((value, index) => allowed.has(value) && raw.indexOf(value) === index).slice(0, 2);
+  return unique.length ? unique : [...DEFAULT_STUDENT_PRIORITIES];
+}
+function getStudentPriorityLabel(input) {
+  const labels = normalizeStudentPriorities(input)
+    .map(value => STUDENT_PRIORITY_OPTIONS.find(opt => opt.value === value)?.label)
+    .filter(Boolean);
+  return labels.join(' + ') || 'Balanced workload';
+}
 
 const UNIVERSITIES_AU = [
   'University of Melbourne',
@@ -3760,6 +3776,53 @@ const ELECTIVE_CAT_MAP = {
   intro_engineering:'engineering',
 };
 
+const CAREER_ELECTIVE_BOOSTS = {
+  'Medicine & Healthcare': {
+    strong: ['biology','chemistry','human_movement','health'],
+    medium: ['make_my_day_science','food_tech','psychology'],
+  },
+  'Hospitality & Service': {
+    strong: ['food_tech','commerce_business_legal','health'],
+    medium: ['pe_for_life','english_writing'],
+  },
+  'Finance & Law': {
+    strong: ['commerce_business_legal','commerce_economics_finance','global_conflict'],
+    medium: ['history','english_writing','literature'],
+  },
+  'Transportation & Logistics': {
+    strong: ['physics','intro_engineering','geography'],
+    medium: ['information_systems','commerce_economics_finance'],
+  },
+  'Technology & Engineering': {
+    strong: ['intro_engineering','information_technology','information_systems','physics'],
+    medium: ['chemistry','sustainable_design','animation'],
+  },
+  'Visual Arts': {
+    strong: ['art','vic_comm','sculpture','ceramics'],
+    medium: ['media','animation','sustainable_design'],
+  },
+  'Performing Arts': {
+    strong: ['theatre','music_performance','music_technology'],
+    medium: ['creative_writing','media'],
+  },
+  'Environment & Agriculture': {
+    strong: ['environmental_science','geography','sustainable_design'],
+    medium: ['outdoor_ed','biology','make_my_day_science'],
+  },
+  'Education & Social Work': {
+    strong: ['health','pe_for_life','literature','history'],
+    medium: ['creative_writing','human_movement','english_writing'],
+  },
+  'Design & Media': {
+    strong: ['media','vic_comm','animation','sustainable_design'],
+    medium: ['creative_writing','art','information_technology'],
+  },
+  'Military & Defence': {
+    strong: ['global_conflict','outdoor_ed','physics','history'],
+    medium: ['human_movement','information_systems','geography'],
+  },
+};
+
 const STEM_ALGO_CATEGORIES = new Set(['maths', 'science', 'ict', 'engineering']);
 const STEM_ENHANCEMENT_SUBJECTS = new Set([
   'Mathematical Methods',
@@ -3824,16 +3887,22 @@ function getElectiveAlgoCategory(elective) {
 function getElectiveMatchPercent(elective, studentData = {}) {
   if (!elective) return 50;
   const pts = runAlgorithm(studentData || {});
-  const cat = getElectiveAlgoCategory(elective);
-  const maxScore = Math.max(...Object.values(pts), 1);
-  let score = 35 + ((pts[cat] || 0) / maxScore) * 38;
+  const scored = ALL_ELECTIVES
+    .map(e => ({ id: e.id, score: scoreElectiveForStudent(e, pts, studentData) }))
+    .sort((a, b) => b.score - a.score);
+  const currentScore = scoreElectiveForStudent(elective, pts, studentData);
+  const rank = scored.findIndex(row => row.id === elective.id);
+  const rankRatio = rank >= 0 && scored.length > 1 ? 1 - (rank / (scored.length - 1)) : 0.5;
+  const minScore = Math.min(...scored.map(row => row.score), currentScore);
+  const maxScore = Math.max(...scored.map(row => row.score), currentScore, minScore + 1);
+  const scoreRatio = (currentScore - minScore) / (maxScore - minScore);
+  let score = 46 + (rankRatio * 28) + (scoreRatio * 22);
 
-  if ((studentData.desiredElectives || []).includes(elective.id)) score += 12;
-  if ((studentData.year9BoostIds || []).includes(elective.id)) score += 10;
-  if ((studentData.year9Electives || []).some(row => Y9_TO_Y10[row.id] === elective.id)) score += 7;
-  if (HUMANITIES_IDS.includes(elective.id) || SCIENCE_IDS.includes(elective.id) || PE_IDS.includes(elective.id)) score += 4;
-  if (elective.id?.startsWith('lang_')) score = Math.max(score, 62);
-  if (isEnhancementElective(elective)) score = Math.max(score, 58);
+  if ((studentData.desiredElectives || []).includes(elective.id)) score += 5;
+  if ((studentData.year9BoostIds || []).includes(elective.id)) score += 4;
+  if (HUMANITIES_IDS.includes(elective.id) || SCIENCE_IDS.includes(elective.id) || PE_IDS.includes(elective.id)) score = Math.max(score, 64);
+  if (elective.id?.startsWith('lang_')) score = Math.max(score, 66);
+  if (isEnhancementElective(elective)) score = Math.max(score, 62);
 
   return Math.max(8, Math.min(96, Math.round(score)));
 }
@@ -3856,6 +3925,7 @@ function runAlgorithm(studentData) {
   const { grades = {}, desiredElectives = [], careerCategory, universities = [],
           skills = {}, year9Electives = [], stemPreference = false,
           studentPriority = 'balanced_workload' } = studentData;
+  const studentPriorities = normalizeStudentPriorities(studentData.studentPriorities || studentPriority);
 
   const pts = { engineering:0, maths:0, science:0, english:0, visual_arts:0,
                 performing_arts:0, ict:0, pe:0, law_economics:0, humanities:0 };
@@ -3917,30 +3987,107 @@ function runAlgorithm(studentData) {
   }
 
   // Step 8: Student priority nudge. Kept intentionally small because this is subjective.
-  if (studentPriority === 'career_direction') {
-    for (const cat of (CAREER_SUBJECT_MAP[careerCategory] || [])) {
-      if (cat in pts) pts[cat] += 0.45;
+  const priorityWeight = studentPriorities.length > 1 ? 0.75 : 1;
+  for (const priority of studentPriorities) {
+    if (priority === 'career_direction') {
+      for (const cat of (CAREER_SUBJECT_MAP[careerCategory] || [])) {
+        if (cat in pts) pts[cat] += 0.45 * priorityWeight;
+      }
+    } else if (priority === 'university_direction') {
+      for (const uni of universities) {
+        const cats = UNI_SUBJECT_MAP[uni] || [];
+        [0.3, 0.2, 0.1].forEach((w, i) => { if (cats[i] in pts) pts[cats[i]] += w * priorityWeight; });
+      }
+    } else if (priority === 'enjoyment') {
+      for (const id of desiredElectives) {
+        const cat = ELECTIVE_CAT_MAP[id];
+        if (cat && cat in pts) pts[cat] += 0.35 * priorityWeight;
+      }
+    } else if (priority === 'good_grades') {
+      const coreMapSmall = { Mathematics:'maths', Science:'science', English:'english', Humanities:'humanities' };
+      for (const [subj, cat] of Object.entries(coreMapSmall)) {
+        if (Number(grades[subj] || 0) >= 80) pts[cat] += 0.35 * priorityWeight;
+      }
+    } else if (priority === 'balanced_workload') {
+      ['english','humanities','pe','visual_arts','performing_arts'].forEach(c => pts[c] += 0.15 * priorityWeight);
     }
-  } else if (studentPriority === 'university_direction') {
-    for (const uni of universities) {
-      const cats = UNI_SUBJECT_MAP[uni] || [];
-      [0.3, 0.2, 0.1].forEach((w, i) => { if (cats[i] in pts) pts[cats[i]] += w; });
-    }
-  } else if (studentPriority === 'enjoyment') {
-    for (const id of desiredElectives) {
-      const cat = ELECTIVE_CAT_MAP[id];
-      if (cat && cat in pts) pts[cat] += 0.35;
-    }
-  } else if (studentPriority === 'good_grades') {
-    const coreMapSmall = { Mathematics:'maths', Science:'science', English:'english', Humanities:'humanities' };
-    for (const [subj, cat] of Object.entries(coreMapSmall)) {
-      if (Number(grades[subj] || 0) >= 80) pts[cat] += 0.35;
-    }
-  } else if (studentPriority === 'balanced_workload') {
-    ['english','humanities','pe','visual_arts','performing_arts'].forEach(c => pts[c] += 0.15);
   }
 
   return pts;
+}
+
+function scoreElectiveForStudent(elective, pts, studentData = {}) {
+  if (!elective) return 0;
+  if (isEnhancementElective(elective)) return 48;
+  const {
+    grades = {}, desiredElectives = [], careerCategory = '',
+    universities = [], skills = {}, year9Electives = [],
+    stemPreference = false,
+  } = studentData;
+  const cat = ELECTIVE_CAT_MAP[elective.id] || 'humanities';
+  const priorityChoices = normalizeStudentPriorities(studentData.studentPriorities || studentData.studentPriority);
+  let score = (pts[cat] || 0) * 10;
+
+  if (desiredElectives.includes(elective.id)) score += 24;
+
+  const careerBoost = CAREER_ELECTIVE_BOOSTS[careerCategory] || {};
+  if ((careerBoost.strong || []).includes(elective.id)) score += 18;
+  if ((careerBoost.medium || []).includes(elective.id)) score += 10;
+
+  for (const uni of universities) {
+    if ((elective.universities || []).includes(uni)) score += 8;
+    const uniCats = UNI_SUBJECT_MAP[uni] || [];
+    if (uniCats[0] === cat) score += 3;
+    else if (uniCats.includes(cat)) score += 1.5;
+  }
+
+  for (const row of year9Electives) {
+    if (Y9_TO_Y10[row.id] === elective.id) {
+      const grade = Number(row.grade || 0);
+      score += grade >= 90 ? 18 : grade >= 80 ? 14 : grade >= 70 ? 10 : 6;
+    }
+  }
+
+  const gradeBoosts = {
+    English: ['english'],
+    Mathematics: ['maths','engineering','ict','science','law_economics'],
+    Science: ['science','engineering','pe','health'],
+    Humanities: ['humanities','law_economics','english'],
+  };
+  for (const [subject, cats] of Object.entries(gradeBoosts)) {
+    const grade = Number(grades[subject] || 0);
+    if (!cats.includes(cat)) continue;
+    if (grade >= 90) score += 7;
+    else if (grade >= 80) score += 4;
+  }
+
+  for (const [skill, value] of Object.entries(skills || {})) {
+    if (Number(value || 0) < 4) continue;
+    if ((SKILL_CAT_MAP_ALGO[skill] || []).includes(cat)) score += Number(value) >= 5 ? 7 : 4;
+  }
+
+  const isStemElective = STEM_ALGO_CATEGORIES.has(cat) || ['physics','chemistry','biology','environmental_science','make_my_day_science','intro_engineering'].includes(elective.id);
+  if (stemPreference && isStemElective) score += 7;
+  if (!stemPreference && !isStemElective) score += 4;
+
+  if (priorityChoices.includes('career_direction')) {
+    if ((careerBoost.strong || []).includes(elective.id)) score += 5;
+    if ((careerBoost.medium || []).includes(elective.id)) score += 3;
+  }
+  if (priorityChoices.includes('university_direction') && universities.some(uni => (elective.universities || []).includes(uni))) score += 5;
+  if (priorityChoices.includes('enjoyment') && desiredElectives.includes(elective.id)) score += 5;
+  if (priorityChoices.includes('good_grades')) {
+    const relevantGrades = Object.entries(gradeBoosts)
+      .filter(([, cats]) => cats.includes(cat))
+      .map(([subject]) => Number(grades[subject] || 0));
+    if (Math.max(...relevantGrades, 0) >= 85) score += 4;
+  }
+  if (priorityChoices.includes('balanced_workload')) {
+    const practicalIds = ['food_tech','pe_for_life','outdoor_ed','art','ceramics','media','music_technology','theatre','sustainable_design'];
+    score += practicalIds.includes(elective.id) ? 3 : 1;
+  }
+
+  return score;
 }
 
 function buildYear10Selection(pts, studentData = {}) {
@@ -3991,6 +4138,14 @@ function buildYear10Selection(pts, studentData = {}) {
     algoCatCount[algoCat] = (algoCatCount[algoCat] || 0) + 1;
     return true;
   };
+  const rankIds = (ids) => ids
+    .filter(id => ALL_ELECTIVES.some(e => e.id === id))
+    .sort((a, b) => {
+      const aElective = ALL_ELECTIVES.find(e => e.id === a);
+      const bElective = ALL_ELECTIVES.find(e => e.id === b);
+      return scoreElectiveForStudent(bElective, pts, studentData) - scoreElectiveForStudent(aElective, pts, studentData);
+    });
+  const bestId = (ids) => rankIds(ids)[0];
 
   // ── 1. History vs Geography ───────────────────────────────────
   // Geography-leaning: high science/engineering/ict/pe side
@@ -4007,12 +4162,16 @@ function buildYear10Selection(pts, studentData = {}) {
   let histGeoChoice;
   if (desiredHist && !desiredGeo)       histGeoChoice = 'history';
   else if (desiredGeo && !desiredHist)  histGeoChoice = 'geography';
-  else if (careerCategory === 'Environment & Agriculture' || y9GeoLean || geoScore + uniGeoLean > histScore + uniHistLean)
-                                        histGeoChoice = 'geography';
-  else if (y9HistLean || histScore + uniHistLean > geoScore + uniGeoLean)
-                                        histGeoChoice = 'history';
-  else if (studentData.stemPreference)  histGeoChoice = 'geography';
-  else                                  histGeoChoice = 'history';
+  else {
+    const rankedHum = bestId(HUMANITIES_IDS);
+    if (rankedHum) histGeoChoice = rankedHum;
+    else if (careerCategory === 'Environment & Agriculture' || y9GeoLean || geoScore + uniGeoLean > histScore + uniHistLean)
+                                      histGeoChoice = 'geography';
+    else if (y9HistLean || histScore + uniHistLean > geoScore + uniGeoLean)
+                                      histGeoChoice = 'history';
+    else if (studentData.stemPreference) histGeoChoice = 'geography';
+    else                                histGeoChoice = 'history';
+  }
   addE(histGeoChoice, true);
 
   // ── 2. PE for Life vs Human Movement ─────────────────────────
@@ -4023,10 +4182,7 @@ function buildYear10Selection(pts, studentData = {}) {
   let peChoice;
   if (desiredHM && !desiredPFL)                   peChoice = 'human_movement';
   else if (desiredPFL && !desiredHM)              peChoice = 'pe_for_life';
-  else if (careerCategory === 'Medicine & Healthcare') peChoice = 'human_movement';
-  else if (careerCategory === 'Education & Social Work' && pts.science >= 2)
-                                                  peChoice = 'human_movement';
-  else                                            peChoice = 'pe_for_life';
+  else                                            peChoice = bestId(PE_IDS) || 'pe_for_life';
   addE(peChoice, true);
 
   // ── 3. Science elective choice ───────────────────────────────
@@ -4034,62 +4190,25 @@ function buildYear10Selection(pts, studentData = {}) {
   let sciChoice;
   if (desiredSci) {
     sciChoice = desiredSci;
-  } else if (careerCategory === 'Medicine & Healthcare') {
-    sciChoice = 'biology';
-  } else if (careerCategory === 'Environment & Agriculture') {
-    sciChoice = 'environmental_science';
-  } else if (pts.engineering >= pts.maths && pts.engineering > pts.humanities) {
-    sciChoice = 'physics';
-  } else if (pts.maths > pts.science && pts.maths > 0) {
-    sciChoice = 'chemistry';
   } else {
-    sciChoice = 'biology';
+    sciChoice = bestId(SCIENCE_IDS) || 'biology';
   }
   addE(sciChoice, true);
 
-  // ── 4–8. Remaining 5 from category pointsboard (maths excluded) ──
-  // Build available electives per category (excluding already used)
-  const availByCat = {};
-  for (const e of ALL_ELECTIVES) {
-    if (usedIds.has(e.id)) continue;
-    const cat = ELECTIVE_CAT_MAP[e.id] || 'humanities';
-    if (!availByCat[cat]) availByCat[cat] = [];
-    availByCat[cat].push(e.id);
-  }
+  // ── 4–8. Remaining 5 from subject-level scores ─────────────────
+  const rankedElectives = [...ALL_ELECTIVES]
+    .filter(e => !usedIds.has(e.id))
+    .sort((a, b) => scoreElectiveForStudent(b, pts, studentData) - scoreElectiveForStudent(a, pts, studentData));
 
-  // Sort categories by pts descending, exclude maths
-  const workPts = { ...pts };
-  delete workPts.maths;
-  const sortedCats = Object.entries(workPts).sort((a, b) => b[1] - a[1]).map(([k]) => k);
-
-  // Prioritise desired non-mandatory electives within each category
-  for (const cat of Object.keys(availByCat)) {
-    availByCat[cat].sort((a, b) => {
-      const aD = desiredElectives.includes(a) ? -1 : 1;
-      const bD = desiredElectives.includes(b) ? -1 : 1;
-      return aD - bD;
-    });
-  }
-
-  let remaining = 5;
-  let firstViableCatUsed = false;
-  for (const cat of sortedCats) {
-    if (remaining <= 0) break;
-    const avail = (availByCat[cat] || []).filter(id => !usedIds.has(id));
-    if (avail.length === 0) continue;
-    const maxFromCat = !firstViableCatUsed ? (cat === 'science' && sciGradeHigh ? 3 : 2) : 1;
-    let addedFromCat = 0;
-    for (const id of avail) {
-      if (remaining <= 0 || addedFromCat >= maxFromCat) break;
-      if (addE(id)) { remaining--; addedFromCat++; }
-    }
-    if (addedFromCat > 0) firstViableCatUsed = true;
-  }
-
-  // Fill any remaining slots while still respecting PE/minor/category caps
-  for (const e of ALL_ELECTIVES) {
+  for (const e of rankedElectives) {
     if (selected.length >= 8) break;
     addE(e.id);
+  }
+
+  // Last-resort fill if caps were too restrictive.
+  for (const e of rankedElectives) {
+    if (selected.length >= 8) break;
+    addE(e.id, true);
   }
 
   return selected.slice(0, 8);
@@ -4423,7 +4542,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const [skills, setSkills] = useState({ verbal:0, numerical:0, mechanical:0, logical:0, visual:0 });
   const [year9Electives, setYear9Electives] = useState([{ id:'', grade:'' }]);
   const [stemPreference, setStemPreference] = useState(false);
-  const [studentPriority, setStudentPriority] = useState('balanced_workload');
+  const [studentPriorities, setStudentPriorities] = useState(DEFAULT_STUDENT_PRIORITIES);
   const [submitted, setSubmitted] = useState(!!submittedData);
   const [suggestions, setSuggestions] = useState(submittedData?.suggestions || []);
   const [dismissAnimating, setDismissAnimating] = useState({});
@@ -4468,6 +4587,17 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     if (prev.length >= 2) return prev;                          // cap at 2
     return [...prev, uni];
   });
+  const toggleStudentPriority = (value) => setStudentPriorities(prev => {
+    const normalized = normalizeStudentPriorities(prev);
+    if (normalized.includes(value)) {
+      const next = normalized.filter(v => v !== value);
+      return next.length ? next : normalized;
+    }
+    if (value === 'balanced_workload') return ['balanced_workload'];
+    if (normalized.length === 1 && normalized[0] === 'balanced_workload') return [value];
+    if (normalized.length >= 2) return normalized;
+    return [...normalized, value];
+  });
 
   const addDesiredElective = () => { if (desiredElectives.length < 3) setDesiredElectives(prev => [...prev, '']); };
   const removeDesiredElective = (i) => setDesiredElectives(prev => prev.filter((_, idx) => idx !== i));
@@ -4496,15 +4626,17 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
       desiredElectives: desiredElectives.filter(Boolean),
       language, universities, yearLevel: '10',
       skills, year9Electives: year9Electives.filter(r => r.id && r.grade),
-      stemPreference, studentPriority,
+      stemPreference,
+      studentPriorities: normalizeStudentPriorities(studentPriorities),
+      studentPriority: normalizeStudentPriorities(studentPriorities)[0],
     };
     const pts = runAlgorithm(studentData);
     const top8 = buildYear10Selection(pts, studentData);
     const top8Ids = new Set(top8.map(e => e.id));
-    // Pool sorted by category score so best remaining options appear first in swap
+    // Pool sorted by subject score so the best remaining matches appear first in swap
     const pool = ALL_ELECTIVES
       .filter(e => !top8Ids.has(e.id))
-      .sort((a, b) => (pts[ELECTIVE_CAT_MAP[b.id]] || 0) - (pts[ELECTIVE_CAT_MAP[a.id]] || 0));
+      .sort((a, b) => scoreElectiveForStudent(b, pts, studentData) - scoreElectiveForStudent(a, pts, studentData));
     // Track which top-8 electives were boosted by a Y9 match
     const boostIds = new Set(
       studentData.year9Electives
@@ -4628,7 +4760,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setSkills({ verbal:0, numerical:0, mechanical:0, logical:0, visual:0 });
     setYear9Electives([{ id:'', grade:'' }]);
     setStemPreference(false);
-    setStudentPriority('balanced_workload');
+    setStudentPriorities(DEFAULT_STUDENT_PRIORITIES);
     onSubmit(null);
     if (user) { await dbClearResults(user.id); localStorage.removeItem(accountCacheKey(user.id)); onSaveIndicator(); }
     else if (isGuest) { sessionStorage.removeItem('elect_guest_data'); onSaveIndicator(); }
@@ -4946,35 +5078,28 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
               <span className="icon-wrap" style={{ background:'#ede9fe' }}><Icon name="sliders" size={14} /></span>
               Student Priority
               <span style={{ fontWeight:400, fontSize:'.77rem', color:'var(--text-muted)', marginLeft:'.25rem' }}>
-                (small influence only)
+                (choose up to 2 — small influence only)
               </span>
             </div>
-            <div className="priority-slider-wrap">
-              <input
-                className="priority-slider"
-                type="range"
-                min="0"
-                max={STUDENT_PRIORITY_OPTIONS.length - 1}
-                step="1"
-                value={STUDENT_PRIORITY_OPTIONS.findIndex(opt => opt.value === studentPriority)}
-                onChange={e => setStudentPriority(STUDENT_PRIORITY_OPTIONS[Number(e.target.value)]?.value || 'balanced_workload')}
-                onInput={e => setStudentPriority(STUDENT_PRIORITY_OPTIONS[Number(e.target.value)]?.value || 'balanced_workload')}
-              />
-              <div className="priority-label-row">
-                {STUDENT_PRIORITY_OPTIONS.map(opt => (
+            <div className="priority-choice-grid">
+              {STUDENT_PRIORITY_OPTIONS.map(opt => {
+                const selected = studentPriorities.includes(opt.value);
+                const disabled = !selected && studentPriorities.length >= 2;
+                return (
                   <button
                     key={opt.value}
                     type="button"
-                    className={`priority-label${studentPriority === opt.value ? ' active' : ''}`}
-                    onClick={() => setStudentPriority(opt.value)}
+                    className={`priority-choice${selected ? ' active' : ''}${disabled ? ' disabled' : ''}`}
+                    onClick={() => toggleStudentPriority(opt.value)}
+                    title={disabled ? 'Remove one priority first' : opt.label}
                   >
                     {opt.label}
                   </button>
-                ))}
-              </div>
+                );
+              })}
             </div>
-            <p style={{ marginTop:'.65rem', fontSize:'.8rem', color:'var(--text-muted)', lineHeight:1.5 }}>
-              Current priority: <strong>{STUDENT_PRIORITY_OPTIONS.find(opt => opt.value === studentPriority)?.label}</strong>. This only nudges the algorithm slightly.
+            <p className="priority-status">
+              Current priorities: <strong>{getStudentPriorityLabel(studentPriorities)}</strong>. These nudge the algorithm slightly after the main career, university, skills and grades scoring.
             </p>
           </div>
 
@@ -5895,7 +6020,7 @@ function Page4({ submittedData, checklistState, onChecklistChange }) {
   const setMatch = (elective, index, value) => {
     onChecklistChange({ ...checklistState, [matchKey(elective, index)]: Number(value) });
   };
-  const priorityLabel = STUDENT_PRIORITY_OPTIONS.find(opt => opt.value === studentData.studentPriority)?.label || 'Balanced workload';
+  const priorityLabel = getStudentPriorityLabel(studentData.studentPriorities || studentData.studentPriority);
 
   return (
     <div className="page">
@@ -5943,7 +6068,7 @@ function Page4({ submittedData, checklistState, onChecklistChange }) {
           </div>
 
           <div className="match-help">
-            The first-page algorithm mainly used your career area, preferred universities, core grades, desired electives, skills, Year 9 electives, STEM preference and your priority slider. These bars are editable because the estimate is only a guide.
+            The first-page algorithm mainly uses career area, preferred universities, desired electives, Year 9 electives, skills, STEM preference and core grades first. Student priorities only add a small final nudge. These bars are editable because the estimate is still only a guide.
           </div>
         </>
       )}
