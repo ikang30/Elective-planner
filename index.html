@@ -370,6 +370,7 @@
       background: var(--surface); padding: 1.2rem; box-shadow: var(--shadow);
       transition: box-shadow .2s, transform .2s;
       animation: fadeSlideIn .3s ease forwards;
+      cursor: pointer;
     }
     .suggestion-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
     @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -393,6 +394,40 @@
       background: #ecfdf5; cursor: pointer; font-size: .79rem; color: #047857; transition: all .15s;
     }
     .restore-btn:hover { border-color: var(--success); background: #d1fae5; }
+    .preview-btn {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .32rem .75rem; border-radius: 8px; border: 1.5px solid #c7d2fe;
+      background: #eef2ff; cursor: pointer; font-size: .79rem; color: var(--primary); transition: all .15s;
+    }
+    .preview-btn:hover { border-color: var(--primary); background: #e0e7ff; }
+    .curriculum-preview-overlay {
+      position: fixed; inset: 0; z-index: 850; background: rgba(15,23,42,.38);
+      display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .curriculum-preview-panel {
+      width: min(680px, 100%); max-height: min(760px, calc(100vh - 2rem)); overflow: auto;
+      background: var(--surface); border-radius: 16px; border: 1px solid var(--border);
+      box-shadow: 0 24px 80px rgba(15,23,42,.22);
+    }
+    .curriculum-preview-header {
+      display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+      padding: 1.1rem 1.25rem; border-bottom: 1px solid var(--border);
+    }
+    .curriculum-preview-title { font-size: 1.08rem; font-weight: 850; color: var(--text); }
+    .curriculum-preview-sub { margin-top: .25rem; font-size: .8rem; color: var(--text-muted); line-height: 1.45; }
+    .curriculum-preview-close {
+      width: 32px; height: 32px; border-radius: 9px; border: 1.5px solid var(--border);
+      background: var(--surface); color: var(--text-muted); cursor: pointer; display: grid; place-items: center;
+    }
+    .curriculum-preview-close:hover { border-color: var(--danger); color: var(--danger); background: #fff1f2; }
+    .curriculum-preview-body { padding: 1rem 1.25rem 1.25rem; }
+    .curriculum-preview-section { font-size: .73rem; font-weight: 850; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin: .6rem 0 .45rem; }
+    .curriculum-preview-list { display: flex; flex-direction: column; gap: .42rem; }
+    .curriculum-preview-item {
+      display: flex; align-items: flex-start; gap: .5rem; padding: .52rem .65rem;
+      background: var(--surface2); border-radius: 9px; color: var(--text); font-size: .84rem; line-height: 1.42;
+    }
+    .curriculum-preview-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--primary); margin-top: .42rem; flex-shrink: 0; }
     .essential-panel, .manual-panel {
       background: var(--surface); border: 1.5px solid var(--border);
       border-radius: 12px; padding: 1rem 1.1rem; margin-top: 1.25rem; box-shadow: var(--shadow);
@@ -4591,6 +4626,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   const [enhancementSlot, setEnhancementSlot] = useState('');
   const [enhancementSlot2, setEnhancementSlot2] = useState('');
   const [enhancementSubject, setEnhancementSubject] = useState('');
+  const [previewElective, setPreviewElective] = useState(null);
 
   // ── Bug fix: sync local state when DB data loads after a refresh ──
   useEffect(() => {
@@ -4789,6 +4825,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
     setDismissed({}); setIsLocked(false); setShowRestartConfirm(false);
     setSwapHistory([]); setManualMode(false); setEssentialRemoveChoice({});
     setEnhancementSlot(''); setEnhancementSlot2(''); setEnhancementSubject('');
+    setPreviewElective(null);
     setLangDisplaced({});
     setDesiredElectives(['']); setGrades(Object.fromEntries(CORE_SUBJECTS.map(s => [s, ''])));
     setCareer(''); setLanguage(''); setUniversities([]);
@@ -5185,6 +5222,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
               <SuggestionCard key={elective.id + idx} elective={elective} index={idx}
                 isAnimatingOut={!!dismissAnimating[elective.id]}
                 onDismiss={() => handleDismiss(elective.id)}
+                onPreview={() => setPreviewElective(elective)}
                 locked={isLocked}
                 language={submittedData?.studentData?.language || null}
                 isCompulsory={compulsoryIds.has(elective.id)}
@@ -5197,6 +5235,13 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
           </div>
             );
           })()}
+
+          {previewElective && (
+            <CurriculumPreviewModal
+              elective={previewElective}
+              onClose={() => setPreviewElective(null)}
+            />
+          )}
 
           {!isLocked && swapHistory.length > 0 && (
             <div className="info-banner" style={{ marginTop:'1rem', marginBottom:0, justifyContent:'space-between', flexWrap:'wrap' }}>
@@ -5492,8 +5537,72 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
   );
 }
 
+function CurriculumPreviewModal({ elective, onClose }) {
+  const checklist = getElectiveChecklist(elective, 'semester1');
+  const missingMessage = isEnhancementElective(elective)
+    ? 'Enhancement curriculum paper data has not been added yet, so this preview is blank for now.'
+    : CURRICULUM_MISSING_NOTE;
+
+  useEffect(() => {
+    const handleKey = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
+
+  return (
+    <div className="curriculum-preview-overlay" onClick={onClose}>
+      <div className="curriculum-preview-panel" onClick={e => e.stopPropagation()}>
+        <div className="curriculum-preview-header">
+          <div>
+            <div className="curriculum-preview-title">{elective.name}</div>
+            <div className="curriculum-preview-sub">
+              Curriculum preview only. Progress tracking unlocks after you lock in your 8 electives.
+            </div>
+          </div>
+          <button className="curriculum-preview-close" onClick={onClose} aria-label="Close curriculum preview">
+            <Icon name="x" size={16} />
+          </button>
+        </div>
+        <div className="curriculum-preview-body">
+          {checklist.missing && (
+            <div className="checklist-missing-note" style={{ marginBottom:'.85rem' }}>
+              {missingMessage}
+            </div>
+          )}
+
+          {checklist.curriculum.length > 0 && (
+            <>
+              <div className="curriculum-preview-section">What you may learn</div>
+              <div className="curriculum-preview-list">
+                {checklist.curriculum.map(item => (
+                  <div className="curriculum-preview-item" key={item.key}>
+                    <span className="curriculum-preview-dot" />
+                    <span>{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="curriculum-preview-section">Later checklist reminders</div>
+          <div className="curriculum-preview-list">
+            {checklist.revisions.map(item => (
+              <div className="curriculum-preview-item" key={item.key}>
+                <span className="curriculum-preview-dot" />
+                <span>{item.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SuggestionCard({
-  elective, index, isAnimatingOut, onDismiss, locked,
+  elective, index, isAnimatingOut, onDismiss, onPreview, locked,
   language, isCompulsory, isLangCard, displacedName, isLast2, isFromY9,
 }) {
   const categoryLabel = {
@@ -5512,6 +5621,15 @@ function SuggestionCard({
   return (
     <div
       className={`suggestion-card${isAnimatingOut ? ' dismissed' : ''}`}
+      role="button"
+      tabIndex={0}
+      onClick={onPreview}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onPreview?.();
+        }
+      }}
       style={{
         animationDelay: `${index * 55}ms`,
         // Subtle dim on the two weakest-match slots to hint at language replacement
@@ -5548,11 +5666,14 @@ function SuggestionCard({
 
           {/* Normal swap / locked indicator */}
           {!locked && !isLangCard
-            ? <button className="dismiss-btn" onClick={onDismiss}><Icon name="refresh-cw" size={13} /> Swap</button>
+            ? <button className="dismiss-btn" onClick={(e) => { e.stopPropagation(); onDismiss(); }}><Icon name="refresh-cw" size={13} /> Swap</button>
             : locked
               ? <span style={{ fontSize:'.75rem', color:'var(--success)', fontWeight:600, display:'flex', alignItems:'center', gap:'.3rem' }}><Icon name="check-circle" size={13} /> Locked</span>
               : null
           }
+          <button className="preview-btn" onClick={(e) => { e.stopPropagation(); onPreview?.(); }}>
+            <Icon name="book-open" size={13} /> Curriculum
+          </button>
         </div>
       </div>
     </div>
