@@ -116,50 +116,13 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { font-size: .9rem; color: var(--text-muted); font-weight: 500; }
 
-    /* ═══ SCHOOL SPLASH SIGN ═══ */
-    .school-splash-overlay {
-      position: fixed; inset: 0; z-index: 1200; pointer-events: none;
-      display: grid; place-items: center;
-      background: transparent;
-      animation: schoolSplashFade 3.2s ease forwards;
-    }
-    .school-neon-sign {
-      width: min(820px, calc(100vw - 2rem));
-      color: #fef08a; text-align: center;
-      font-size: clamp(1.65rem, 4.4vw, 3.65rem);
-      font-weight: 950; letter-spacing: 0; line-height: 1.08;
-      text-shadow:
-        0 0 2px #fff7ad,
-        0 0 4px #fef9c3,
-        0 0 11px #fde047,
-        0 0 24px #facc15,
-        0 0 46px #eab308,
-        0 0 70px rgba(234,179,8,.75);
-      animation: neonPop 3.2s ease forwards, neonFlicker 1.25s steps(2, end) infinite;
-    }
-    @keyframes neonPop {
-      0% { opacity: 0; transform: scale(.72) rotate(-1.5deg); }
-      12% { opacity: 1; transform: scale(1.04) rotate(.8deg); }
-      20%, 78% { opacity: 1; transform: scale(1) rotate(0); }
-      100% { opacity: 0; transform: scale(.96) translateY(-12px); }
-    }
-    @keyframes schoolSplashFade {
-      0%, 78% { opacity: 1; }
-      100% { opacity: 0; visibility: hidden; }
-    }
-    @keyframes neonFlicker {
-      0%, 18%, 22%, 100% { filter: brightness(1); }
-      20% { filter: brightness(1.35); }
-      70% { filter: brightness(.92); }
-    }
-
     /* ═══ NAV ═══ */
     .nav {
       position: sticky; top: 0; z-index: 100;
       background: rgba(255,255,255,.88); backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
       padding: 0 clamp(.75rem, 2vw, 1.5rem); display: flex; align-items: center; gap: .75rem; height: 64px;
-      overflow: hidden;
+      overflow: visible;
     }
     .nav-logo {
       display: flex; align-items: center; gap: .45rem;
@@ -172,7 +135,7 @@
     }
     .nav-links {
       display: flex; gap: .18rem; flex: 1 1 auto; min-width: 0;
-      overflow-x: auto; overflow-y: hidden; scrollbar-width: none;
+      overflow: visible; scrollbar-width: none;
     }
     .nav-links::-webkit-scrollbar { display: none; }
     .nav-link {
@@ -185,6 +148,17 @@
     .nav-link.active { background: var(--primary); color: #fff; }
     .nav-link.coming-soon { opacity: .35; cursor: not-allowed; font-size: .78rem; }
     .nav-link.nav-locked { opacity: .42; cursor: not-allowed; }
+    .nav-link.nav-group {
+      border: 1px solid transparent;
+    }
+    .nav-link.nav-group.open,
+    .nav-dropdown-wrap:hover > .nav-link.nav-group,
+    .nav-dropdown-wrap:focus-within > .nav-link.nav-group {
+      background: var(--surface2); color: var(--text);
+    }
+    .nav-link.nav-group.active {
+      background: var(--primary); color: #fff; border-color: transparent;
+    }
     .nav-badge {
       margin-left: .35rem; font-size: .68rem; font-weight: 700;
       background: var(--accent); color: #fff;
@@ -766,13 +740,18 @@
     /* ═══ GUEST BANNER ═══ */
     .guest-banner { background: #fffbeb; border-bottom: 1.5px solid #fde68a; padding: .5rem 2rem; font-size: .82rem; color: #92400e; display: flex; align-items: center; gap: .5rem; }
 
-    /* ═══ EXPLORE DROPDOWN NAV ═══ */
-    .nav-dropdown-wrap { position: relative; }
+    /* ═══ DROPDOWN NAV ═══ */
+    .nav-dropdown-wrap { position: relative; flex: 0 0 auto; }
     .nav-dropdown-menu {
       position: absolute; top: calc(100% + 8px); left: 0; min-width: 210px;
       background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
       box-shadow: 0 8px 32px rgba(0,0,0,.12); z-index: 200; overflow: hidden;
-      animation: fadeIn .15s ease;
+      animation: fadeIn .15s ease; opacity: 0; transform: translateY(-4px);
+      pointer-events: none; visibility: hidden; transition: opacity .14s ease, transform .14s ease, visibility .14s ease;
+    }
+    .nav-dropdown-wrap:hover .nav-dropdown-menu,
+    .nav-dropdown-wrap:focus-within .nav-dropdown-menu {
+      opacity: 1; transform: translateY(0); pointer-events: auto; visibility: visible;
     }
     .nav-dropdown-item {
       width: 100%; padding: .65rem 1rem; border: none; background: transparent;
@@ -781,6 +760,9 @@
     }
     .nav-dropdown-item:hover { background: var(--surface2); }
     .nav-dropdown-item.active { color: var(--primary); font-weight: 700; }
+    .nav-dropdown-item.locked { color: var(--text-muted); opacity: .48; cursor: not-allowed; }
+    .nav-dropdown-item.locked:hover { background: transparent; }
+    .nav-dropdown-item .dropdown-spacer { flex: 1; }
 
     /* ═══ PROGRESS CHECKLIST REDESIGN ═══ */
     .semester-planner-panel {
@@ -6449,17 +6431,11 @@ function App() {
   const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [enhancements, setEnhancements] = useState(['', '']);
   const [penguinDismissed, setPenguinDismissed] = useState(false);
-  const [showSchoolSplash, setShowSchoolSplash] = useState(true);
 
   // Debounce ref for checklist saves
   const checklistSaveTimer = useRef(null);
 
   useEffect(() => { if (window.feather) feather.replace(); });
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowSchoolSplash(false), 3200);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Auth listener + initial session load
   useEffect(() => {
@@ -6552,33 +6528,19 @@ function App() {
     setPenguinDismissed(false);
   }, [activePage, !!submittedData, submittedData?.isLocked]);
 
-  const schoolSplash = showSchoolSplash ? (
-    <div className="school-splash-overlay">
-      <div className="school-neon-sign">for Mckinnon Secondary College Students!</div>
-    </div>
-  ) : null;
-
   // Loading state while checking session
   if (session === undefined && !isGuest) {
     return (
-      <>
-        {schoolSplash}
-        <div className="loading-screen">
-          <div className="spinner" />
-          <div className="loading-text">Loading Elect!…</div>
-        </div>
-      </>
+      <div className="loading-screen">
+        <div className="spinner" />
+        <div className="loading-text">Loading Elect!…</div>
+      </div>
     );
   }
 
   // Not logged in and not guest
   if ((!session && !isGuest) || passwordRecovery) {
-    return (
-      <>
-        {schoolSplash}
-        <AuthScreen onGuest={handleGuest} recoveryMode={passwordRecovery} onRecoveryDone={() => setPasswordRecovery(false)} />
-      </>
-    );
+    return <AuthScreen onGuest={handleGuest} recoveryMode={passwordRecovery} onRecoveryDone={() => setPasswordRecovery(false)} />;
   }
 
   const user = session?.user || null;
@@ -6647,9 +6609,40 @@ function App() {
     showSaveIndicator();
   };
 
+  const navGroups = [
+    {
+      label: 'Elective Planner',
+      icon: 'zap',
+      pages: ['page1'],
+      items: [
+        { id: 'page1', icon: 'zap', label: 'Year 10 Elective Planner' },
+      ],
+    },
+    {
+      label: 'Explore Further',
+      icon: 'compass',
+      pages: ['programs', 'map', 'page3'],
+      requiresLock: true,
+      items: [
+        { id: 'programs', icon: 'globe', label: 'Outside Programs', requiresLock: true },
+        { id: 'map', icon: 'map', label: 'Career & Uni Map', requiresLock: true },
+        { id: 'page3', icon: 'compass', label: 'Year 11 Preview', requiresLock: true },
+      ],
+    },
+    {
+      label: 'Develop Further',
+      icon: 'activity',
+      pages: ['progress', 'match'],
+      requiresLock: true,
+      items: [
+        { id: 'progress', icon: 'check-square', label: 'Progress Checklist', requiresLock: true },
+        { id: 'match', icon: 'bar-chart-2', label: 'Match Review', requiresLock: true },
+      ],
+    },
+  ];
+
   return (
     <div className="app-shell">
-      {schoolSplash}
       {isGuest && (
         <div className="guest-banner">
           👤 <strong>Guest Mode</strong> — your data will not be saved after you close this tab.
@@ -6676,36 +6669,44 @@ function App() {
         </a>
 
         <div className="nav-links">
-          <button className={`nav-link${activePage==='page1'?' active':''}`} onClick={() => setActivePage('page1')}>
-            <Icon name="zap" size={14} /> Elective Planner
-            <span style={{ marginLeft:'.3rem', fontSize:'.74rem', color: activePage==='page1'?'rgba(255,255,255,.65)':'var(--text-muted)' }}>Year 10</span>
-          </button>
-
-          {[
-            { id:'programs', icon:'globe', label:'Outside Programs' },
-            { id:'map', icon:'map', label:'Career & Uni Map' },
-            { id:'progress', icon:'check-square', label:'Progress Checklist' },
-            { id:'match', icon:'bar-chart-2', label:'Match Review' },
-          ].map(item => (
-            <button
-              key={item.id}
-              className={`nav-link${activePage===item.id?' active':''}${!hasLockedPlan?' nav-locked':''}`}
-              onClick={() => hasLockedPlan && setActivePage(item.id)}
-              title={!hasLockedPlan ? 'Lock in your 8 electives first' : item.label}
-            >
-              <Icon name={item.icon} size={14} /> {item.label}
-              {!hasLockedPlan && <span className="nav-badge">🔒</span>}
-            </button>
-          ))}
-
-          <button
-            className={`nav-link${activePage==='page3'?' active':''}${!hasLockedPlan?' nav-locked':''}`}
-            onClick={() => hasLockedPlan && setActivePage('page3')}
-            title={!hasLockedPlan ? 'Lock in your 8 electives first' : 'Year 11 Preview'}
-          >
-            <Icon name="compass" size={14} /> Year 11 Preview 🔭
-            {!hasLockedPlan && <span className="nav-badge">🔒</span>}
-          </button>
+          {navGroups.map(group => {
+            const groupActive = group.pages.includes(activePage);
+            const groupLocked = group.requiresLock && !hasLockedPlan;
+            return (
+              <div key={group.label} className="nav-dropdown-wrap">
+                <button
+                  className={`nav-link nav-group${groupActive ? ' active' : ''}${groupLocked ? ' nav-locked' : ''}`}
+                  onClick={() => group.items.length === 1 && setActivePage(group.items[0].id)}
+                  title={groupLocked ? 'Lock in your 8 electives first' : group.label}
+                >
+                  <Icon name={group.icon} size={14} /> {group.label}
+                  {group.label === 'Elective Planner' && (
+                    <span style={{ marginLeft:'.25rem', fontSize:'.74rem', color: groupActive?'rgba(255,255,255,.65)':'var(--text-muted)' }}>Year 10</span>
+                  )}
+                  {groupLocked && <span className="nav-badge">🔒</span>}
+                  <Icon name="chevron-down" size={13} />
+                </button>
+                <div className="nav-dropdown-menu">
+                  {group.items.map(item => {
+                    const locked = item.requiresLock && !hasLockedPlan;
+                    return (
+                      <button
+                        key={item.id}
+                        className={`nav-dropdown-item${activePage===item.id ? ' active' : ''}${locked ? ' locked' : ''}`}
+                        onClick={() => !locked && setActivePage(item.id)}
+                        title={locked ? 'Lock in your 8 electives first' : item.label}
+                      >
+                        <Icon name={item.icon} size={14} />
+                        {item.label}
+                        <span className="dropdown-spacer" />
+                        {locked && <span className="nav-badge">🔒</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
         {/* Future year levels */}
