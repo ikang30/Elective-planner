@@ -70,13 +70,6 @@
       font-size: 1.9rem; font-weight: 900; color: var(--primary);
       letter-spacing: -.03em;
     }
-    .auth-tabs { display: flex; background: var(--surface2); border-radius: 10px; padding: .25rem; margin-bottom: 1.75rem; }
-    .auth-tab {
-      flex: 1; padding: .55rem; border-radius: 8px; border: none;
-      font-size: .9rem; font-weight: 600; cursor: pointer;
-      background: transparent; color: var(--text-muted); transition: all .18s;
-    }
-    .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,.08); }
     .auth-field { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1rem; }
     .auth-label { font-size: .83rem; font-weight: 600; color: var(--text); }
     .auth-input {
@@ -102,6 +95,81 @@
       padding: .6rem .85rem; font-size: .84rem; color: #065f46; margin-bottom: 1rem;
     }
     .auth-divider { text-align: center; color: var(--text-muted); font-size: .8rem; margin: 1rem 0; }
+
+    /* ═══ INTRO PAGE ═══ */
+    .intro-shell {
+      min-height: 100vh; background: #0f172a; color: #fff;
+      display: flex; flex-direction: column;
+    }
+    .intro-hero {
+      min-height: 76vh; position: relative; display: flex; align-items: center;
+      background: linear-gradient(90deg, rgba(15,23,42,.88) 0%, rgba(15,23,42,.64) 42%, rgba(15,23,42,.18) 100%),
+        url('assets/elect-hero.png') center / cover no-repeat;
+      padding: clamp(1.4rem, 4vw, 4rem);
+    }
+    .intro-hero::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 110px;
+      background: linear-gradient(180deg, rgba(15,23,42,0), #0f172a);
+      pointer-events: none;
+    }
+    .intro-brand {
+      position: absolute; top: clamp(1rem, 2vw, 1.5rem); left: clamp(1.4rem, 4vw, 4rem);
+      display: inline-flex; align-items: center; gap: .55rem;
+      font-weight: 900; font-size: 1.05rem; letter-spacing: -.02em;
+    }
+    .intro-brand-icon {
+      width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+      background: rgba(99,102,241,.96); box-shadow: 0 12px 32px rgba(99,102,241,.32);
+    }
+    .intro-content {
+      position: relative; z-index: 1; width: min(720px, 100%);
+      padding-top: 3.5rem;
+    }
+    .intro-kicker {
+      display: inline-flex; align-items: center; gap: .45rem;
+      padding: .32rem .72rem; border-radius: 999px;
+      background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.22);
+      color: #e0e7ff; font-weight: 800; font-size: .78rem; text-transform: uppercase; letter-spacing: .07em;
+      margin-bottom: 1.1rem;
+    }
+    .intro-title {
+      font-size: clamp(2.6rem, 7vw, 5.8rem); line-height: .95; font-weight: 950;
+      letter-spacing: 0; max-width: 760px;
+    }
+    .intro-copy {
+      margin-top: 1.2rem; max-width: 620px; font-size: clamp(1rem, 1.7vw, 1.25rem);
+      line-height: 1.65; color: rgba(255,255,255,.82);
+    }
+    .intro-actions { margin-top: 1.7rem; display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; }
+    .intro-primary {
+      display: inline-flex; align-items: center; gap: .55rem;
+      padding: .9rem 1.25rem; border-radius: 12px; border: none;
+      background: #fff; color: #312e81; font-weight: 900; font-size: 1rem;
+      cursor: pointer; box-shadow: 0 18px 50px rgba(15,23,42,.3); transition: transform .16s, box-shadow .16s;
+    }
+    .intro-primary:hover { transform: translateY(-2px); box-shadow: 0 24px 64px rgba(15,23,42,.38); }
+    .intro-note { color: rgba(255,255,255,.72); font-size: .88rem; line-height: 1.45; }
+    .intro-feature-band {
+      position: relative; z-index: 1; margin-top: -2rem;
+      padding: 0 clamp(1.4rem, 4vw, 4rem) clamp(1.5rem, 4vw, 3rem);
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: .75rem;
+    }
+    .intro-feature {
+      min-height: 96px; border: 1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.07); backdrop-filter: blur(10px);
+      border-radius: 12px; padding: .95rem; display: flex; gap: .75rem; align-items: flex-start;
+    }
+    .intro-feature-icon {
+      width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center;
+      background: rgba(255,255,255,.14); color: #c7d2fe; flex-shrink: 0;
+    }
+    .intro-feature-title { font-weight: 900; font-size: .92rem; }
+    .intro-feature-text { margin-top: .25rem; color: rgba(255,255,255,.68); font-size: .8rem; line-height: 1.45; }
+    @media (max-width: 880px) {
+      .intro-hero { min-height: 72vh; background-position: 58% center; }
+      .intro-feature-band { grid-template-columns: 1fr; margin-top: 0; }
+      .intro-title { font-size: clamp(2.35rem, 13vw, 4rem); }
+    }
 
     /* ═══ LOADING SCREEN ═══ */
     .loading-screen {
@@ -4286,83 +4354,110 @@ function RequirementBar({ label, filled, total, color }) {
   );
 }
 
+function IntroPage({ onStart }) {
+  const featureGroups = [
+    {
+      icon: 'zap',
+      title: 'Build an elective plan',
+      text: 'Enter your strengths, interests and goals, then review and adjust a Year 10 elective set.',
+    },
+    {
+      icon: 'compass',
+      title: 'Explore what connects',
+      text: 'Compare outside programs, career links, university pathways and a Year 11 preview.',
+    },
+    {
+      icon: 'activity',
+      title: 'Develop it over time',
+      text: 'Track curriculum progress and judge how well each elective still matches you.',
+    },
+  ];
+
+  return (
+    <div className="intro-shell">
+      <section className="intro-hero">
+        <div className="intro-brand">
+          <span className="intro-brand-icon">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </span>
+          Elect!
+        </div>
+        <div className="intro-content">
+          <div className="intro-kicker"><Icon name="map-pin" size={14} /> McKinnon Secondary College elective helper</div>
+          <h1 className="intro-title">Choose electives with more context.</h1>
+          <p className="intro-copy">
+            Elect! helps Year 10 students draft, compare and refine elective choices using interests,
+            subject strengths, pathway ideas and progress tools. Treat the suggestions as a starting point,
+            then make the final choices yourself.
+          </p>
+          <div className="intro-actions">
+            <button className="intro-primary" onClick={onStart}>
+              Let&apos;s go! <Icon name="arrow-right" size={18} />
+            </button>
+            <div className="intro-note">Six tools open from one dashboard. Some unlock after your 8 electives are locked in.</div>
+          </div>
+        </div>
+      </section>
+      <div className="intro-feature-band">
+        {featureGroups.map(item => (
+          <div className="intro-feature" key={item.title}>
+            <span className="intro-feature-icon"><Icon name={item.icon} size={17} /></span>
+            <div>
+              <div className="intro-feature-title">{item.title}</div>
+              <div className="intro-feature-text">{item.text}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════
    AUTH SCREEN
 ═══════════════════════════════════════════════════════════════ */
-function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
-  const [tab, setTab] = useState('login');
+function AuthScreen({ onGuest }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  // forgot password flow: 'idle' | 'enter_email' | 'enter_code' | 'new_password'
-  const [fpStep, setFpStep] = useState(recoveryMode ? 'new_password' : 'idle');
-  const [fpEmail, setFpEmail] = useState('');
-  const [fpCode, setFpCode] = useState('');
-  const [fpNewPw, setFpNewPw] = useState('');
-  const [fpLoading, setFpLoading] = useState(false);
 
   const clear = () => { setError(''); setSuccess(''); };
 
-  useEffect(() => {
-    if (recoveryMode) {
-      setFpStep('new_password');
-      setSuccess('Password reset verified. Set your new password below.');
-      setError('');
-    }
-  }, [recoveryMode]);
-
-  const handleLogin = async (e) => {
+  const handleSignInUp = async (e) => {
     e.preventDefault(); clear(); setLoading(true);
-    const { error } = await db.auth.signInWithPassword({ email, password });
-    if (error) setError(error.message);
-    setLoading(false);
-  };
+    const cleanEmail = email.trim();
+    const { error: signInError } = await db.auth.signInWithPassword({ email: cleanEmail, password });
 
-  const handleSignUp = async (e) => {
-    e.preventDefault(); clear(); setLoading(true);
-    const { error } = await db.auth.signUp({ email, password });
-    if (error) setError(error.message);
-    else setSuccess('Account created! Check your email to confirm, then log in.');
-    setLoading(false);
-  };
-
-  const handleFpSendCode = async () => {
-    if (!fpEmail) return;
-    setFpLoading(true); setError('');
-    const { error } = await db.auth.signInWithOtp({
-      email: fpEmail,
-      options: {
-        shouldCreateUser: false,
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) setError(error.message);
-    else { setFpStep('enter_code'); setFpCode(''); setSuccess('Check your email. If the email shows a code, enter it below; if it shows a login link, open it and then set your new password here.'); }
-    setFpLoading(false);
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!fpCode) return;
-    setFpLoading(true); setError('');
-    const { error } = await db.auth.verifyOtp({ email: fpEmail, token: fpCode, type: 'email' });
-    if (error) setError(error.message);
-    else { setFpStep('new_password'); setSuccess('Verified! Set your new password below.'); }
-    setFpLoading(false);
-  };
-
-  const handleFpSetPassword = async () => {
-    if (!fpNewPw || fpNewPw.length < 6) { setError('Password must be at least 6 characters.'); return; }
-    setFpLoading(true); setError('');
-    const { error } = await db.auth.updateUser({ password: fpNewPw });
-    if (error) setError(error.message);
-    else {
-      setSuccess('Password updated! You are now logged in.');
-      setFpStep('idle');
-      onRecoveryDone?.();
+    if (!signInError) {
+      setLoading(false);
+      return;
     }
-    setFpLoading(false);
+
+    const canTryCreate = /invalid login credentials|email not confirmed|user not found/i.test(signInError.message || '');
+    if (!canTryCreate) {
+      setError(signInError.message);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error: signUpError } = await db.auth.signUp({ email: cleanEmail, password });
+    if (signUpError) {
+      const alreadyRegistered = /already registered|already exists|user already/i.test(signUpError.message || '');
+      setError(alreadyRegistered
+        ? 'This account already exists. Please check the password you entered.'
+        : signUpError.message);
+    } else if (data?.session) {
+      setSuccess('Account created and signed in.');
+    } else {
+      setSuccess('Account created. If the school email system asks for confirmation, check your inbox once before signing in.');
+    }
+    setLoading(false);
   };
 
   return (
@@ -4379,118 +4474,38 @@ function AuthScreen({ onGuest, recoveryMode = false, onRecoveryDone }) {
           <span className="auth-logo-text">Elect!</span>
         </div>
 
-        <div className="auth-tabs">
-          <button className={`auth-tab${tab === 'login' ? ' active' : ''}`} onClick={() => { setTab('login'); clear(); }}>Log In</button>
-          <button className={`auth-tab${tab === 'signup' ? ' active' : ''}`} onClick={() => { setTab('signup'); clear(); }}>Sign Up</button>
-        </div>
+        <p style={{ textAlign:'center', color:'var(--text-muted)', fontSize:'.88rem', lineHeight:1.5, margin:'-.65rem 0 1.35rem' }}>
+          Sign in with your existing account. If the email is new, Elect! will create the account with this password.
+        </p>
 
         {error && <div className="auth-error">{error}</div>}
         {success && <div className="auth-success">{success}</div>}
 
-        {/* ── Forgot password flow ── */}
-        {fpStep !== 'idle' ? (
-          <div>
-            {fpStep === 'enter_email' && (
-              <>
-                <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  Enter your email and we will send the verification email for password reset.
-                </p>
-                <div className="auth-field">
-                  <label className="auth-label">Email</label>
-                  <input className="auth-input" type="email" placeholder="you@example.com"
-                    value={fpEmail} onChange={e => setFpEmail(e.target.value)} autoFocus />
-                </div>
-                <button className="auth-btn" onClick={handleFpSendCode} disabled={fpLoading}>
-                  {fpLoading ? 'Sending…' : 'Send Verification Email'}
-                </button>
-              </>
-            )}
-            {fpStep === 'enter_code' && (
-              <>
-                <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  We sent a verification code to <strong>{fpEmail}</strong>. Enter it below.
-                </p>
-                <div className="auth-field">
-                  <label className="auth-label">Verification Code</label>
-                  <input className="auth-input" type="text" placeholder="Enter the code from your email"
-                    value={fpCode} onChange={e => setFpCode(e.target.value)} autoFocus />
-                </div>
-                <button className="auth-btn" onClick={handleVerifyOtp} disabled={fpLoading}>
-                  {fpLoading ? 'Verifying…' : 'Verify Code'}
-                </button>
-                <div style={{ marginTop:'.65rem', textAlign:'center' }}>
-                  <button style={{ background:'none', border:'none', color:'var(--primary)', fontSize:'.8rem', cursor:'pointer' }}
-                    onClick={handleFpSendCode} disabled={fpLoading}>
-                    Resend code
-                  </button>
-                </div>
-              </>
-            )}
-            {fpStep === 'new_password' && (
-              <>
-                <p style={{ fontSize:'.85rem', color:'var(--text-muted)', marginBottom:'1rem', lineHeight:1.5 }}>
-                  You are verified! Set your new password below.
-                </p>
-                <div className="auth-field">
-                  <label className="auth-label">New Password</label>
-                  <input className="auth-input" type="password" placeholder="Min. 6 characters"
-                    value={fpNewPw} onChange={e => setFpNewPw(e.target.value)} autoFocus minLength={6} />
-                </div>
-                <button className="auth-btn" onClick={handleFpSetPassword} disabled={fpLoading}>
-                  {fpLoading ? 'Saving…' : 'Set New Password'}
-                </button>
-              </>
-            )}
-            <div className="auth-divider">
-              <button style={{ background:'none', border:'none', color:'var(--primary)', fontWeight:600, cursor:'pointer', fontSize:'.85rem' }}
-                onClick={() => { setFpStep('idle'); setError(''); setSuccess(''); }}>
-                ← Back to login
-              </button>
-            </div>
+        <form onSubmit={handleSignInUp}>
+          <div className="auth-field">
+            <label className="auth-label">Email</label>
+            <input className="auth-input" type="email" placeholder="you@example.com"
+              value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
           </div>
-        ) : (
-          <>
-            <form onSubmit={tab === 'login' ? handleLogin : handleSignUp}>
-              <div className="auth-field">
-                <label className="auth-label">Email</label>
-                <input className="auth-input" type="email" placeholder="you@example.com"
-                  value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
-              </div>
-              <div className="auth-field">
-                <label className="auth-label">Password</label>
-                <input className="auth-input" type="password" placeholder={tab === 'signup' ? 'Min. 6 characters' : '••••••••'}
-                  value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
-                {tab === 'login' && (
-                  <button type="button" style={{ background:'none', border:'none', color:'var(--primary)', fontSize:'.78rem', cursor:'pointer', marginTop:'.25rem', textAlign:'left' }}
-                    onClick={() => { setFpStep('enter_email'); setFpEmail(email); setError(''); setSuccess(''); }}>
-                    Forgot password?
-                  </button>
-                )}
-              </div>
-              <button className="auth-btn" type="submit" disabled={loading}>
-                {loading ? 'Please wait…' : tab === 'login' ? 'Log In' : 'Create Account'}
-              </button>
-            </form>
+          <div className="auth-field">
+            <label className="auth-label">Password</label>
+            <input className="auth-input" type="password" placeholder="Min. 6 characters"
+              value={password} onChange={e => setPassword(e.target.value)} required minLength={6} />
+          </div>
+          <button className="auth-btn" type="submit" disabled={loading}>
+            {loading ? 'Please wait…' : 'Sign in/up'}
+          </button>
+        </form>
 
-            <div className="auth-divider">
-              {tab === 'login' ? "Don't have an account? " : 'Already have an account? '}
-              <button style={{ background: 'none', border: 'none', color: 'var(--primary)', fontWeight: 600, cursor: 'pointer', fontSize: 'inherit' }}
-                onClick={() => { setTab(tab === 'login' ? 'signup' : 'login'); clear(); }}>
-                {tab === 'login' ? 'Sign up' : 'Log in'}
-              </button>
-            </div>
-
-            <div className="auth-divider">or</div>
-            <button className="auth-btn" type="button"
-              style={{ background:'var(--surface2)', color:'var(--text)', border:'1.5px solid var(--border)' }}
-              onClick={onGuest}>
-              Continue as Guest 👤
-            </button>
-            <p style={{ textAlign:'center', fontSize:'.74rem', color:'var(--text-muted)', marginTop:'.5rem', lineHeight:1.4 }}>
-              Guest data is not saved and clears when you close the tab.
-            </p>
-          </>
-        )}
+        <div className="auth-divider">or</div>
+        <button className="auth-btn" type="button"
+          style={{ background:'var(--surface2)', color:'var(--text)', border:'1.5px solid var(--border)' }}
+          onClick={onGuest}>
+          Continue as Guest 👤
+        </button>
+        <p style={{ textAlign:'center', fontSize:'.74rem', color:'var(--text-muted)', marginTop:'.5rem', lineHeight:1.4 }}>
+          Guest data is not saved and clears when you close the tab.
+        </p>
       </div>
     </div>
   );
@@ -6428,9 +6443,9 @@ function App() {
   const [saveFlash, setSaveFlash] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [userProfile, setUserProfile] = useState({ username: '', avatar_data: null });
-  const [passwordRecovery, setPasswordRecovery] = useState(false);
   const [enhancements, setEnhancements] = useState(['', '']);
   const [penguinDismissed, setPenguinDismissed] = useState(false);
+  const [introSeen, setIntroSeen] = useState(false);
 
   // Debounce ref for checklist saves
   const checklistSaveTimer = useRef(null);
@@ -6452,10 +6467,6 @@ function App() {
 
     const { data: { subscription } } = db.auth.onAuthStateChange(async (event, session) => {
       setSession(session);
-      if (event === 'PASSWORD_RECOVERY') {
-        setPasswordRecovery(true);
-        return;
-      }
       if (!session) {
         setSubmittedData(null); setChecklistState({});
         return;
@@ -6478,6 +6489,7 @@ function App() {
   const handleLogout = async () => {
     await db.auth.signOut();
     setActivePage('page1');
+    setIntroSeen(false);
   };
 
   const handleSaveProfile = async (prof) => {
@@ -6528,6 +6540,10 @@ function App() {
     setPenguinDismissed(false);
   }, [activePage, !!submittedData, submittedData?.isLocked]);
 
+  if (!introSeen) {
+    return <IntroPage onStart={() => { setIntroSeen(true); setActivePage('page1'); }} />;
+  }
+
   // Loading state while checking session
   if (session === undefined && !isGuest) {
     return (
@@ -6539,8 +6555,8 @@ function App() {
   }
 
   // Not logged in and not guest
-  if ((!session && !isGuest) || passwordRecovery) {
-    return <AuthScreen onGuest={handleGuest} recoveryMode={passwordRecovery} onRecoveryDone={() => setPasswordRecovery(false)} />;
+  if (!session && !isGuest) {
+    return <AuthScreen onGuest={handleGuest} />;
   }
 
   const user = session?.user || null;
