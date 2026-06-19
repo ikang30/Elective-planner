@@ -981,49 +981,11 @@
       .mindmap-branch { display: none; }
     }
 
-    /* ═══ PENGUIN MASCOT ═══ */
-    .penguin-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 400; display: flex; flex-direction: column; align-items: flex-end; gap: .55rem; }
-    .speech-bubble {
-      background: #fff; border: 2px solid #93c5fd; border-radius: 18px;
-      padding: .8rem 1rem; max-width: 265px; font-size: .82rem; line-height: 1.5;
-      box-shadow: 0 4px 16px rgba(99,102,241,.18); position: relative; color: var(--text);
-    }
-    .speech-bubble::after {
-      content: ''; position: absolute; bottom: -10px; right: 18px;
-      border-left: 8px solid transparent; border-right: 8px solid transparent;
-      border-top: 10px solid #93c5fd;
-    }
-    .speech-bubble::before {
-      content: ''; position: absolute; bottom: -7px; right: 19px;
-      border-left: 7px solid transparent; border-right: 7px solid transparent;
-      border-top: 9px solid #fff; z-index: 1;
-    }
-    .penguin-char { position: relative; width: 88px; height: 94px; cursor: pointer; animation: penguin-bob 1.65s ease-in-out infinite; filter: drop-shadow(0 10px 20px rgba(30,41,59,.22)); }
-    .penguin-char::before { content:'✦'; position:absolute; top:2px; left:-7px; color:#60a5fa; font-size:1rem; animation: sparkle 1.6s ease-in-out infinite; }
-    .penguin-char::after { content:'✧'; position:absolute; top:20px; right:-9px; color:#f59e0b; font-size:.95rem; animation: sparkle 1.9s ease-in-out infinite reverse; }
-    @keyframes penguin-bob { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-9px) rotate(3deg)} }
-    @keyframes sparkle { 0%,100%{opacity:.35; transform:scale(.8) rotate(0deg)} 50%{opacity:1; transform:scale(1.15) rotate(10deg)} }
-    .penguin-body { position: absolute; left: 10px; bottom: 8px; width: 68px; height: 78px; background: #172033; border-radius: 48% 48% 44% 44% / 45% 45% 55% 55%; }
-    .penguin-body::before { content:''; position:absolute; left: 7px; top: -7px; width: 54px; height: 34px; background:#172033; border-radius: 999px 999px 22px 22px; }
-    .penguin-belly { position: absolute; width: 46px; height: 54px; background: linear-gradient(180deg,#ffffff,#e0f2fe); border-radius: 50% 50% 47% 47%; top: 20px; left: 11px; box-shadow: inset 0 -8px 16px rgba(96,165,250,.16); }
-    .penguin-eye { position: absolute; width: 15px; height: 15px; background: #fff; border-radius: 50%; top: 14px; box-shadow: 0 1px 0 rgba(255,255,255,.8); }
-    .penguin-eye.l { left: 17px; } .penguin-eye.r { right: 17px; }
-    .penguin-pupil { position: absolute; width: 7px; height: 7px; background: #111827; border-radius: 50%; top: 4px; left: 4px; }
-    .penguin-pupil::after { content:''; position:absolute; width:2px; height:2px; border-radius:50%; background:#fff; top:1px; left:1px; }
-    .penguin-beak { position: absolute; top: 31px; left: 50%; transform: translateX(-50%); width: 18px; height: 12px; background:#f59e0b; border-radius: 50% 50% 65% 65%; clip-path: polygon(50% 100%, 0 0, 100% 0); }
-    .penguin-cheek { position: absolute; width: 11px; height: 7px; background: rgba(251,113,133,.48); border-radius: 50%; top: 34px; }
-    .penguin-cheek.l { left: 12px; } .penguin-cheek.r { right: 12px; }
-    .penguin-foot { position: absolute; width: 23px; height: 11px; background: #f59e0b; border-radius: 70% 70% 45% 45%; bottom: -3px; }
-    .penguin-foot.l { left: 12px; transform: rotate(4deg); } .penguin-foot.r { right: 12px; transform: rotate(-4deg); }
-    .penguin-dismiss { position: absolute; top: -10px; right: -6px; width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #fff; border: 2px solid #fff; font-size: .65rem; cursor: pointer; display: grid; place-items: center; z-index: 1; box-shadow: 0 2px 8px rgba(239,68,68,.28); }
-
     @media (max-width: 780px) {
       .form-two-col { grid-template-columns: 1fr; }
       .suggestions-grid { grid-template-columns: 1fr; }
       .grade-grid { grid-template-columns: 1fr 1fr; }
       .skills-grid { grid-template-columns: repeat(3, 1fr); }
-      .penguin-wrap { right: 12px; bottom: 14px; transform: scale(.86); transform-origin: bottom right; }
-      .speech-bubble { max-width: 240px; }
       .nav { padding: 0 1rem; gap: .75rem; }
       .map-header-row, .map-row { grid-template-columns: 140px 24px 1fr 24px 1fr; }
       .nav-email { display: none; }
@@ -1364,7 +1326,7 @@ const ALL_ELECTIVES = [
     description: 'Train your body and study how it works — links to core PE and basic Science, needs commitment and physical effort. → Personal trainer, physiotherapist, sports coach.',
     careers: ['Personal Trainer','Physiotherapist','Sports Coach','PE Teacher'],
     universities: ['University of Queensland (UQ)','Deakin University','Monash University'] },
-  { id: 'human_movement', name: 'Human Movement', category: 'pe', badge: 'badge-pe',
+  { id: 'human_movement', name: 'Sports Science', category: 'pe', badge: 'badge-pe',
     description: 'Apply science to sport and exercise performance — combines core PE with Biology concepts. → Sports scientist, physiotherapist, exercise physiologist.',
     careers: ['Sports Scientist','Physiotherapist','Exercise Physiologist','Occupational Therapist'],
     universities: ['University of Melbourne','Deakin University','University of Queensland (UQ)'] },
@@ -2676,10 +2638,10 @@ const OUTSIDE_PROGRAMS = [
     ]
   },
   {
-    "subject": "Human Movement",
+    "subject": "Sports Science",
     "title": "Victoria University Sport and Movement Science Outreach",
     "years": "Years 10-12",
-    "description": "By attending VU workshops, you get exposure to $68 million high-tech exercise physiology and biomechanics labs, heavily boosting your understanding of human movement science.",
+    "description": "By attending VU workshops, you get exposure to $68 million high-tech exercise physiology and biomechanics labs, heavily boosting your understanding of sports science.",
     "viableDate": "Programs run periodically; Open Days are usually held in August.",
     "link": "https://www.vu.edu.au/about-vu/teaching-colleges-schools/college-of-sport-health-engineering/sport-movement-science-program",
     "id": "program_68",
@@ -2691,7 +2653,7 @@ const OUTSIDE_PROGRAMS = [
     ]
   },
   {
-    "subject": "Human Movement",
+    "subject": "Sports Science",
     "title": "AIS Athlete Education Experience",
     "years": "Years 10-12",
     "description": "While full scholarships are for elite athletes, you can engage with Australian Institute of Sport educational resources and tours to understand the rigorous biomechanics behind peak physical performance.",
@@ -3951,47 +3913,6 @@ const CAREER_ELECTIVE_BOOSTS = {
 };
 
 const STEM_ALGO_CATEGORIES = new Set(['maths', 'science', 'ict', 'engineering']);
-const STEM_ENHANCEMENT_SUBJECTS = new Set([
-  'Applied Computing',
-  'Biology',
-  'Chemistry',
-  'Physics',
-  'Psychology',
-]);
-
-function getFreeElectiveStemStats(suggestions = []) {
-  const requiredUsed = { humanities: false, science: false, pe: false };
-  const freeElectives = [];
-
-  (suggestions || []).forEach(elective => {
-    if (!requiredUsed.humanities && HUMANITIES_IDS.includes(elective?.id)) {
-      requiredUsed.humanities = true;
-      return;
-    }
-    if (!requiredUsed.science && SCIENCE_IDS.includes(elective?.id)) {
-      requiredUsed.science = true;
-      return;
-    }
-    if (!requiredUsed.pe && PE_IDS.includes(elective?.id)) {
-      requiredUsed.pe = true;
-      return;
-    }
-    freeElectives.push(elective);
-  });
-
-  const stemCount = freeElectives.filter(elective => {
-    if (isEnhancementElective(elective)) {
-      return STEM_ENHANCEMENT_SUBJECTS.has(getEnhancementSubjectName(elective));
-    }
-    return STEM_ALGO_CATEGORIES.has(ELECTIVE_CAT_MAP[elective?.id] || elective?.category);
-  }).length;
-
-  return {
-    freeCount: freeElectives.length,
-    stemCount,
-    nonStemCount: freeElectives.length - stemCount,
-  };
-}
 
 function getElectiveAlgoCategory(elective) {
   if (!elective) return 'humanities';
@@ -4310,8 +4231,8 @@ function buildYear10Selection(pts, studentData = {}) {
   }
   addE(histGeoChoice, true);
 
-  // ── 2. PE for Life vs Human Movement ─────────────────────────
-  // Human Movement only for medicine/healthcare career or PE teaching context
+  // ── 2. PE for Life vs Sports Science ─────────────────────────
+  // Sports Science only for medicine/healthcare career or PE teaching context
   // (NOT chosen simply because of high grades or STEM)
   const desiredHM  = desiredElectives.includes('human_movement');
   const desiredPFL = desiredElectives.includes('pe_for_life');
@@ -5237,7 +5158,7 @@ function Page1({ user, isGuest, submittedData, onSubmit, onSaveIndicator }) {
 
           {isLocked ? (
             <div className="locked-banner">
-              🎉 Congrats! Your Year 10 electives are locked in — you&apos;re all set! Some features just unlocked too — go check them out on the other pages! Good luck! 🐧
+              🎉 Congrats! Your Year 10 electives are locked in — you&apos;re all set! Some features just unlocked too — go check them out on the other pages! Good luck!
             </div>
           ) : (
             <div className="info-banner">
@@ -6480,7 +6401,6 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [userProfile, setUserProfile] = useState({ username: '', avatar_data: null });
   const [enhancements, setEnhancements] = useState(['', '']);
-  const [penguinDismissed, setPenguinDismissed] = useState(false);
   const [introSeen, setIntroSeen] = useState(false);
 
   // Debounce ref for checklist saves
@@ -6572,10 +6492,6 @@ function App() {
     if (!hasLockedPlan && activePage !== 'page1') setActivePage('page1');
   }, [hasLockedPlan, activePage]);
 
-  useEffect(() => {
-    setPenguinDismissed(false);
-  }, [activePage, !!submittedData, submittedData?.isLocked]);
-
   if (!introSeen) {
     return <IntroPage onStart={() => { setIntroSeen(true); setActivePage('page1'); }} />;
   }
@@ -6597,25 +6513,6 @@ function App() {
 
   const user = session?.user || null;
   const initials = user?.email?.slice(0, 2).toUpperCase() || '👤';
-
-  const penguinMsg = (() => {
-    if (activePage === 'page1') {
-      if (!submittedData) return "Hi! I'm Pingu. Quick warning: my algorithm is just a rough helper, not professional advice. Fill this in, then review everything carefully!";
-      if (submittedData.isLocked) {
-        const { stemCount, nonStemCount } = getFreeElectiveStemStats(submittedData.suggestions || []);
-        if (stemCount >= 4) return "You have selected many STEM elective subjects. Great choice, but just make sure you are happy with it!";
-        if (nonStemCount >= 3) return "You have selected very few STEM elective subjects. Great choice, but make sure you are happy with it!";
-        return "🎉 Amazing! You're all locked in! Outside Programs, Career & Uni Map, Progress Checklist, Match Review and Year 11 Preview just unlocked!";
-      }
-      return "Suggestions are here, but please don't trust them blindly. Swap, use manual choices, and only lock in once the final 8 actually feel right.";
-    }
-    if (activePage === 'programs') return "Outside Programs is open now! These can help you explore subjects beyond normal classes.";
-    if (activePage === 'map') return "Career & Uni Map is open now! Use it as a rough pathway guide, not a final answer.";
-    if (activePage === 'progress') return "Progress Checklist is open now! Split your electives by semester and track what you revise.";
-    if (activePage === 'match') return "This page lets you judge the algorithm back. Drag the match bars if your real opinion changes.";
-    if (activePage === 'page3') return "This is your Year 11 preview! Click any subject area to see what's inside! 📚";
-    return '';
-  })();
 
   const handleSetSubmittedData = (data) => {
     setSubmittedData(data);
@@ -6791,26 +6688,6 @@ function App() {
           )}
         </div>
       </nav>
-
-      {/* Penguin guide */}
-      {!penguinDismissed && (
-        <div className="penguin-wrap">
-          <div className="speech-bubble">{penguinMsg}</div>
-          <div className="penguin-char">
-            <div className="penguin-body">
-              <div className="penguin-belly" />
-              <div className="penguin-eye l"><div className="penguin-pupil" /></div>
-              <div className="penguin-eye r"><div className="penguin-pupil" /></div>
-              <div className="penguin-beak" />
-              <div className="penguin-cheek l" />
-              <div className="penguin-cheek r" />
-              <div className="penguin-foot l" />
-              <div className="penguin-foot r" />
-            </div>
-            <button className="penguin-dismiss" onClick={() => setPenguinDismissed(true)}>✕</button>
-          </div>
-        </div>
-      )}
 
       {activePage === 'page1' && (
         <Page1
